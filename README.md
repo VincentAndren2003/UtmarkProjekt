@@ -1,5 +1,5 @@
 # Docker Setup Instruktioner
-För Windows och Mac: Installera Docker Desktop
+För Windows och Mac: Installera Docker Desktop 
 För Linux: Installera Docker Engine (kan också installera 
 Docker Desktop om man vill.)
 
