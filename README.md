@@ -1,5 +1,7 @@
 # Docker Setup Instruktioner
-För Windows och Mac: Installera Docker Desktop och WSL2
+För Windows: Installera Docker Desktop och WSL2
+
+För Mac: Installera bara Docker Desktop
 
 För Linux: Installera Docker Engine (kan också installera 
 Docker Desktop om man vill.)
