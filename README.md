@@ -7,7 +7,8 @@ Docker Desktop om man vill.)
 Länk: https://www.docker.com/products/docker-desktop/
 
 ### För Windows
-Gå in i Windows Powershell och skriv kommandot `wsl --install`, och vänta på att installationen blir klar. Följ sedan instruktionerna nedan.
+Gå in i Windows Powershell och skriv kommandot `wsl --install`, och vänta på att installationen blir klar. 
+
 För att gå ut ur WSL skriver man "exit" och för att starta WSL i Powershell igen så skriver man bara "WSL". Man vet att det funkar när man ser att texten som visar vart man är har ändrat färg.
 
 ### För Linux
