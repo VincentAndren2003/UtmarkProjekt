@@ -45,10 +45,11 @@ Efter detta bör du se att du är inne i något i stilen av `5fe8f4d1b1c0:/app#`
 
 Kör sedan följande kommandon för att se att du får någon output av att köra dem.
 
-`node --version`
-`tsc --version`
-`ts-node --version`
-`ts-node src/index.ts`
+```node --version
+tsc --version
+ts-node --version
+ts-node src/index.ts
+```
 
 Efter att du har bekräftat att alla kommandon fungerar kan du skriva, `exit`, för att gå ur containern.
 
