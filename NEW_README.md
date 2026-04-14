@@ -174,3 +174,6 @@ Recommended next steps:
 
 - Quick checklist: [`GETTING_STARTED.md`](GETTING_STARTED.md)
 - Collaboration rules: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Git and GitHub workflow: [`README_GITHUB_WORKFLOW.md`](README_GITHUB_WORKFLOW.md)
+- TypeScript for Java developers: [`README_TYPESCRIPT_FOR_JAVA.md`](README_TYPESCRIPT_FOR_JAVA.md)
+- Terminal commands (macOS + Windows): [`README_TERMINAL_COMMANDS_MAC_WINDOWS.md`](README_TERMINAL_COMMANDS_MAC_WINDOWS.md)
