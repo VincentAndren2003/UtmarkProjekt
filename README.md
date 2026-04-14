@@ -76,3 +76,14 @@ Efter det bör du se en flik som heter "utmarkDatabas", om du kan se den så är
 Sedan när du är klar kan du skriva `docker compose down` för att stänga alla containers och då avsluta de lokal hostade servrarna.
 
 Alternativt stoppa genom Docker Desktop vyn. Gå in på "container" fliken och sedan tryck på "Stop" till höger på den aktiva containern.
+
+--- 
+
+# Automatiskt Formatering
+När du är klar med att sätta upp docker så kan du öppna en terminal i "app" mappen av projektet, eller navigera dit manuellt genom en terminal.
+
+Skriv sedan kommandot `npm install` för att installera automatisk formatering vid commits.
+
+Viktigt är att du har Node.js installerat annars kommer datorn inte känna igen kommandot `npm`. 
+
+Länk till Node.js: https://nodejs.org/en/download/current
