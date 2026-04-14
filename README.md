@@ -1,6 +1,8 @@
 # Utmark Project Structure (Simple Guide)
 
-This README explains the folder structure in a clear way
+This README explains the folder structure in a clear way.
+
+**New to the project?** Start with the step-by-step setup guide: [`docs/ONBOARDING_BEGINNER.md`](docs/ONBOARDING_BEGINNER.md).
 
 ## Quick overview
 
@@ -57,6 +59,7 @@ UtmarkProjekt/
 │  └─ README.md                   # Docker-specific setup instructions
 │
 ├─ docs/                          # Team docs and onboarding guides
+│  ├─ ONBOARDING_BEGINNER.md      # Full beginner install + first run (read this first)
 │  ├─ README_GITHUB_WORKFLOW.md
 │  ├─ README_TYPESCRIPT_FOR_JAVA.md
 │  ├─ README_TERMINAL_COMMANDS_MAC_WINDOWS.md
