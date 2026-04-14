@@ -22,25 +22,25 @@ Följ dessa instruktioner: https://docs.docker.com/engine/install/fedora/
 Öppna en terminal och klona repot till en mapp där du vill ha projektet.
 `git clone https://github.com/VincentAndren2003/UtmarkProjekt.git`
 
-Navigera sedan till den klonade mappen och in i "app" mappen.
+Navigera sedan till den klonade mappen och in i `docker` mappen (där `docker-compose.yml` ligger).
 
-`cd utmarkprojekt/app/`
+`cd UtmarkProjekt/docker`
 
-Alternativt kan man öppna en terminalen i "app" mappen genom, till exempel, utforskaren på Windows.
+Alternativt kan man öppna en terminal i `docker` mappen genom utforskaren på Windows.
 
 ---
 
 ## Förberedande av server
-Innan du bygger miljön behöver du skapa en .env fil, det finns redan en template för vad som behöver finnas. 
+Innan du bygger miljön behöver du skapa en `.env` fil i **`docker/`** mappen. Det finns en mall: `.env.example`.
 
-I terminalen kan du skriva `cp .env.example .env` för att kopiera innehållet och lägga det i en .env fil. Filen bestämmer saker angående databas servern. 
+I terminalen (inne i `docker/`) kan du skriva `cp .env.example .env` och redigera vid behov. Filen styr databasens namn, användare och lösenord för Docker Compose. 
 
 Om man vill byta lösenord till sin databas så kan man redigera .env filen. Annars är databas lösenordet "hemligt".
 
 ---
 
 ## Bygga miljön
-När du är i mappen "app", skriv följande kommando:
+När du är i mappen `docker`, skriv följande kommando:
 `docker compose up -d --build`
 
 Detta kommer att bygga och slänga upp en lokal server. Testa sedan så att allt fungerar genom följande kommandon:
@@ -56,8 +56,9 @@ Kör sedan följande kommandon för att se att du får någon output av att kör
 ```node --version
 tsc --version
 ts-node --version
-ts-node src/index.ts
 ```
+
+Mobilappen körs med **Expo** på din dator (se repo-roten `README.md` och `apps/mobile/README.md`), inte via `ts-node` i containern.
 
 Efter att du har bekräftat att alla kommandon fungerar kan du skriva, `exit`, för att gå ur containern.
 
@@ -80,9 +81,7 @@ Alternativt stoppa genom Docker Desktop vyn. Gå in på "container" fliken och s
 --- 
 
 # Automatiskt Formatering
-När du är klar med att sätta upp docker så kan du öppna en terminal i "app" mappen av projektet, eller navigera dit manuellt genom en terminal.
-
-Skriv sedan kommandot `npm install` för att installera automatisk formatering vid commits.
+För formattering i mobilappen: öppna en terminal i `apps/mobile` och kör `npm install` där (Expo-projektet). Husky/lint-staged kan läggas till senare om teamet vill.
 
 Viktigt är att du har Node.js installerat annars kommer datorn inte känna igen kommandot `npm`. 
 

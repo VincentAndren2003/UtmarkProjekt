@@ -1,23 +1,22 @@
 {
-  "type": "module",
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "prepare": "node setup-husky.js",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
   },
-  "lint-staged": {
-    "**/*.{ts,tsx,json,css,md}": "prettier --write"
+  "dependencies": {
+    "expo": "~54.0.33",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "husky": "^9.0.0",
-    "lint-staged": "^15.0.0",
-    "nodemon": "^3.0.0",
-    "prettier": "^3.0.0",
-    "ts-node": "^10.0.0",
-    "typescript": "^5.0.0"
-  }
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
 }

@@ -1,6 +1,6 @@
 # Utmark Project Structure (Simple Guide)
 
-This README explains the folder structure in a clear way so new collaborators know exactly where to work.
+This README explains the folder structure in a clear way
 
 ## Quick overview
 
@@ -9,6 +9,16 @@ This README explains the folder structure in a clear way so new collaborators kn
 - Shared types are in `packages/types`
 - Docker files are in `docker`
 - Team documentation is in `docs`
+
+## Run the mobile app (Expo)
+
+```bash
+cd apps/mobile
+npm install
+npm start
+```
+
+Then press `i` (iOS Simulator), `a` (Android), or scan the QR code with **Expo Go**. See `apps/mobile/README.md` for details.
 
 ## Folder structure
 
