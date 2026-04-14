@@ -41,7 +41,7 @@ Om man vill byta lösenord till sin databas så kan man redigera .env filen. Ann
 
 ## Bygga miljön
 När du är i mappen "app", skriv följande kommando:
-`docker compose up --build`
+`docker compose up -d --build`
 
 Detta kommer att bygga och slänga upp en lokal server. Testa sedan så att allt fungerar genom följande kommandon:
 `docker compose exec app /bin/bash`
