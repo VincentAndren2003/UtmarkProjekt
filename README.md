@@ -1,89 +1,75 @@
-# Docker Setup Instruktioner
-För Windows: Installera Docker Desktop och WSL2
+# Utmark Project Structure (Simple Guide)
 
-För Mac: Installera bara Docker Desktop
+This README explains the folder structure in a clear way so new collaborators know exactly where to work.
 
-För Linux: Installera Docker Engine (kan också installera 
-Docker Desktop om man vill.)
+## Quick overview
 
-Länk: https://www.docker.com/products/docker-desktop/
+- Frontend code is in `apps/mobile`
+- Backend code is in `apps/api`
+- Shared types are in `packages/types`
+- Docker files are in `docker`
+- Team documentation is in `docs`
 
-### För Windows
-Gå in i Windows Powershell och skriv kommandot `wsl --install`, och vänta på att installationen blir klar. 
+## Folder structure
 
-För att gå ut ur WSL skriver man "exit" och för att starta WSL i Powershell igen så skriver man bara "WSL". Man vet att det funkar när man ser att texten som visar vart man är har ändrat färg.
-
-### För Linux
-Följ dessa instruktioner: https://docs.docker.com/engine/install/fedora/
-
----
-
-## Navigera
-Öppna en terminal och klona repot till en mapp där du vill ha projektet.
-`git clone https://github.com/VincentAndren2003/UtmarkProjekt.git`
-
-Navigera sedan till den klonade mappen och in i "app" mappen.
-
-`cd utmarkprojekt/app/`
-
-Alternativt kan man öppna en terminalen i "app" mappen genom, till exempel, utforskaren på Windows.
-
----
-
-## Förberedande av server
-Innan du bygger miljön behöver du skapa en .env fil, det finns redan en template för vad som behöver finnas. 
-
-I terminalen kan du skriva `cp .env.example .env` för att kopiera innehållet och lägga det i en .env fil. Filen bestämmer saker angående databas servern. 
-
-Om man vill byta lösenord till sin databas så kan man redigera .env filen. Annars är databas lösenordet "hemligt".
-
----
-
-## Bygga miljön
-När du är i mappen "app", skriv följande kommando:
-`docker compose up -d --build`
-
-Detta kommer att bygga och slänga upp en lokal server. Testa sedan så att allt fungerar genom följande kommandon:
-`docker compose exec app /bin/bash`
-
----
-
-## Testa så att container fungerar
-Efter detta bör du se att du är inne i något i stilen av `5fe8f4d1b1c0:/app#`, behöver inte var exakt matchning. Detta betyder att du är inne i containern.
-
-Kör sedan följande kommandon för att se att du får någon output av att köra dem.
-
-```node --version
-tsc --version
-ts-node --version
-ts-node src/index.ts
+```text
+UtmarkProjekt/
+├─ apps/                          # Application code (frontend + backend)
+│  ├─ mobile/                     # Frontend (React Native + Expo + TypeScript)
+│  │  ├─ src/                     # Mobile app source code
+│  │  │  ├─ screens/              # App screens (Login, Map, Profile, etc.)
+│  │  │  ├─ components/           # Reusable UI parts
+│  │  │  ├─ navigation/           # Navigation setup
+│  │  │  ├─ services/             # Calls to backend/Supabase
+│  │  │  ├─ hooks/                # Reusable React hooks
+│  │  │  ├─ utils/                # Helper functions
+│  │  │  └─ types/                # Mobile-only types
+│  │  ├─ package.json             # Frontend dependencies/scripts
+│  │  └─ tsconfig.json            # Frontend TypeScript config
+│  │
+│  └─ api/                        # Backend (TypeScript API)
+│     ├─ src/
+│     │  ├─ main.ts               # Backend entrypoint
+│     │  ├─ modules/              # Feature modules (auth, routes, etc.)
+│     │  ├─ middleware/           # Request/auth middleware
+│     │  ├─ services/             # Business logic layer
+│     │  ├─ repositories/         # Database access layer
+│     │  └─ utils/                # Backend helpers
+│     ├─ package.json             # Backend dependencies/scripts
+│     └─ tsconfig.json            # Backend TypeScript config
+│
+├─ packages/                      # Shared code used by multiple apps
+│  └─ types/                      # Shared TypeScript types (frontend + backend)
+│
+├─ docker/                        # Docker setup files
+│  ├─ Dockerfile
+│  ├─ docker-compose.yml
+│  └─ README.md                   # Docker-specific setup instructions
+│
+├─ docs/                          # Team docs and onboarding guides
+│  ├─ README_GITHUB_WORKFLOW.md
+│  ├─ README_TYPESCRIPT_FOR_JAVA.md
+│  ├─ README_TERMINAL_COMMANDS_MAC_WINDOWS.md
+│  ├─ README_PROJECT_STRUCTURE_AND_TOOLS.md
+│  └─ README_SIMPLE_PROJECT_STRUCTURE.md
+│
+├─ .github/workflows/             # GitHub Actions CI workflows
+├─ .gitignore                     # Git ignore rules
+└─ .env.example                   # Environment template (if present at root)
 ```
 
-Efter att du har bekräftat att alla kommandon fungerar kan du skriva, `exit`, för att gå ur containern.
+## Where should I code?
 
----
+- Working on app UI/screens? -> `apps/mobile/src`
+- Working on backend logic/API? -> `apps/api/src`
+- Adding shared request/response types? -> `packages/types`
+- Updating setup/help docs? -> `docs`
+- Updating local containers/services? -> `docker`
 
-## Testa logga in på databas
-Nu kan du testa att logga in på http://localhost:5050 i din browser. Användar namn bör vara "admin@admin.com" och lösen ord bör vara "admin. Om du inte får upp en hemsida så kan det vara så att servern inte är helt uppe ännu, ge den några min för att starta och testa igen.
+## Team rule of thumb
 
-Här inne bör du se en flik uppe till vänster som heter "Servers" tryck på pilen brevid den och skriv sedan in lösenordet som du skrev i .env filen (eller "hemligt" om du inte gjorde några ändringar).
-
-Efter det bör du se en flik som heter "utmarkDatabas", om du kan se den så är setup av utvecklings miljön klar.
-
---- 
-
-## Klar
-Sedan när du är klar kan du skriva `docker compose down` för att stänga alla containers och då avsluta de lokal hostade servrarna.
-
-Alternativt stoppa genom Docker Desktop vyn. Gå in på "container" fliken och sedan tryck på "Stop" till höger på den aktiva containern.
-
---- 
-
-# Automatiskt Formatering
-När du är klar med att sätta upp docker så kan du öppna en terminal i "app" mappen av projektet, eller navigera dit manuellt genom en terminal.
-
-Skriv sedan kommandot `npm install` för att installera automatisk formatering vid commits.
-
-Viktigt är att du har Node.js installerat annars kommer datorn inte känna igen kommandot `npm`. 
-
-Länk till Node.js: https://nodejs.org/en/download/current
+- Frontend work goes in `apps/mobile`
+- Backend work goes in `apps/api`
+- Shared data models go in `packages/types`
+- Keep docs in `docs`
+- Keep Docker files in `docker`
