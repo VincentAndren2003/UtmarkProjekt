@@ -7,6 +7,6 @@ RUN npm install -g \
     ts-node \
     nodemon
 
-WORKDIR /app
+WORKDIR /apps/api
 
 CMD ["/bin/bash"]

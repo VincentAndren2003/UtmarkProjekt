@@ -1,0 +1,11 @@
+{
+  "name": "utmarkprojekt",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages"
+  ],
+  "devDependencies": {
+    "prettier": "^3.x.x"
+  }
+}
