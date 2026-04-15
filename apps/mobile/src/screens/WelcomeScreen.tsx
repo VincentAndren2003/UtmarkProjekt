@@ -1,4 +1,4 @@
-import { Button, StyleSheet, View, Text } from "react-native";
+import { Button, StyleSheet, View, Text } from 'react-native';
 
 type Props = {
   onBack: () => void;
@@ -17,16 +17,16 @@ export function WelcomeScreen({ onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   welcome: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
   },
   tag: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });
