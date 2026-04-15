@@ -2,7 +2,7 @@
   "name": "utmarkprojekt",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/api",
     "packages"
   ],
   "devDependencies": {
