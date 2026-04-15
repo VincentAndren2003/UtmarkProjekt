@@ -9,16 +9,15 @@ export function HomeScreen({ onGoWelcome }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>Utmark</Text>
       <Text style={styles.subtitle}>Expo + TypeScript is ready.</Text>
-      <Text style={styles.hint}>Add screens under src/screens and wire navigation next.</Text>
+      <Text style={styles.hint}>
+        Add screens under src/screens and wire navigation next.
+      </Text>
       <View style={styles.buttonWrap}>
         <Button title="Next" onPress={onGoWelcome} />
       </View>
     </View>
   );
 }
-
-
-
 
 const styles = StyleSheet.create({
   container: {

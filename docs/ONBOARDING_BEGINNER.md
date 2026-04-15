@@ -62,7 +62,7 @@ You should see version numbers, not “command not found”.
 
 ### 3) Code editor: Cursor or VS Code
 
-- **Cursor:** [https://cursor.com](https://cursor.com)  
+- **Cursor:** [https://cursor.com](https://cursor.com)
 - **VS Code:** [https://code.visualstudio.com](https://code.visualstudio.com)
 
 **Why:** Edit project files and use an integrated terminal.
@@ -71,7 +71,7 @@ You should see version numbers, not “command not found”.
 
 ### 4) Expo Go on your phone (optional but very useful)
 
-- iPhone: App Store → search **Expo Go**  
+- iPhone: App Store → search **Expo Go**
 - Android: Play Store → **Expo Go**
 
 **Why:** Scan the QR code from the dev server to run the app on a real device without Simulator.
@@ -82,9 +82,9 @@ You should see version numbers, not “command not found”.
 
 You need **full Xcode** from the App Store (large download).
 
-1. Open **App Store** → search **Xcode** → Install.  
-2. Open **Xcode** once; accept license if asked.  
-3. **Xcode → Settings → Platforms** (or **Components** on older Xcode): download an **iOS Simulator** runtime if offered.  
+1. Open **App Store** → search **Xcode** → Install.
+2. Open **Xcode** once; accept license if asked.
+3. **Xcode → Settings → Platforms** (or **Components** on older Xcode): download an **iOS Simulator** runtime if offered.
 4. **Window → Devices and Simulators → Simulators → +** → create an **iPhone** simulator.
 
 **Why:** Expo’s `i` shortcut needs at least one bootable iOS simulator. If none exists, you see: `No iOS devices available in Simulator.app`.
@@ -103,7 +103,7 @@ You should see iPhone entries.
 
 If you do not use a physical Android phone:
 
-1. Install **Android Studio** from [https://developer.android.com/studio](https://developer.android.com/studio)  
+1. Install **Android Studio** from [https://developer.android.com/studio](https://developer.android.com/studio)
 2. Open Android Studio → **More Actions → Virtual Device Manager** → create a **Pixel** (or any) device → download a system image if asked → finish.
 
 **Why:** Expo’s `a` opens the app on the Android emulator.
@@ -155,15 +155,15 @@ npm start
 
 **What happens:**
 
-- `cd apps/mobile` — enter the mobile app folder.  
-- `npm install` — downloads dependencies (first time can take a few minutes).  
+- `cd apps/mobile` — enter the mobile app folder.
+- `npm install` — downloads dependencies (first time can take a few minutes).
 - `npm start` — starts the Expo dev server; you see a QR code and a menu.
 
 **Then, in that same terminal** (where `npm start` is running):
 
-- Press **`i`** — open **iOS Simulator** (**Mac + Xcode only**).  
-- Press **`a`** — open **Android emulator** (if installed and running).  
-- Press **`w`** — open **web** (if the project supports it).  
+- Press **`i`** — open **iOS Simulator** (**Mac + Xcode only**).
+- Press **`a`** — open **Android emulator** (if installed and running).
+- Press **`w`** — open **web** (if the project supports it).
 - Or scan the **QR code** with **Expo Go** on your phone (same Wi‑Fi as the computer).
 
 **If the phone cannot connect**, stop with `Ctrl+C` and try:
@@ -245,13 +245,13 @@ Then open a **Pull Request** on GitHub into `main` (see [`README_GITHUB_WORKFLOW
 
 ## Part L — Where to work in this repo
 
-| What you do | Where |
-|-------------|--------|
-| Mobile UI, screens, app logic | `apps/mobile` (especially `src/`) |
-| Backend API (when implemented) | `apps/api` |
-| Shared types | `packages/types` |
-| Team guides | `docs/` |
-| Docker / local DB | `docker/` |
+| What you do                    | Where                             |
+| ------------------------------ | --------------------------------- |
+| Mobile UI, screens, app logic  | `apps/mobile` (especially `src/`) |
+| Backend API (when implemented) | `apps/api`                        |
+| Shared types                   | `packages/types`                  |
+| Team guides                    | `docs/`                           |
+| Docker / local DB              | `docker/`                         |
 
 Root [`README.md`](../README.md) is the short map of the repo.
 
@@ -259,29 +259,29 @@ Root [`README.md`](../README.md) is the short map of the repo.
 
 ## Part M — Troubleshooting (short)
 
-| Problem | What to try |
-|---------|-------------|
-| `npm: command not found` | Install Node LTS, restart terminal. |
-| `No iOS devices available` (Mac) | Xcode: download Simulator runtime; Devices and Simulators → create + boot an iPhone. |
-| Phone won’t load app | Same Wi‑Fi; try `npx expo start --tunnel`. |
-| Old `expo-cli` warnings | Use project’s `npm start` / `npx expo start`; uninstall global `expo-cli` if installed. |
+| Problem                          | What to try                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| `npm: command not found`         | Install Node LTS, restart terminal.                                                     |
+| `No iOS devices available` (Mac) | Xcode: download Simulator runtime; Devices and Simulators → create + boot an iPhone.    |
+| Phone won’t load app             | Same Wi‑Fi; try `npx expo start --tunnel`.                                              |
+| Old `expo-cli` warnings          | Use project’s `npm start` / `npx expo start`; uninstall global `expo-cli` if installed. |
 
 ---
 
 ## Part N — Minimum “day one” checklist
 
-1. Install **Git**, **Node LTS**, **Cursor/VS Code**.  
-2. On **Mac**: install **Xcode** if you want iOS Simulator.  
-3. `git clone` → `cd UtmarkProjekt`.  
-4. `cd apps/mobile` → `npm install` → `npm start`.  
-5. Press **`i`** (Mac) or scan QR with **Expo Go**, or **`a`** on Android.  
+1. Install **Git**, **Node LTS**, **Cursor/VS Code**.
+2. On **Mac**: install **Xcode** if you want iOS Simulator.
+3. `git clone` → `cd UtmarkProjekt`.
+4. `cd apps/mobile` → `npm install` → `npm start`.
+5. Press **`i`** (Mac) or scan QR with **Expo Go**, or **`a`** on Android.
 6. Use a **feature branch** + **PR** for real changes.
 
 ---
 
 ## Related docs
 
-- [README_GITHUB_WORKFLOW.md](README_GITHUB_WORKFLOW.md) — branches, PRs, merge  
-- [README_TERMINAL_COMMANDS_MAC_WINDOWS.md](README_TERMINAL_COMMANDS_MAC_WINDOWS.md) — terminal basics  
-- [README_TYPESCRIPT_FOR_JAVA.md](README_TYPESCRIPT_FOR_JAVA.md) — TypeScript primer  
-- [`apps/mobile/README.md`](../apps/mobile/README.md) — Expo run commands  
+- [README_GITHUB_WORKFLOW.md](README_GITHUB_WORKFLOW.md) — branches, PRs, merge
+- [README_TERMINAL_COMMANDS_MAC_WINDOWS.md](README_TERMINAL_COMMANDS_MAC_WINDOWS.md) — terminal basics
+- [README_TYPESCRIPT_FOR_JAVA.md](README_TYPESCRIPT_FOR_JAVA.md) — TypeScript primer
+- [`apps/mobile/README.md`](../apps/mobile/README.md) — Expo run commands

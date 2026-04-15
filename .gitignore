@@ -29,8 +29,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-.husky/
-
 # Coverage (test)
 coverage/
 
