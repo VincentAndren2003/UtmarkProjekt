@@ -1,16 +1,24 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
 
-export function HomeScreen() {
+type Props = {
+  onGoWelcome: () => void;
+};
+
+export function HomeScreen({ onGoWelcome }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Utmark</Text>
       <Text style={styles.subtitle}>Expo + TypeScript is ready.</Text>
       <Text style={styles.hint}>Add screens under src/screens and wire navigation next.</Text>
-      <StatusBar style="auto" />
+      <View style={styles.buttonWrap}>
+        <Button title="Next" onPress={onGoWelcome} />
+      </View>
     </View>
   );
 }
+
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -34,5 +42,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     textAlign: "center",
+  },
+  buttonWrap: {
+    marginTop: 20,
+    minWidth: 140,
   },
 });
