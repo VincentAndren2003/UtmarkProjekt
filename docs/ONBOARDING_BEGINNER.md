@@ -141,6 +141,7 @@ Use the **real repo URL** your team gives you if it differs.
 - Cursor / VS Code: **File → Open Folder** → select the **`UtmarkProjekt`** folder (the repo root).
 
 **Why:** You see `README.md`, `apps/`, `docs/`, etc. in one place.
+
 **Also** run `npm install` in the main project folder. You can do this via the integrated terminal in your editor. 
 This will make sure that automatic formatting of the code is done when you do a commit. 
 
