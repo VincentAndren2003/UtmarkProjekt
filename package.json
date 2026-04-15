@@ -1,10 +1,6 @@
 {
   "name": "utmarkprojekt",
   "private": true,
-  "workspaces": [
-    "apps/api",
-    "packages"
-  ],
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
