@@ -1,13 +1,13 @@
 {
-    "Servers": {
-        "1": {
-            "Name": "utmarkDatabas",
-            "Group": "Servers",
-            "Host": "databas",
-            "Port": 5432,
-            "MaintenanceDB": "utmarkDatabas",
-            "Username": "admin",
-            "SSLMode": "prefer"
-        }
+  "Servers": {
+    "1": {
+      "Name": "utmarkDatabas",
+      "Group": "Servers",
+      "Host": "databas",
+      "Port": 5432,
+      "MaintenanceDB": "utmarkDatabas",
+      "Username": "admin",
+      "SSLMode": "prefer"
     }
+  }
 }

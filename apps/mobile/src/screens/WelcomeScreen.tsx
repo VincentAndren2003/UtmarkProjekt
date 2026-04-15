@@ -1,4 +1,4 @@
-import { Button, StyleSheet,View, Text } from "react-native";
+import { Button, StyleSheet, View, Text } from "react-native";
 
 type Props = {
   onBack: () => void;

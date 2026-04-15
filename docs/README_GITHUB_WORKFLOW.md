@@ -55,6 +55,7 @@ git checkout -b feat/add-capture-validation
 This creates a branch and switches to it immediately.
 
 Name pattern suggestions:
+
 - `feat/what-you-are-building`
 - `fix/what-you-are-fixing`
 - `docs/what-you-are-documenting`
@@ -73,6 +74,7 @@ This should show your new branch (for example `feat/add-capture-validation`).
 Make your changes in Cursor or another IDE, then return to terminal.
 
 IDE checks:
+
 - Bottom status bar usually shows current branch name
 - Source control panel shows changed files
 
@@ -119,6 +121,7 @@ git commit -m "feat: add capture validation service"
 This saves a snapshot of staged changes in your current branch.
 
 Good commit type prefixes:
+
 - `feat:` new behavior
 - `fix:` bug fix
 - `docs:` documentation only
@@ -146,6 +149,7 @@ This sends your latest local commits to the same remote branch.
 ### 12. Open a pull request (PR) to get code into `main`
 
 Option A (GitHub website):
+
 1. Open the repo on GitHub
 2. Click **Compare & pull request** on your branch
 3. Set base = `main`, compare = your branch
@@ -259,6 +263,7 @@ git status
 ## 7) Merge to `main` (maintainer flow)
 
 Recommended through GitHub UI:
+
 - Click **Merge pull request** (or **Squash and merge** based on team preference)
 
 Then sync local:
@@ -285,6 +290,7 @@ git push origin --delete feat/short-description
 ### Problem: pushed to wrong branch
 
 If not committed yet:
+
 ```bash
 git stash
 git checkout correct-branch
@@ -292,6 +298,7 @@ git stash pop
 ```
 
 If committed on wrong branch:
+
 ```bash
 git checkout wrong-branch
 git log --oneline -n 3

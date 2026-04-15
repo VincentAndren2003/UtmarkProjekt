@@ -27,6 +27,7 @@ git status
 ```
 
 What this does:
+
 - `cd ...` enters your project folder.
 - `pwd` confirms the current absolute path.
 - `ls -la` lists files including hidden files (like `.gitignore`).
@@ -36,6 +37,7 @@ What this does:
 ## A2) Terminal basics you need every day
 
 Understand prompt and paths:
+
 - `~` means your home directory.
 - `.` means current folder.
 - `..` means parent folder.
@@ -52,6 +54,7 @@ history
 ```
 
 What this does:
+
 - `whoami` prints your current OS username.
 - `history` prints previous commands so you can repeat reliable steps.
 
@@ -68,6 +71,7 @@ rm docs/notes-renamed.md
 ```
 
 What this does:
+
 - `mkdir` creates folders.
 - `touch` creates an empty file.
 - `cp` copies files.
@@ -75,6 +79,7 @@ What this does:
 - `rm` deletes files.
 
 Before you run destructive commands:
+
 - Always run `pwd`.
 - Use `ls` on the target folder first.
 - Avoid `rm -rf` unless you are certain about the path.
@@ -89,11 +94,13 @@ cat package.json
 ```
 
 What this does:
+
 - `rg` finds matching text in files very quickly.
 - `less` opens a scrollable viewer for longer files.
 - `cat` prints whole file content directly to terminal.
 
 Tip:
+
 - Prefer `rg` over slow manual searching when debugging.
 
 ## A5) Processes, ports, and troubleshooting
@@ -106,12 +113,14 @@ kill -9 12345
 ```
 
 What this does:
+
 - `ps aux` lists running processes.
 - `lsof -i :3000` shows what is using port 3000.
 - `kill 12345` sends a normal stop signal.
 - `kill -9 12345` force-kills only when normal kill fails.
 
 Common issue:
+
 - “Port already in use” -> find process with `lsof -i :3000`, then stop it.
 
 ## A6) Environment variables (temporary vs persistent)
@@ -124,10 +133,12 @@ echo $API_URL
 ```
 
 What this does:
+
 - `export` sets variable for this shell session.
 - `echo` verifies it.
 
 Persistent (future sessions):
+
 - Add `export API_URL="http://localhost:3000"` to `~/.zshrc` (or `~/.bashrc`), then restart terminal.
 
 ## A7) Networking and package commands
@@ -141,6 +152,7 @@ npm run dev
 ```
 
 What this does:
+
 - `ping` checks network reachability.
 - `curl -I` fetches HTTP headers to check endpoint health.
 - `npm/pnpm install` installs dependencies.
@@ -160,11 +172,13 @@ git push -u origin feat/short-task-name
 ```
 
 What this does:
+
 - Starts from updated `main`.
 - Creates isolated feature branch.
 - Commits and pushes your work for PR review.
 
 Collaboration tip:
+
 - Keep branches short-lived and focused on one topic.
 
 ## A9) macOS/Linux common mistakes and fixes
@@ -201,6 +215,7 @@ git status
 ```
 
 What this does:
+
 - `Get-Location` confirms current path.
 - `Get-ChildItem -Force` lists files including hidden ones.
 - Git commands confirm branch and changes.
@@ -227,6 +242,7 @@ doskey /history
 ```
 
 What this does:
+
 - Helps you navigate safely and reuse known-good commands.
 
 ## B3) Navigation and file/folder operations
@@ -254,9 +270,11 @@ del docs\notes-renamed.md
 ```
 
 What this does:
+
 - Same workflow as macOS/Linux: create, copy, rename, delete.
 
 Before you run destructive commands:
+
 - Confirm location with `Get-Location` (or `cd` in CMD).
 - Inspect target with `Get-ChildItem` or `dir`.
 - Avoid recursive forced delete unless needed.
@@ -279,6 +297,7 @@ type README_TYPESCRIPT_FOR_JAVA.md
 ```
 
 What this does:
+
 - `rg` is still the fastest codebase text search.
 - `Get-Content` and `type` print file content.
 
@@ -301,9 +320,11 @@ taskkill /PID 12345 /F
 ```
 
 What this does:
+
 - Find active processes, inspect used ports, stop stuck tasks.
 
 Common issue:
+
 - “Port already in use” -> find PID from connection list, then stop process.
 
 ## B6) Environment variables (temporary vs persistent)
@@ -323,6 +344,7 @@ echo %API_URL%
 ```
 
 Persistent:
+
 - Use Windows System Settings -> Environment Variables, then open a new terminal.
 
 ## B7) Networking and package commands
@@ -336,6 +358,7 @@ npm run dev
 ```
 
 What this does:
+
 - Checks network and installs/starts project dependencies.
 
 ## B8) Git workflow in terminal (team-safe sequence)
@@ -352,6 +375,7 @@ git push -u origin feat/short-task-name
 ```
 
 What this does:
+
 - Same safe team workflow as macOS/Linux.
 
 ## B9) Windows common mistakes and fixes
@@ -378,6 +402,7 @@ What this does:
 7. Review comments, update branch, and re-push.
 
 Why this works:
+
 - Everyone sees reproducible, reviewable changes.
 - Small branches reduce merge conflict risk.
 
@@ -392,6 +417,7 @@ npm test
 ```
 
 What this does:
+
 - Shows current state, exact changes, and recent commit context.
 - Verifies quality checks before pushing.
 
@@ -405,24 +431,26 @@ What this does:
 ## C4) Destructive command warning list
 
 Review carefully before running:
+
 - macOS/Linux: `rm -rf ...`
 - PowerShell: `Remove-Item ... -Recurse -Force`
 - CMD: `rmdir /s /q ...`
 
 Rule:
+
 - If unsure, list files first and ask a teammate before deleting recursively.
 
 ---
 
 ## Part D: Cross-platform quick map
 
-| Task | macOS/Linux | Windows PowerShell | Windows CMD |
-|---|---|---|---|
-| Show current folder | `pwd` | `Get-Location` | `cd` |
-| List all files | `ls -la` | `Get-ChildItem -Force` | `dir /a` |
-| Find text in project | `rg "text"` | `rg "text"` | `rg "text"` |
-| Show process using port 3000 | `lsof -i :3000` | `Get-NetTCPConnection -LocalPort 3000` | `netstat -ano \| findstr :3000` |
-| Stop process by PID | `kill 12345` | `Stop-Process -Id 12345` | `taskkill /PID 12345 /F` |
-| Set temp environment variable | `export KEY=value` | `$env:KEY = "value"` | `set KEY=value` |
+| Task                          | macOS/Linux        | Windows PowerShell                     | Windows CMD                     |
+| ----------------------------- | ------------------ | -------------------------------------- | ------------------------------- |
+| Show current folder           | `pwd`              | `Get-Location`                         | `cd`                            |
+| List all files                | `ls -la`           | `Get-ChildItem -Force`                 | `dir /a`                        |
+| Find text in project          | `rg "text"`        | `rg "text"`                            | `rg "text"`                     |
+| Show process using port 3000  | `lsof -i :3000`    | `Get-NetTCPConnection -LocalPort 3000` | `netstat -ano \| findstr :3000` |
+| Stop process by PID           | `kill 12345`       | `Stop-Process -Id 12345`               | `taskkill /PID 12345 /F`        |
+| Set temp environment variable | `export KEY=value` | `$env:KEY = "value"`                   | `set KEY=value`                 |
 
 Use this document as a training reference for new collaborators and as a quick refresher for everyday terminal work.

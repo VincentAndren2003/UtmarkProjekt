@@ -3,6 +3,7 @@
 This guide is for teams that already know Java and want to be productive in TypeScript quickly.
 
 Learning flow:
+
 1. Understand what TypeScript is
 2. Set up a project and know why each command exists
 3. Build and run your first app
@@ -15,6 +16,7 @@ Learning flow:
 - Type information is checked at compile time, then removed at runtime
 
 Java analogy:
+
 - Java compiler -> bytecode for JVM
 - TypeScript compiler (`tsc`) -> JavaScript for Node/browser
 
@@ -28,6 +30,7 @@ cd ts-starter
 ```
 
 Why:
+
 - `mkdir` creates a clean project folder.
 - `cd` enters it so all next commands affect this project.
 
@@ -38,17 +41,21 @@ npm init -y
 ```
 
 What this does:
+
 - Creates `package.json` in the current folder.
 - `package.json` stores project name, version, scripts, and dependencies.
 
 What `-y` means:
+
 - `-y` means "yes to defaults".
 - npm skips interactive questions and uses default values.
 
 When to use `-y`:
+
 - You want quick setup and can edit `package.json` later.
 
 When not to use `-y`:
+
 - You want to choose name/description/entry manually during init.
 - In that case, run `npm init` without `-y`.
 
@@ -59,11 +66,13 @@ npm install --save-dev typescript ts-node @types/node
 ```
 
 Why each package:
+
 - `typescript`: the compiler (`tsc`) and type-checker.
 - `ts-node`: runs `.ts` directly in development (no manual compile step).
 - `@types/node`: TypeScript types for Node APIs (`process`, `fs`, etc).
 
 Why `--save-dev`:
+
 - These are development tools, not runtime app libraries.
 - They are saved under `devDependencies` in `package.json`.
 
@@ -74,10 +83,12 @@ npx tsc --init
 ```
 
 What this does:
+
 - Creates `tsconfig.json`.
 - `tsconfig.json` controls how TypeScript compiles and type-checks code.
 
 Why `npx`:
+
 - Runs local project binaries from `node_modules/.bin`.
 - Keeps tooling version consistent across collaborators.
 
@@ -100,6 +111,7 @@ Use strict mode early to catch bugs:
 ```
 
 Why:
+
 - This is closest to Java-like safety expectations.
 
 ## 3) First app walkthrough (empty folder -> running output)
@@ -131,6 +143,7 @@ console.log(greet("Utmark Team"));
 ```
 
 Why:
+
 - Shows typed parameters and return type.
 - Mirrors Java method signatures but in TS syntax.
 
@@ -141,6 +154,7 @@ npx ts-node src/index.ts
 ```
 
 Why:
+
 - Fast feedback in development.
 - No separate compile step required.
 
@@ -152,6 +166,7 @@ node src/index.js
 ```
 
 Why:
+
 - Matches production mental model: compile first, run output second.
 - Similar to Java compile/run separation.
 
@@ -169,23 +184,27 @@ Why:
 ## 4.1 Types and inference
 
 Java:
+
 ```java
 int count = 10;
 String name = "Ana";
 ```
 
 TypeScript:
+
 ```ts
 let count: number = 10;
 let name = "Ana"; // inferred as string
 ```
 
 Daily takeaway:
+
 - TS can infer many types, but explicit types are useful in public APIs.
 
 ## 4.2 Interfaces, classes, and structural typing
 
 Java interface:
+
 ```java
 public interface UserService {
     User findById(String id);
@@ -193,6 +212,7 @@ public interface UserService {
 ```
 
 TypeScript interface:
+
 ```ts
 interface UserService {
   findById(id: string): User;
@@ -200,6 +220,7 @@ interface UserService {
 ```
 
 Important difference:
+
 - Java typing is nominal (by declared type).
 - TS typing is structural (by shape).
 
@@ -230,16 +251,19 @@ function displayName(user: UserDto): string {
 ```
 
 Daily takeaway:
+
 - Always handle `undefined` in strict mode.
 
 ## 4.4 Collections and map lookups
 
 Java:
+
 ```java
 Map<String, User> usersById = new HashMap<>();
 ```
 
 TypeScript:
+
 ```ts
 const usersById = new Map<string, User>();
 // or object map:
@@ -247,6 +271,7 @@ const usersByIdRecord: Record<string, User> = {};
 ```
 
 When to use which:
+
 - `Map` for frequent inserts/deletes and non-string keys.
 - `Record<string, T>` for JSON-like object maps.
 
@@ -267,6 +292,7 @@ async function run(): Promise<void> {
 ```
 
 Daily takeaway:
+
 - Use `async/await` for readable async logic.
 
 ## 5) Everyday backend patterns (Java-style thinking in TS)
@@ -286,6 +312,7 @@ type UserResponse = {
 ```
 
 Why:
+
 - Same idea as Java DTO classes, but often type aliases/interfaces in TS.
 
 ## 5.2 Service layer function with typed contracts
@@ -303,6 +330,7 @@ class UserService {
 ```
 
 Why:
+
 - Keeps clear input/output contracts just like Java service methods.
 
 ## 5.3 Parse external API payload safely
@@ -326,11 +354,13 @@ function parseWeather(input: unknown): Weather {
 ```
 
 Why:
+
 - Equivalent to explicit validation layers in Java apps.
 
 ## 5.4 Array transforms: Java Streams vs TS array methods
 
 Java:
+
 ```java
 List<String> activeNames = users.stream()
     .filter(User::isActive)
@@ -339,13 +369,13 @@ List<String> activeNames = users.stream()
 ```
 
 TypeScript:
+
 ```ts
-const activeNames = users
-  .filter((u) => u.isActive)
-  .map((u) => u.name);
+const activeNames = users.filter((u) => u.isActive).map((u) => u.name);
 ```
 
 Why:
+
 - Similar functional flow to Streams; usually very readable in TS.
 
 ## 5.5 Environment config with safe parsing
@@ -362,6 +392,7 @@ function readPort(): number {
 ```
 
 Why:
+
 - Avoids fragile assumptions around `process.env` string values.
 
 ## 5.6 Error handling pattern
@@ -382,12 +413,14 @@ type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 function parsePositiveInt(raw: string): Result<number> {
   const n = Number(raw);
-  if (!Number.isInteger(n) || n <= 0) return { ok: false, error: "Invalid positive integer" };
+  if (!Number.isInteger(n) || n <= 0)
+    return { ok: false, error: "Invalid positive integer" };
   return { ok: true, value: n };
 }
 ```
 
 Why:
+
 - Many TS teams prefer explicit result unions for expected business errors.
 
 ## 6) Common Java -> TypeScript translation map
@@ -424,6 +457,7 @@ Why:
 ## 9) Final mental model
 
 Treat TypeScript as:
+
 - JavaScript runtime
 - plus compile-time type safety
 - plus explicit runtime validation for external data
