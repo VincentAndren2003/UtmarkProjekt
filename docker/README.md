@@ -88,11 +88,3 @@ Sedan när du är klar kan du skriva `docker compose down` för att stänga alla
 Alternativt stoppa genom Docker Desktop vyn. Gå in på "container" fliken och sedan tryck på "Stop" till höger på den aktiva containern.
 
 ---
-
-# Automatiskt Formatering
-
-För formattering i mobilappen: öppna en terminal i `apps/mobile` och kör `npm install` där (Expo-projektet). Husky/lint-staged kan läggas till senare om teamet vill.
-
-Viktigt är att du har Node.js installerat annars kommer datorn inte känna igen kommandot `npm`.
-
-Länk till Node.js: https://nodejs.org/en/download/current
