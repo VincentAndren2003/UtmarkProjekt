@@ -10,7 +10,17 @@ type Props = {
 
 export function MapScreen({ onBack }: Props) {
 
-  const styleURL = `https://api.maptiler.com/maps/openstreetmap/style.json?key=ZPN1SxMgWS3XlFH6mtlz`;
+  const mapTilerKey = process.env.EXPO_PUBLIC_MAPTILER_KEY;
+
+  if (!mapTilerKey) {
+    return (
+      <View>
+        <Text>Missing MapTiler Key. Check your .env file.</Text>
+      </View>
+    );
+  }
+
+  const styleURL = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
 
   return (
     <>
