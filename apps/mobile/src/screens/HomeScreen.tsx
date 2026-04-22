@@ -15,13 +15,11 @@ export function HomeScreen({ onGoWelcome, onGoMap }: Props) {
       </Text>
       <View style={styles.buttonWrap}>
         <Button title="Next" onPress={onGoWelcome} />
-        <Button title="Map" onPress={onGoMap}/> 
+        <Button title="Map" onPress={onGoMap} />
       </View>
     </View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   container: {

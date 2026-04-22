@@ -10,7 +10,7 @@ type UseUserLocationResult = {
   location: Coordinate | null;
   error: string | null;
   loading: boolean;
-}
+};
 
 export function useUserLocation() {
   const [location, setLocation] = useState<Coordinate | null>(null);

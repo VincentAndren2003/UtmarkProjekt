@@ -14,7 +14,12 @@ export function MapScreen({ onBack }: Props) {
 
   const initialRegion = location
     ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
-    : { latitude: 59.334591, longitude: 18.06324, latitudeDelta: 0.1, longitudeDelta: 0.1 };
+    : {
+        latitude: 59.334591,
+        longitude: 18.06324,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+      };
 
   return (
     <View style={styles.root}>
@@ -54,5 +59,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-

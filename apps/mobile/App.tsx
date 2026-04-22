@@ -12,16 +12,15 @@ export default function App() {
   return (
     <>
       {screen === 'home' && (
-        <HomeScreen onGoWelcome={() => setScreen('welcome')} 
-        onGoMap={() => setScreen('map')} 
+        <HomeScreen
+          onGoWelcome={() => setScreen('welcome')}
+          onGoMap={() => setScreen('map')}
         />
-      )} 
+      )}
       {screen === 'welcome' && (
         <WelcomeScreen onBack={() => setScreen('home')} />
       )}
-      {screen === 'map' && (
-        <MapScreen onBack={() => setScreen('home')} />
-      )}
+      {screen === 'map' && <MapScreen onBack={() => setScreen('home')} />}
       <StatusBar style="auto" />
     </>
   );
