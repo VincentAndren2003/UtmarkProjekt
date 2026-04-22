@@ -1,5 +1,8 @@
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, View } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
+<<<<<<< HEAD
 type Props = {
   onGoWelcome: () => void;
   onGoMap: () => void;
@@ -17,35 +20,21 @@ export function HomeScreen({ onGoWelcome, onGoMap }: Props) {
         <Button title="Next" onPress={onGoWelcome} />
         <Button title="Map" onPress={onGoMap} />
       </View>
+=======
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export function HomeScreen({ navigation }: Props) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
+      <Button
+        title="Go to Create Account"
+        onPress={() => navigation.navigate('CreateAccount')}
+      />
+      <Button
+        title="Already have an account? Go to Login"
+        onPress={() => navigation.navigate('Login')}
+      />
+>>>>>>> f69ad4d (feat/add-login-screen)
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  hint: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  buttonWrap: {
-    marginTop: 20,
-    minWidth: 140,
-  },
-});
