@@ -2,9 +2,10 @@ import { Button, StyleSheet, Text, View } from 'react-native';
 
 type Props = {
   onGoWelcome: () => void;
+  onGoMap: () => void;
 };
 
-export function HomeScreen({ onGoWelcome }: Props) {
+export function HomeScreen({ onGoWelcome, onGoMap }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Utmark</Text>
@@ -14,10 +15,13 @@ export function HomeScreen({ onGoWelcome }: Props) {
       </Text>
       <View style={styles.buttonWrap}>
         <Button title="Next" onPress={onGoWelcome} />
+        <Button title="Map" onPress={onGoMap}/> 
       </View>
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
