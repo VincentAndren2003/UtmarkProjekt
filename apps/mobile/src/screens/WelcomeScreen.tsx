@@ -1,32 +1,12 @@
-import { Button, StyleSheet, View, Text } from 'react-native';
+import { Text, View } from 'react-native';
 
-type Props = {
-  onBack: () => void;
-};
-
-export function WelcomeScreen({ onBack }: Props) {
+export function WelcomeScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcome}>Welcome to the app</Text>
-      <Text style={styles.tag}>Vincent was here</Text>
-      <Button title="Back" onPress={onBack} />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>
+        Welcome, nice you managed to create an account or logged in / Vincent
+        was here!
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcome: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  tag: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
