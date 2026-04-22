@@ -1,5 +1,6 @@
 import { HomeScreen } from './src/screens/HomeScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
+import { MapScreen } from './src/screens/MapScreen';
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 
@@ -11,7 +12,7 @@ export default function App() {
       {screen === 'home' ? (
         <HomeScreen onGoWelcome={() => setScreen('welcome')} />
       ) : (
-        <WelcomeScreen onBack={() => setScreen('home')} />
+        <MapScreen onBack={() => setScreen('home')}/>
       )}
       <StatusBar style="auto" />
     </>
