@@ -34,7 +34,7 @@ jobs:
         run: npm run format
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint # Checks code for common mistakes and bad patterns, reports things like, unsued variables, possibles bugs, react hook mistakes, stule rule problems.
 
       - name: Test
-        run: npm test
+        run: npm test # Runs tests for all apps, files that have .test.ts or .spec.ts in the name will be run

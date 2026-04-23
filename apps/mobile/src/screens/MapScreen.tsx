@@ -4,12 +4,12 @@ import MapView from 'react-native-maps';
 import { StatusBar } from 'expo-status-bar';
 import { useUserLocation } from '../hooks/userLocation';
 import { Button, Text } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
-type Props = {
-  onBack: () => void;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
-export function MapScreen({ onBack }: Props) {
+export function MapScreen({ navigation }: Props) {
   const { location, loading } = useUserLocation();
 
   const initialRegion = location
@@ -30,9 +30,10 @@ export function MapScreen({ onBack }: Props) {
         showsUserLocation
         showsMyLocationButton
       />
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backText}> Tillbaka</Text>
-      </TouchableOpacity>
+      <Button
+        title="Go to Home"
+        onPress={() => navigation.navigate('Welcome')}
+      />
     </View>
   );
 }
