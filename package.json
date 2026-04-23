@@ -10,7 +10,14 @@
     "*.{ts,tsx,js}": "prettier --write"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "npx prettier --check .",
+    "lint": "npm run lint:mobile && npm run lint:api",
+    "test": "npm run test:mobile && npm run test:api",
+    "lint:mobile": "npm --prefix apps/mobile run lint",
+    "lint:api": "npm --prefix apps/api run lint",
+    "test:mobile": "npm --prefix apps/mobile run test",
+    "test:api": "npm --prefix apps/api run test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1"
