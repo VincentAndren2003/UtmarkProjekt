@@ -5,14 +5,14 @@ const router = Router();
 const greenAreaService = new GreenAreaService();
 
 router.get('/', async (req: Request, res: Response) => {
-    const { lat, lng, radius = '1000' } = req.query;
+  const { lat, lng, radius = '1000' } = req.query;
 
-    if (typeof lat !== 'string' || typeof lng !== 'string') {
-        res.status(400).json({ error: 'lat och lng krävs som query-parametrar' });
-        return;
-    }
+  if (typeof lat !== 'string' || typeof lng !== 'string') {
+    res.status(400).json({ error: 'lat och lng krävs som query-parametrar' });
+    return;
+  }
 
-    try {
+  try {
     const data = await greenAreaService.fetchGreenAreas(
       Number(lat),
       Number(lng),

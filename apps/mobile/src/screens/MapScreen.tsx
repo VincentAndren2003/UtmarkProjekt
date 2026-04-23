@@ -4,6 +4,7 @@ import MapView from 'react-native-maps';
 import { StatusBar } from 'expo-status-bar';
 import { useUserLocation } from '../hooks/userLocation';
 import { Button, Text } from 'react-native';
+import { GreenAreaLayer } from '../components/GreenAreaLayer';
 
 type Props = {
   onBack: () => void;
@@ -29,9 +30,17 @@ export function MapScreen({ onBack }: Props) {
         initialRegion={initialRegion}
         showsUserLocation
         showsMyLocationButton
-      />
+      >
+        {location && (
+          <GreenAreaLayer
+            lat={location.latitude}
+            lng={location.longitude}
+            radius={1000}
+          />
+        )}
+      </MapView>
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backText}> Tillbaka</Text>
+        <Text style={styles.backText}>Tillbaka</Text>
       </TouchableOpacity>
     </View>
   );
