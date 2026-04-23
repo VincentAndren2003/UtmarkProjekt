@@ -23,7 +23,16 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            headerTransparent: true,
+            headerShadowVisible: false,
+            headerTintColor: '#fff',
+            headerTitleStyle: { color: '#fff' },
+          }}
+        />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
