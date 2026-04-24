@@ -22,6 +22,8 @@ export function MapScreen({ navigation }: Props) {
         longitudeDelta: 0.1,
       };
 
+  const onBack = () => navigation.navigate('Welcome');
+
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
@@ -30,11 +32,6 @@ export function MapScreen({ navigation }: Props) {
         initialRegion={initialRegion}
         showsUserLocation
         showsMyLocationButton
-      />
-      <Button
-        title="Go to Home"
-        onPress={() => navigation.navigate('Welcome')}
-      />
       >
         {location && (
           <GreenAreaLayer
