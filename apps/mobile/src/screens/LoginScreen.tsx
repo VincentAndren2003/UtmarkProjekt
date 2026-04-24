@@ -41,7 +41,7 @@ export function LoginScreen({ navigation }: Props) {
       setMsg(error.message);
       return;
     }
-    navigation.replace('Welcome');
+    navigation.navigate('ProfileUpsert');
   };
 
   return (
