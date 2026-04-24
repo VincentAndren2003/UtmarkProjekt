@@ -6,7 +6,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export function WelcomeScreen({ navigation }: Props) {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'lightgreen',
+      }}
+    >
       <Text>
         Welcome, nice you managed to create an account or logged in / Vincent
         was here!
