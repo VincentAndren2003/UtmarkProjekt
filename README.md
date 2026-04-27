@@ -10,6 +10,10 @@ The goal is to help you understand both:
 1. **How it works** (frontend -> API -> database -> response)
 2. **Why each tool exists** (Node, Express, MongoDB, Mongoose, CORS, nodemon)
 
+> **New teammate? Start here:** [`docs/ONBOARDING_BEGINNER.md`](./docs/ONBOARDING_BEGINNER.md) — single step-by-step guide to install everything, run Mongo + the API + the mobile app, and verify the full stack works end-to-end (with copy-pasteable commands and curl tests).
+>
+> **Want to actually understand the code we wrote (not just run it)?** Read [`docs/MIGRATION_TUTORIAL.md`](./docs/MIGRATION_TUTORIAL.md) — a deep, file-by-file walkthrough of the Supabase → Express + MongoDB migration, with every line of code explained and the request flow traced end-to-end.
+
 ## Project structure
 
 ```txt
