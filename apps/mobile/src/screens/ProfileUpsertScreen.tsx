@@ -5,14 +5,12 @@ import {
   TextInput,
   Button,
   StyleSheet,
-  Pressable,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { getMyProfile } from '../services/supabase';
-import { upsertMyProfile } from '../services/supabase';
+import { getMyProfile, saveMyProfile } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileUpsert'>;
 type Gender = 'male' | 'female' | 'other';
@@ -25,33 +23,37 @@ export function ProfileUpsertScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // May be moved into hooks if we use this more than once !!!!!
   useEffect(() => {
     const checkProfile = async () => {
-      const { data, error } = await getMyProfile();
-
-      if (!error && data) {
+      try {
+        await getMyProfile();
         navigation.navigate('Welcome');
-        return;
+      } catch {
+        // No profile yet (404) or unauthenticated; show form so user can fill it in
+        setLoading(false);
       }
-      setLoading(false); // Setloading means a spinning loading wheel which tells us that false = no profile exist yet need to fill out.
     };
     checkProfile();
-  }, [navigation]); // Dependency array, tells react not not rerun this funtion when navigation changes otherwise it will loop forever.
+  }, [navigation]);
 
   const onSave = async () => {
-    const { error } = await upsertMyProfile({
-      username: username.trim(),
-      full_name: fullname.trim(),
-      age: parseInt(age.trim()),
-      gender,
-    });
-
-    if (error) {
-      Alert.alert('Error', error.message);
-      return;
+    setSaving(true);
+    try {
+      await saveMyProfile({
+        username: username.trim(),
+        fullName: fullname.trim(),
+        age: parseInt(age.trim(), 10),
+        gender,
+      });
+      navigation.navigate('Welcome');
+    } catch (err) {
+      Alert.alert(
+        'Error',
+        err instanceof Error ? err.message : 'Could not save profile'
+      );
+    } finally {
+      setSaving(false);
     }
-    navigation.navigate('Welcome');
   };
 
   return (
@@ -74,6 +76,7 @@ export function ProfileUpsertScreen({ navigation }: Props) {
         placeholder="Age"
         value={age}
         onChangeText={setAge}
+        keyboardType="number-pad"
       />
       <Text style={styles.genderButtonText}>Selected gender: {gender}</Text>
 
@@ -83,7 +86,7 @@ export function ProfileUpsertScreen({ navigation }: Props) {
       <Button title="Female" onPress={() => setGender('female')} />
       <Button title="Other" onPress={() => setGender('other')} />
 
-      <Button title="Save" onPress={onSave} />
+      <Button title="Save" onPress={onSave} disabled={saving} />
 
       {loading && <ActivityIndicator style={styles.loading} />}
     </View>
@@ -100,28 +103,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-
-  genderButton: {
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'gray',
-    margin: 5,
-  },
-  genderButtonSelected: {
-    backgroundColor: 'blue',
-  },
   genderButtonText: {
     fontSize: 16,
     color: 'black',
   },
-
   loading: {
     marginTop: 10,
     marginBottom: 10,
-    color: 'blue',
   },
-
   input: {
     borderWidth: 1,
     borderColor: 'gray',
@@ -129,29 +118,4 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 5,
   },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5,
-    margin: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-
-  saveButton: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5,
-    margin: 5,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
 });
-
-// then if setloading true load fill profile upsert page and save button

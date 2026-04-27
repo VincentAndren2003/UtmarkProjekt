@@ -1,28 +1,8 @@
-// style of the login screen
-
-// Email type in container
-
-// Password type in container
-
-// Login button
-
-// connect button to supabase
-
-// Forgot password button
-
-// Connect forgot password button to supabase
-
-// Create account button - go to create account screen
-
-// Then go to welcomescreen
-
-//export function LoginScreen() {
-
 import { useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { signInWithEmail } from '../services/supabase';
+import { login } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -33,15 +13,12 @@ export function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     setMsg('');
-    const { error } = await signInWithEmail(
-      email.trim().toLowerCase(),
-      password
-    );
-    if (error) {
-      setMsg(error.message);
-      return;
+    try {
+      await login(email.trim().toLowerCase(), password);
+      navigation.navigate('ProfileUpsert');
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Login failed');
     }
-    navigation.navigate('ProfileUpsert');
   };
 
   return (

@@ -1,5 +1,5 @@
 import { GreenAreaCollection } from '../types/greenArea';
-const API_URL = 'http://79.76.60.222:3000';
+import { API_URL } from '../config/env';
 
 export async function fetchGreenAreas(
   lat: number,
@@ -19,7 +19,7 @@ export async function fetchGreenAreas(
   clearTimeout(timeout);
 
   if (!res.ok) {
-    throw new Error(`API svarade med status: ${res.status}`);
+    throw new Error(`API responded with status: ${res.status}`);
   }
   return res.json();
 }

@@ -18,13 +18,19 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type screen = 'home' | 'welcome' | 'map' | 'login' | 'createAccount';
+type screen =
+  | 'home'
+  | 'welcome'
+  | 'map'
+  | 'login'
+  | 'createAccount'
+  | 'profileUpsert';
 
 export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator id={undefined} initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />

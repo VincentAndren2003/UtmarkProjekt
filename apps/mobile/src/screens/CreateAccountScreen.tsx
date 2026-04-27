@@ -2,26 +2,23 @@ import { useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { signUpWithEmail } from '../services/supabase';
+import { signup } from '../lib/api';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'CreateAccount'>; // Means that the component is the createAccount route in our stack / navigation stack
+type Props = NativeStackScreenProps<RootStackParamList, 'CreateAccount'>;
 
 export function CreateAccountScreen({ navigation }: Props) {
-  const [email, setEmail] = useState(''); // Usestate = gives the component memory between renders
-  const [password, setPassword] = useState(''); // paswword in this context means the current text in password input
-  const [msg, setMsg] = useState(''); // When a setter runs, React rerenders with new values, it replaces them not adds on to them!
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [msg, setMsg] = useState('');
 
   const handleSignUp = async () => {
-    // Uses asyns which allows us to use await inside it, which allows us to wait for the function to complete before moving on to the next line!
-    // is very important because it is a network request
-    const { error } = await signUpWithEmail(email.trim(), password); // calls the signupwithemail function in supabase.ts
-
-    if (error) {
-      setMsg(error.message);
-      return;
+    setMsg('');
+    try {
+      await signup(email.trim(), password);
+      navigation.navigate('ProfileUpsert');
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Sign up failed');
     }
-
-    navigation.replace('Welcome'); // navigates to the welcome screen after creating an account and after successful signup because of await and error handling!
   };
 
   return (
@@ -53,6 +50,5 @@ export function CreateAccountScreen({ navigation }: Props) {
       <Button title="Create Account" onPress={handleSignUp} />
       {!!msg && <Text>{msg}</Text>}
     </View>
-    // shows error text only when msg is not empty!
   );
 }
