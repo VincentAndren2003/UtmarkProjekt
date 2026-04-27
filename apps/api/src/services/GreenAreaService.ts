@@ -31,9 +31,7 @@ export class GreenAreaService {
     radius: number
   ): Promise<GreenAreaCollection> {
     const query = this.buildQuery(lat, lng, radius);
-
     console.log('Skickar query:', query);
-
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       headers: {
@@ -42,16 +40,13 @@ export class GreenAreaService {
       },
       body: `data=${encodeURIComponent(query)}`,
     });
-
     console.log('Response status:', response.status);
     console.log('Response headers:', response.headers);
-
     if (!response.ok) {
       const text = await response.text();
       console.error('Response body: ', text);
       throw new Error(`Overpass API status: ${response.status}`);
     }
-
     const data: OverpassResponse = await response.json();
     return this.toGeoJSON(data);
   }
@@ -60,12 +55,34 @@ export class GreenAreaService {
     return {
       type: 'FeatureCollection',
       features: data.elements
-        .filter((el) => el.geometry?.length > 0)
-        .map((el) => this.elementToFeature(el)),
+        .filter((el) => {
+          if (el.type === 'way') return el.geometry && el.geometry.length > 0;
+          if (el.type === 'relation')
+            return el.members && el.members.length > 0;
+          return false;
+        })
+        .map((el) => this.elementToFeature(el))
+        .filter(Boolean) as any,
     };
   }
 
   private elementToFeature(el: OverpassElement) {
+    let coordinates;
+
+    if (el.type === 'way') {
+      coordinates = [el.geometry!.map((p) => [p.lon, p.lat])];
+    } else if (el.type === 'relation') {
+      const outerMembers = el.members?.filter(
+        (m) => m.role === 'outer' && m.geometry?.length > 0
+      );
+      if (!outerMembers?.length) return null;
+      coordinates = outerMembers.map((m) =>
+        m.geometry.map((p) => [p.lon, p.lat])
+      );
+    } else {
+      return null;
+    }
+
     return {
       type: 'Feature' as const,
       properties: {
@@ -75,7 +92,7 @@ export class GreenAreaService {
       },
       geometry: {
         type: 'Polygon' as const,
-        coordinates: [el.geometry.map((p) => [p.lon, p.lat])],
+        coordinates,
       },
     };
   }
