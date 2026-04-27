@@ -8,7 +8,10 @@ export async function fetchGreenAreas(
   radius: number = 1000
 ): Promise<GreenAreaCollection> {
   const res = await fetch(
-    `${API_URL}/api/green-areas?lat=${lat}&lng=${lng}&radius=${radius}`
+    `${API_URL}/api/green-areas?lat=${lat}&lng=${lng}&radius=${radius}`,
+    {
+      signal: AbortSignal.timeout(30000),
+    }
   );
 
   if (!res.ok) {
