@@ -8,15 +8,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 export function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
-      <Video
-        source={require('../../assets/video/33212-395657672.mp4')}
-        style={StyleSheet.absoluteFillObject}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay
-        isLooping
-        isMuted
-      />
-
       <View style={styles.overlay} />
 
       <View style={styles.main}>
@@ -62,6 +53,7 @@ export function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'rgba(74, 140, 92, 1)',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -130,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: 'rgba(45, 94, 64, 1)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
+    borderColor: 'rgba(123, 191, 138, 1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
