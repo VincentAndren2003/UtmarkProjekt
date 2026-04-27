@@ -1,5 +1,5 @@
 import { GreenAreaCollection } from '../types/greenArea';
-const API_URL = 'http://207.127.88.152:3000';
+const API_URL = 'http://79.76.60.222:3000';
 
 export async function fetchGreenAreas(
   lat: number,
