@@ -8,10 +8,19 @@ export class GreenAreaService {
   private buildQuery(lat: number, lng: number, radius: number): string {
     return `[out:json];
       (
-        way["leisure"="park"](around:${radius},${lat},${lng});
-        way["landuse"="forest"](around:${radius},${lat},${lng});
-        way["landuse"="grass"](around:${radius},${lat},${lng});
-        way["natural"="wood"](around:${radius},${lat},${lng});
+          way["leisure"="park"](around:${radius},${lat},${lng});
+          way["leisure"="garden"](around:${radius},${lat},${lng});
+          way["leisure"="nature_reserve"](around:${radius},${lat},${lng});
+          way["landuse"="forest"](around:${radius},${lat},${lng});
+          way["landuse"="grass"](around:${radius},${lat},${lng});
+          way["landuse"="meadow"](around:${radius},${lat},${lng});
+          way["landuse"="village_green"](around:${radius},${lat},${lng});
+          way["natural"="wood"](around:${radius},${lat},${lng});
+          way["natural"="scrub"](around:${radius},${lat},${lng});
+          way["natural"="grassland"](around:${radius},${lat},${lng});
+          relation["leisure"="park"](around:${radius},${lat},${lng});
+          relation["leisure"="nature_reserve"](around:${radius},${lat},${lng});
+          relation["landuse"="forest"](around:${radius},${lat},${lng});
       );
       out geom;`;
   }
