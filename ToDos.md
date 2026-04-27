@@ -6,4 +6,8 @@
 - Få alla att förstå projekt strukturen och expo
 - Få bättre förståelse för backend och apier för projektet
 - Komma på en bra plan för uppdelning av arbetet (Frontend tungt projekt) (Komplext databas schema)
--
+- Ta reda på CI och CD, 
+- Hur ska vi köra tester
+- Hur ska vi jobba i supabase? Mycket slit jobb samtidigt?
+- lägga in nycklar i env. fil som alla får lägga in själva 
+- Fixa github actions för secret vault och automated pipelines , secure CI , 
