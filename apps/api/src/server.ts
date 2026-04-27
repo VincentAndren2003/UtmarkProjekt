@@ -13,5 +13,5 @@ app.get('/health', (req, res) => {
 app.use('/api/green-areas', greenAreaRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server körs på http://localhost:${PORT}`);
+  console.log(`Server körs på http://207.127.88.152:${PORT}`);
 });
