@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Video, ResizeMode } from 'expo-av';
 import { RootStackParamList } from '../../App';
@@ -19,40 +19,41 @@ export function HomeScreen({ navigation }: Props) {
 
       <View style={styles.overlay} />
 
-      <View style={styles.content}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={() => navigation.navigate('CreateAccount')}
-        >
-          <View style={styles.iconCircle}>
-            <Text style={styles.iconText}>+</Text>
+      <View style={styles.main}>
+        <View style={styles.logoBlock}>
+          <View style={styles.logo}>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={styles.logo}
+            />
           </View>
-          <Text style={styles.primaryLabel}>Go to Create Account</Text>
-          <Text style={styles.chevron}>&gt;</Text>
-        </Pressable>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
+          <Text style={styles.logoHeaderText}>UTMARK</Text>
+          <Text style={styles.logoSubText}>
+            Hitta ditt nästa äventyr i skogen
+          </Text>
         </View>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <View style={styles.iconCircle}>
-            <Text style={styles.iconText}>o</Text>
+        <View style={styles.buttonBlock}>
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate('CreateAccount')}
+          >
+            <Text style={styles.primaryLabel}>Kom igång</Text>
+          </Pressable>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>ELLER</Text>
+            <View style={styles.dividerLine} />
           </View>
-          <Text style={styles.secondaryLabel}>Already have an account? Go to Login</Text>
-          <Text style={styles.chevron}>&gt;</Text>
-        </Pressable>
+
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.secondaryLabel}>Logga in</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -66,77 +67,99 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.28)',
   },
-  content: {
+
+  main: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 150,
+    paddingBottom: 200,
     paddingHorizontal: 24,
-    paddingBottom: 44,
+  },
+
+  logoBlock: {
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  logo: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+    opacity: 1,
+  },
+
+  logoHeaderText: {
+    color: 'rgba(232, 244, 237, 1)',
+    fontSize: 34,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontStyle: 'normal',
+    letterSpacing: 2,
+  },
+
+  logoSubText: {
+    color: 'rgba(232, 244, 237, 1)',
+    fontSize: 16,
+    fontWeight: '400',
+    textAlign: 'center',
+    fontStyle: 'normal',
+  },
+
+  buttonBlock: {
+    width: 280,
     gap: 14,
   },
+
   primaryButton: {
-    minHeight: 58,
-    borderRadius: 29,
-    paddingHorizontal: 14,
-    backgroundColor: 'rgba(66, 110, 52, 0.82)',
+    width: 280,
+    height: 50,
+    opacity: 1,
+    borderRadius: 15,
+    backgroundColor: 'rgba(232, 244, 237, 1)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  secondaryButton: {
-    minHeight: 58,
-    borderRadius: 29,
-    paddingHorizontal: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  buttonPressed: {
-    opacity: 0.85,
-  },
-  iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.65)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: {
-    color: '#fff',
-    fontSize: 18,
-    lineHeight: 20,
-    fontWeight: '600',
+
+  secondaryButton: {
+    width: 280,
+    height: 50,
+    opacity: 1,
+    borderRadius: 15,
+    backgroundColor: 'rgba(45, 94, 64, 1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
+  buttonPressed: {
+    opacity: 0.85,
+  },
+
   primaryLabel: {
-    flex: 1,
-    color: '#f8f8f5',
+    color: '#2D5E40',
     fontSize: 23,
     fontWeight: '600',
+    textAlign: 'center',
   },
+
   secondaryLabel: {
-    flex: 1,
-    color: '#f3f3f3',
-    fontSize: 17,
+    color: '#E8F4ED',
+    fontSize: 23,
     fontWeight: '500',
+    textAlign: 'center',
   },
-  chevron: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '600',
-    marginRight: 4,
-  },
+
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 2,
   },
+
   dividerLine: {
     flex: 1,
     height: 1,
@@ -144,9 +167,14 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     marginHorizontal: 12,
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(232, 244, 237, 1)',
     fontSize: 12,
     letterSpacing: 1.2,
     fontWeight: '600',
   },
 });
+
+// färgkoder:
+// gröna färgen från figma: background: rgba(45, 94, 64, 1);
+// UTMARK färgen: rgba(232, 244, 237, 1) #E8F4ED
+//

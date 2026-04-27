@@ -31,6 +31,7 @@ export default function App() {
             headerShadowVisible: false,
             headerTintColor: '#fff',
             headerTitleStyle: { color: '#fff' },
+            headerShown: false,
           }}
         />
         <Stack.Screen name="Login" component={LoginScreen} />
