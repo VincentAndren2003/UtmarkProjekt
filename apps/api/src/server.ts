@@ -1,17 +1,16 @@
-import express from 'express';
-import greenAreaRoutes from './routes/greenAreaRoutes';
+import { createApp } from './app';
+import { connectDB } from './config/db';
+import { env } from './config/env';
 
-const app = express();
-const PORT = 3000;
+async function bootstrap(): Promise<void> {
+  await connectDB();
+  const app = createApp();
+  app.listen(env.PORT, () => {
+    console.warn(`API listening on http://localhost:${env.PORT}`);
+  });
+}
 
-app.use(express.json());
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-app.use('/api/green-areas', greenAreaRoutes);
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server körs på http://79.76.60.222:${PORT}`);
+bootstrap().catch((err) => {
+  console.error('Failed to start API:', err);
+  process.exit(1);
 });

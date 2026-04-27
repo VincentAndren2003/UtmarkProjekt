@@ -10,18 +10,26 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
     "eslint": "^9.37.0",
     "globals": "^16.4.0",
-    "typescript-eslint": "^8.46.1",
-    "vitest": "^3.2.4",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.6.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.46.1",
+    "vitest": "^3.2.4"
   }
 }
