@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import ecosystemConfig from './ecosystem.config';
 
 export default tseslint.config(
   { ignores: ['dist', 'node_modules', 'ecosystem.config.js'] },
