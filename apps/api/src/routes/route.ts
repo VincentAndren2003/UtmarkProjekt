@@ -1,4 +1,4 @@
-import { checkPoint } from '../checkPoint';
+import { checkPoint } from '../checkPoint';  //ples worksS
 
 export class route { // slut koridnater ? // antal checkpoints? 
     id: string;
