@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import ecosystemConfig from './ecosystem.config';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', ecosystem.config.js] },
+  { ignores: ['dist', 'node_modules', 'ecosystem.config.js'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
