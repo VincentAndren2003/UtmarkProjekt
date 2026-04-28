@@ -1,5 +1,5 @@
 export interface OverpassElement {
-  type: string;
+  type: 'way' | 'relation';
   id: number;
   tags?: {
     name?: string;
@@ -7,7 +7,11 @@ export interface OverpassElement {
     landuse?: string;
     natural?: string;
   };
-  geometry: Array<{ lat: number; lon: number }>;
+  geometry?: Array<{ lat: number; lon: number }>;
+  members?: Array<{
+    role: string;
+    geometry: Array<{ lat: number; lon: number }>;
+  }>;
 }
 
 export interface OverpassResponse {
