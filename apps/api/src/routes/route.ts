@@ -21,7 +21,7 @@ export class route { // slut koridnater ? // antal checkpoints?
 
     setCheckpoints(
         numCeckpoints: number = this.distance * 2,
-        bearing: number,
+        bearing: number = 0,
         checkpointRadius: number = 20
     ): checkPoint[]{ 
         this.checkpoints = [];
