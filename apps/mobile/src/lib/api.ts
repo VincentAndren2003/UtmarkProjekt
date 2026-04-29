@@ -7,6 +7,7 @@
 
 import * as SecureStore from 'expo-secure-store';
 import { API_URL } from '../config/env';
+import { Coordinate, RouteResponse } from '../types/route';
 
 // -----------------------------------------------------------------------------
 // 1. Token storage
@@ -151,23 +152,6 @@ export function saveMyProfile(input: ProfileInput): Promise<Profile> {
     auth: true,
   });
 }
-
-// For Route 
-export type Coordinate = { latitude: number; longitude: number };
-
-export type Checkpoint = {
-  id: string;
-  coordinate: Coordinate;
-  radius: number;
-  completed: boolean;
-};
-
-export type RouteResponse = {
-  id: string;
-  start: Coordinate;
-  distance: number;
-  checkpoints: Checkpoint[];
-};
 
 export async function generateRoute(start: Coordinate, distance: number): Promise <RouteResponse> {
    return request<RouteResponse>('/api/routes/generate-route', {
