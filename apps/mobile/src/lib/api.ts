@@ -151,3 +151,32 @@ export function saveMyProfile(input: ProfileInput): Promise<Profile> {
     auth: true,
   });
 }
+
+// For Route 
+export type Coordinate = { latitude: number; longitude: number };
+
+export type Checkpoint = {
+  id: string;
+  coordinate: Coordinate;
+  radius: number;
+  completed: boolean;
+};
+
+export type RouteResponse = {
+  id: string;
+  start: Coordinate;
+  distance: number;
+  checkpoints: Checkpoint[];
+};
+
+export async function generateRoute(start: Coordinate, distance: number): Promise <RouteResponse> {
+   return request<RouteResponse>('/api/routes/generate-route', {
+    method: 'POST',
+    body: {
+      id: `route-${Date.now()}`,
+      start,
+      distance
+    },
+    auth: false // true if login requerd
+   });
+}
