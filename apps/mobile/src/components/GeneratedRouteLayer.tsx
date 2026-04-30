@@ -31,7 +31,7 @@ export function GeneratedRouteLayer({ startLat, startLong, distance }: Props) {
                     key={checkpoint.id}
                     center={checkpoint.coordinate}
                     radius={checkpoint.radius}
-                    strokeColor='BA55A0'
+                    strokeColor='#BA55A0'
                     strokeWidth={3}
                 />
             ))}
