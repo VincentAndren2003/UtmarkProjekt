@@ -1,4 +1,4 @@
-name: Format
+name: CI
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
   pull_request:
 
 jobs:
-  prettier:
-    name: Prettier Check
+  quality:
+    name: Format, Lint, and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -24,5 +24,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install mobile dependencies
+        run: npm ci --prefix apps/mobile
+
+      - name: Install api dependencies
+        run: npm ci --prefix apps/api
+
       - name: Check formatting
-        run: npx prettier --check .
+        run: npm run format
+
+      - name: Lint
+        run: npm run lint # Checks code for common mistakes and bad patterns, reports things like, unsued variables, possibles bugs, react hook mistakes, stule rule problems.
+
+      - name: Test
+        run: npm test # Runs tests for all apps, files that have .test.ts or .spec.ts in the name will be run

@@ -1,118 +1,67 @@
-# Utmark — New collaborator setup (beginner, step by step)
+# Get started with Utmark — setup + run locally
 
-This guide is for someone who is **new to programming workflows**. It explains **what to install**, **why**, and **exact commands** to work on this repo (Expo app in `apps/mobile`, optional Docker in `docker`).
+A single, beginner-friendly guide. Follow the steps in order:
 
----
-
-## Part A — What you are setting up (simple mental model)
-
-1. **Git** — download the project and save your changes in a controlled way.
-2. **Node.js** — runs JavaScript/TypeScript tooling (`npm`, Expo).
-3. **A code editor** — Cursor or VS Code to edit files.
-4. **Expo / React Native** — the mobile app in `apps/mobile` (dependencies install via `npm`, not a separate “Expo coding app”).
-5. **Optional: Xcode (Mac only)** — gives you an **iPhone on screen** (Simulator).
-6. **Optional: Android Studio** — gives you an **Android phone on screen** (emulator), on any OS.
-7. **Optional: Docker** — only if you use local database tools from `docker/`.
-
-You do not need to understand everything on day one. Follow the steps in order.
+1. [Mental model](#1-mental-model-what-actually-runs)
+2. [Install the tools (once)](#2-install-the-tools-once)
+3. [Clone the repo (once)](#3-clone-the-repo-once)
+4. [Install dependencies + env files (once)](#4-install-dependencies--env-files-once)
+5. [Run the stack (every time)](#5-run-the-stack-every-time)
+6. [Verify it works](#6-verify-it-works)
+7. [Run on a real phone](#7-run-on-a-real-phone)
+8. [Daily Git workflow](#8-daily-git-workflow)
+9. [Where to work in the repo](#9-where-to-work-in-the-repo)
+10. [Troubleshooting](#10-troubleshooting)
 
 ---
 
-## Part B — Accounts (do this first)
+## 1. Mental model (what actually runs)
 
-1. **GitHub account** (if you do not have one): [https://github.com/signup](https://github.com/signup)  
-   **Why:** The code lives on GitHub; you clone and open pull requests.
+Three things run on your machine **at the same time**:
 
-2. Ask the project owner to **add you as a collaborator** on the repo before you rely on private access.
+```
+ Mobile app (Expo)  ──HTTP──▶  API (Express)  ──Mongoose──▶  MongoDB
+ apps/mobile                   apps/api                      127.0.0.1:27017
+ Terminal 3                    Terminal 2                    Terminal 1 (background)
+```
 
----
+- **MongoDB** stores the data.
+- **API** is the only thing that talks to MongoDB.
+- **Mobile app** only talks to the API (never to MongoDB directly).
 
-## Part C — Install tools (everyone: Mac, Windows, Linux)
-
-### 1) Git
-
-- **Mac:** Often preinstalled. Check in Terminal: `git --version`  
-  If missing: install **Xcode Command Line Tools** when macOS prompts, or install Git from [https://git-scm.com](https://git-scm.com).
-
-- **Windows:** Install **Git for Windows** from [https://git-scm.com](https://git-scm.com) (includes Git Bash).
-
-- **Linux:** Use your package manager, e.g. Ubuntu:  
-  `sudo apt update && sudo apt install git`
-
-**Why:** Without Git you cannot clone or push.
+If something breaks, ask: *which of the three is the problem?*
 
 ---
 
-### 2) Node.js (LTS)
+## 2. Install the tools (once)
 
-- Download **LTS** from [https://nodejs.org](https://nodejs.org) and install (default options are fine).
+| Tool | Why you need it | Install |
+|---|---|---|
+| **Git** | Clone the repo, commit your work | https://git-scm.com (Windows/Linux) — Mac usually has it (`git --version`) |
+| **Node.js (LTS)** | Runs the API and the Expo dev server | https://nodejs.org — pick **LTS** |
+| **MongoDB Community + mongosh** | The local database | **Mac:** `brew tap mongodb/brew && brew install mongodb-community mongosh` <br>**Windows/Linux:** [installer](https://www.mongodb.com/try/download/community) |
+| **A code editor** | Edit files + integrated terminal | [Cursor](https://cursor.com) or [VS Code](https://code.visualstudio.com) |
+| **Expo Go** (phone app) | Run the mobile app on your real phone | App Store / Play Store → search **Expo Go** |
+| *(optional)* MongoDB Compass | GUI to browse the database | https://www.mongodb.com/products/compass |
+| *(optional, Mac)* Xcode | iOS Simulator on your Mac | Mac App Store |
+| *(optional)* Android Studio | Android emulator on Win/Linux/Mac | https://developer.android.com/studio |
 
-**Why:** Provides `node` and `npm`. The mobile app and Expo run through npm.
-
-**Check after install** (same on Mac / Windows / Linux):
+**Verify after install:**
 
 ```bash
+git --version
 node -v
 npm -v
+mongosh --version
 ```
 
-You should see version numbers, not “command not found”.
+You should see version numbers, not "command not found".
+
+> **iOS Simulator (Mac only):** Open Xcode once → **Settings → Platforms** → download an iOS runtime if offered. Then **Window → Devices and Simulators → +** to create an iPhone. Without this, pressing `i` in Expo prints "No iOS devices available".
 
 ---
 
-### 3) Code editor: Cursor or VS Code
-
-- **Cursor:** [https://cursor.com](https://cursor.com)
-- **VS Code:** [https://code.visualstudio.com](https://code.visualstudio.com)
-
-**Why:** Edit project files and use an integrated terminal.
-
----
-
-### 4) Expo Go on your phone (optional but very useful)
-
-- iPhone: App Store → search **Expo Go**
-- Android: Play Store → **Expo Go**
-
-**Why:** Scan the QR code from the dev server to run the app on a real device without Simulator.
-
----
-
-## Part D — Mac only: iOS Simulator (iPhone on your Mac screen)
-
-You need **full Xcode** from the App Store (large download).
-
-1. Open **App Store** → search **Xcode** → Install.
-2. Open **Xcode** once; accept license if asked.
-3. **Xcode → Settings → Platforms** (or **Components** on older Xcode): download an **iOS Simulator** runtime if offered.
-4. **Window → Devices and Simulators → Simulators → +** → create an **iPhone** simulator.
-
-**Why:** Expo’s `i` shortcut needs at least one bootable iOS simulator. If none exists, you see: `No iOS devices available in Simulator.app`.
-
-**Quick check (Terminal on Mac):**
-
-```bash
-xcrun simctl list devices available
-```
-
-You should see iPhone entries.
-
----
-
-## Part E — Windows / Linux: Android emulator (optional)
-
-If you do not use a physical Android phone:
-
-1. Install **Android Studio** from [https://developer.android.com/studio](https://developer.android.com/studio)
-2. Open Android Studio → **More Actions → Virtual Device Manager** → create a **Pixel** (or any) device → download a system image if asked → finish.
-
-**Why:** Expo’s `a` opens the app on the Android emulator.
-
----
-
-## Part F — Clone the project (first time)
-
-**Mac / Linux (Terminal):**
+## 3. Clone the repo (once)
 
 ```bash
 cd ~
@@ -120,172 +69,239 @@ git clone https://github.com/VincentAndren2003/UtmarkProjekt.git
 cd UtmarkProjekt
 ```
 
-**Windows (PowerShell or Git Bash):**
+> **Windows:** use **Git Bash** or **PowerShell**. Replace `cd ~` with `cd $HOME`.
 
-```powershell
-cd $HOME
-git clone https://github.com/VincentAndren2003/UtmarkProjekt.git
-cd UtmarkProjekt
+Then open the `UtmarkProjekt` folder in Cursor / VS Code (**File → Open Folder**).
+
+---
+
+## 4. Install dependencies + env files (once)
+
+From the repo root:
+
+```bash
+# 1. Install everything
+npm install
+npm install --prefix apps/api
+npm install --prefix apps/mobile
+
+# 2. Create env files from the templates
+cp apps/api/.env.example    apps/api/.env
+cp apps/mobile/.env.example apps/mobile/.env
+
+# 3. Generate a real JWT secret (copy the output)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Use the **real repo URL** your team gives you if it differs.
+Open `apps/api/.env` and replace `JWT_SECRET=replace_with_a_long_random_secret` with the random string you just generated.
 
-**Why `git clone`:** Downloads the full project.  
-**Why `cd UtmarkProjekt`:** All next commands must run inside this folder.
-
+> **Windows (PowerShell):** use `copy` instead of `cp`.
 
 ---
 
-## Part G — Open the project in your editor
+## 5. Run the stack (every time)
 
-- Cursor / VS Code: **File → Open Folder** → select the **`UtmarkProjekt`** folder (the repo root).
+Open **3 terminals** at the repo root.
 
-**Why:** You see `README.md`, `apps/`, `docs/`, etc. in one place.
+### Terminal 1 — MongoDB
 
-**Also** run `npm install` in the main project folder. You can do this via the integrated terminal in your editor. 
-This will make sure that automatic formatting of the code is done when you do a commit. 
+Start it once; it auto-starts on every reboot from now on:
 
----
+```bash
+# Mac
+brew services start mongodb-community
 
-## Part H — Run the mobile app (Expo) — main workflow
+# Verify it's listening on port 27017
+nc -z 127.0.0.1 27017 && echo "Mongo UP"
+```
 
-**Same commands on Mac, Windows, Linux:**
+> **Windows:** MongoDB installs as a Windows Service and starts automatically. Verify with `Get-Service MongoDB`.
+
+### Terminal 2 — API
+
+```bash
+cd apps/api
+npm run dev
+```
+
+You should see:
+
+```
+MongoDB connected
+API listening on http://localhost:3000
+```
+
+### Terminal 3 — Mobile app
 
 ```bash
 cd apps/mobile
-npm install
-npm start
+npx expo start
 ```
 
-**What happens:**
+Then in that same terminal:
 
-- `cd apps/mobile` — enter the mobile app folder.
-- `npm install` — downloads dependencies (first time can take a few minutes).
-- `npm start` — starts the Expo dev server; you see a QR code and a menu.
-
-**Then, in that same terminal** (where `npm start` is running):
-
-- Press **`i`** — open **iOS Simulator** (**Mac + Xcode only**).
-- Press **`a`** — open **Android emulator** (if installed and running).
-- Press **`w`** — open **web** (if the project supports it).
-- Or scan the **QR code** with **Expo Go** on your phone (same Wi‑Fi as the computer).
-
-**If the phone cannot connect**, stop with `Ctrl+C` and try:
-
-```bash
-npx expo start --tunnel
-```
-
-**Why tunnel:** Some networks block device-to-computer connection; tunnel routes through Expo’s servers.
+- Press **`i`** → iOS Simulator (Mac + Xcode only)
+- Press **`a`** → Android emulator (if installed and running)
+- Press **`w`** → web browser
+- Or scan the QR code with **Expo Go** on your phone (same Wi‑Fi)
 
 ---
 
-## Part I — Quick “does TypeScript work?” check (optional)
+## 6. Verify it works
 
-With terminal in `apps/mobile`:
+### Quick API health check
 
 ```bash
-npx tsc --noEmit
+curl http://localhost:3000/api/health
+# → {"status":"ok"}
 ```
 
-No errors printed usually means OK.
+### Full flow with curl (signup → login → profile)
+
+```bash
+# Signup
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"alice@test.com","password":"hunter2"}'
+
+# Login and capture the token
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"alice@test.com","password":"hunter2"}' \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
+
+# Create profile (uses the token)
+curl -X PUT http://localhost:3000/api/profile/me \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"alice","fullName":"Alice","age":25,"gender":"female"}'
+
+# Read it back
+curl http://localhost:3000/api/profile/me -H "Authorization: Bearer $TOKEN"
+```
+
+### Test in the mobile app
+
+In Expo Go: **Create Account** → email/password → fill profile → **Save**.
+
+### See the data in MongoDB
+
+```bash
+mongosh mongodb://127.0.0.1:27017/utmarkprojekt --eval "
+  db.users.find().toArray();
+  db.profiles.find().toArray();
+"
+```
+
+Or open **MongoDB Compass** → connect to `mongodb://127.0.0.1:27017` → click `utmarkprojekt` → `users` / `profiles`.
+
+### Wipe the database (start fresh)
+
+```bash
+mongosh mongodb://127.0.0.1:27017/utmarkprojekt --eval "db.dropDatabase()"
+```
 
 ---
 
-## Part J — Optional: local database with Docker (only if your team uses it)
+## 7. Run on a real phone
 
-**Install Docker Desktop** (Mac/Windows) or Docker Engine (Linux): [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+By default the mobile app calls `http://localhost:3000`. On a real phone, `localhost` means *the phone itself*, not your computer — so the request fails.
 
-**Mac / Linux:**
+**Fix:** find your computer's LAN IP and put it in `apps/mobile/.env`.
 
 ```bash
-cd docker
-cp .env.example .env
-docker compose up -d --build
+# Mac / Linux
+ipconfig getifaddr en0      # e.g. 192.168.1.110
+
+# Windows (PowerShell)
+ipconfig
 ```
 
-**Windows (PowerShell):**
+Edit `apps/mobile/.env`:
 
-```powershell
-cd docker
-copy .env.example .env
-docker compose up -d --build
+```env
+EXPO_PUBLIC_API_URL=http://192.168.1.110:3000
 ```
 
-Follow [`docker/README.md`](../docker/README.md) for pgAdmin URL and login.  
-**Why:** Local Postgres + pgAdmin for development. **Not required** only to see the Expo UI.
+Then press **`r`** in the Expo terminal to reload. Phone and computer must be on the **same Wi‑Fi**.
+
+> Network blocking the connection? Restart Expo with `npx expo start --tunnel` — it routes through Expo's servers.
 
 ---
 
-## Part K — Daily Git workflow (how you save work for the team)
+## 8. Daily Git workflow
 
-Always start updated:
+Always start from a fresh `main`:
 
 ```bash
 git checkout main
 git pull origin main
 ```
 
-Create a branch for your task:
+Make a branch for each task:
 
 ```bash
-git checkout -b feat/your-short-task-name
+git checkout -b feat/short-task-name
 ```
 
-After you change files:
+After editing files:
 
 ```bash
 git status
 git add .
 git commit -m "feat: short description of what you did"
-git push -u origin feat/your-short-task-name
+git push -u origin feat/short-task-name
 ```
 
-Then open a **Pull Request** on GitHub into `main` (see [`README_GITHUB_WORKFLOW.md`](README_GITHUB_WORKFLOW.md)).
-
-**Why branches:** Keeps `main` stable and lets others review your changes.
+Then open a **Pull Request** on GitHub into `main`. Details in [`README_GITHUB_WORKFLOW.md`](README_GITHUB_WORKFLOW.md).
 
 ---
 
-## Part L — Where to work in this repo
+## 9. Where to work in the repo
 
-| What you do                    | Where                             |
-| ------------------------------ | --------------------------------- |
-| Mobile UI, screens, app logic  | `apps/mobile` (especially `src/`) |
-| Backend API (when implemented) | `apps/api`                        |
-| Shared types                   | `packages/types`                  |
-| Team guides                    | `docs/`                           |
-| Docker / local DB              | `docker/`                         |
+| What you're doing | Where |
+|---|---|
+| Mobile screens, UI, app logic | `apps/mobile/src/` |
+| API routes, controllers, models | `apps/api/src/` |
+| Shared TypeScript types | `packages/types/src/` |
+| Team docs | `docs/` |
 
 Root [`README.md`](../README.md) is the short map of the repo.
 
 ---
 
-## Part M — Troubleshooting (short)
+## 10. Troubleshooting
 
-| Problem                          | What to try                                                                             |
-| -------------------------------- | --------------------------------------------------------------------------------------- |
-| `npm: command not found`         | Install Node LTS, restart terminal.                                                     |
-| `No iOS devices available` (Mac) | Xcode: download Simulator runtime; Devices and Simulators → create + boot an iPhone.    |
-| Phone won’t load app             | Same Wi‑Fi; try `npx expo start --tunnel`.                                              |
-| Old `expo-cli` warnings          | Use project’s `npm start` / `npx expo start`; uninstall global `expo-cli` if installed. |
+| Problem | Fix |
+|---|---|
+| `MongooseServerSelectionError` | Mongo isn't running → `brew services start mongodb-community` |
+| `Missing required env var` | You skipped step 4 → `cp .env.example .env` and fill `JWT_SECRET` |
+| `EADDRINUSE :::3000` | Old API still running → `lsof -i :3000` then `kill <PID>` |
+| Mobile app: `Network request failed` | Wrong IP in `apps/mobile/.env` → use your LAN IP, press `r` in Expo |
+| QR scan does nothing | Phone and computer aren't on the same Wi‑Fi — try `npx expo start --tunnel` |
+| `409 Email already in use` | Use a new email or wipe the DB (see step 6) |
+| `npm: command not found` | Install Node LTS, then restart your terminal |
+| `No iOS devices available` (Mac) | Open Xcode → Settings → Platforms → install iOS runtime → create an iPhone simulator |
+| TypeScript errors confusing you | From `apps/mobile` or `apps/api`: `npx tsc --noEmit` shows them all at once |
 
 ---
 
-## Part N — Minimum “day one” checklist
+## Day‑one checklist
 
-1. Install **Git**, **Node LTS**, **Cursor/VS Code**.
-2. On **Mac**: install **Xcode** if you want iOS Simulator.
-3. `git clone` → `cd UtmarkProjekt`.
-4. `cd apps/mobile` → `npm install` → `npm start`.
-5. Press **`i`** (Mac) or scan QR with **Expo Go**, or **`a`** on Android.
-6. Use a **feature branch** + **PR** for real changes.
+- [ ] Install Git, Node LTS, MongoDB, an editor, Expo Go
+- [ ] `git clone` → `cd UtmarkProjekt`
+- [ ] `npm install` (root + `apps/api` + `apps/mobile`)
+- [ ] Copy `.env.example` → `.env` in both apps; set `JWT_SECRET`
+- [ ] Mongo running → API running → Expo running (3 terminals)
+- [ ] `curl http://localhost:3000/api/health` → `{"status":"ok"}`
+- [ ] Create an account in the app and see it appear in Compass
 
 ---
 
 ## Related docs
 
-- [README_GITHUB_WORKFLOW.md](README_GITHUB_WORKFLOW.md) — branches, PRs, merge
-- [README_TERMINAL_COMMANDS_MAC_WINDOWS.md](README_TERMINAL_COMMANDS_MAC_WINDOWS.md) — terminal basics
-- [README_TYPESCRIPT_FOR_JAVA.md](README_TYPESCRIPT_FOR_JAVA.md) — TypeScript primer
-- [`apps/mobile/README.md`](../apps/mobile/README.md) — Expo run commands
+- [`README_GITHUB_WORKFLOW.md`](README_GITHUB_WORKFLOW.md) — branches, PRs, merging
+- [`README_TERMINAL_COMMANDS_MAC_WINDOWS.md`](README_TERMINAL_COMMANDS_MAC_WINDOWS.md) — terminal basics
+- [`README_TYPESCRIPT_FOR_JAVA.md`](README_TYPESCRIPT_FOR_JAVA.md) — TypeScript primer
+- [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — how the stack fits together
+- [`MIGRATION_TUTORIAL.md`](MIGRATION_TUTORIAL.md) — file-by-file walkthrough of the code
