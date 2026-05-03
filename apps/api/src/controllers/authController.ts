@@ -1,16 +1,5 @@
-// =============================================================================
-// authController.ts
-// -----------------------------------------------------------------------------
-// This file handles signup and login.
-//
-// Before, we had a separate "services" folder that did the actual work, and
-// controllers just passed things along to it. We merged them — now each
-// endpoint lives in ONE place. Easier to read for a small project like this.
-//
-// Flow when the phone hits POST /api/auth/signup:
-//   routes/authRoutes.ts  -->  this file (signup function)  -->  models/User
-//
-// =============================================================================
+
+// This file handles signup and login
 
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';

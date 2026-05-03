@@ -1,18 +1,11 @@
-// =============================================================================
-// profileController.ts
+
 // -----------------------------------------------------------------------------
 // This file handles the user's profile (username, full name, age, gender).
-//
-// BOTH endpoints below are PROTECTED — they need a valid JWT.
-// That check happens in routes/profileRoutes.ts where we attach
-// `authMiddleware` before these run. By the time our code runs here,
-// req.userId is already filled in (or the middleware would have returned 401).
-//
+
 // Flow when the phone hits GET /api/profile/me:
 //   routes/profileRoutes.ts  -->  authMiddleware (verifies JWT)
 //                            -->  this file (getMyProfile)
 //                            -->  models/Profile
-// =============================================================================
 
 import { Request, Response, NextFunction } from 'express';
 import { Profile } from '../models/Profile';
