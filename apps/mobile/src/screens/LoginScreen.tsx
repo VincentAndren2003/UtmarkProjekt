@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Button,
   Pressable,
   StyleSheet,
   Text,
@@ -45,8 +44,23 @@ export function LoginScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.inputBlock}>
-          <TextInput style={styles.inputContainer} placeholder="Användarnamn" />
-          <TextInput style={styles.inputContainer} placeholder="Lösenord" />
+          <TextInput
+            style={styles.inputContainer}
+            placeholder="E-post"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+          />
+          <TextInput
+            style={styles.inputContainer}
+            placeholder="Lösenord"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          {!!msg && <Text style={styles.errorText}>{msg}</Text>}
           <Text style={[styles.helpText, { textAlign: 'right' }]}>
             Glömt lösenord?
           </Text>
@@ -56,9 +70,11 @@ export function LoginScreen({ navigation }: Props) {
           <Pressable style={styles.primaryButton} onPress={handleLogin}>
             <Text style={styles.buttonText}>Logga in</Text>
           </Pressable>
-          <Text style={[styles.helpText, { textAlign: 'center' }]}>
-            Har du inget konto? Skapa konto
-          </Text>
+          <Pressable onPress={() => navigation.navigate('CreateAccount')}>
+            <Text style={[styles.helpText, { textAlign: 'center' }]}>
+              Har du inget konto? Skapa konto
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -144,6 +160,13 @@ const styles = StyleSheet.create({
 
   helpText: {
     color: 'rgba(26, 26, 26, 0.7)',
+    fontSize: 13,
+    fontWeight: '400',
+    fontStyle: 'normal',
+  },
+
+  errorText: {
+    color: 'rgba(255, 0, 0, 1)',
     fontSize: 13,
     fontWeight: '400',
     fontStyle: 'normal',
