@@ -26,6 +26,9 @@ export function CreateAccountScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.main}>
+        <Pressable onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.backLink}>← Tillbaka</Text>
+        </Pressable>
         <View style={styles.infoBlock}>
           <Text style={styles.infoHeaderLabel}>Skapa ett konto</Text>
           <Text style={styles.infoSubText}>
