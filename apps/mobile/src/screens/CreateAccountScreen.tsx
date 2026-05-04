@@ -24,6 +24,19 @@ export function CreateAccountScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', padding: 20, gap: 10 }}>
       <TextInput
+        placeholder="Användarnamn"
+        autoCapitalize="none"
+        //value={username} måste kopplas till supabase eller nått?
+        //onChangeText={setUsername} måste kopplas till supabase eller nått?
+        style={{
+          borderWidth: 1,
+          borderColor: '#ccc',
+          padding: 10,
+          borderRadius: 8,
+        }}
+      />
+
+      <TextInput
         placeholder="Email"
         autoCapitalize="none"
         value={email}
@@ -35,8 +48,9 @@ export function CreateAccountScreen({ navigation }: Props) {
           borderRadius: 8,
         }}
       />
+
       <TextInput
-        placeholder="Password"
+        placeholder="Skapa lösenord"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -47,6 +61,20 @@ export function CreateAccountScreen({ navigation }: Props) {
           borderRadius: 8,
         }}
       />
+
+      <TextInput
+        placeholder="Upprepa lösenord"
+        secureTextEntry
+        //value={password}
+        //onChangeText={setPassword}
+        style={{
+          borderWidth: 1,
+          borderColor: '#ccc',
+          padding: 10,
+          borderRadius: 8,
+        }}
+      />
+
       <Button title="Create Account" onPress={handleSignUp} />
       {!!msg && <Text>{msg}</Text>}
     </View>

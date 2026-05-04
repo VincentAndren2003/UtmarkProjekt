@@ -30,13 +30,19 @@ export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
     <NavigationContainer>
-      <Stack.Navigator id={undefined} initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
+          name="Home"
+          component={HomeScreen}
+          options={{
+            headerTransparent: true,
+            headerShadowVisible: false,
+            headerTintColor: '#fff',
+            headerTitleStyle: { color: '#fff' },
+            headerShown: false,
+          }}
         />
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Map" component={MapScreen} />
