@@ -24,10 +24,7 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.main}>
         <View style={styles.logoBlock}>
           <View style={styles.logo}>
-            <Image
-              source={logoIcon}
-              style={styles.logo}
-            />
+            <Image source={logoIcon} style={styles.logo} />
           </View>
           <Text style={styles.logoHeaderText}>UTMARK</Text>
           <Text style={styles.logoSubText}>
