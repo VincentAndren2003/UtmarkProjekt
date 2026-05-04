@@ -45,19 +45,22 @@ export function MapScreen({ navigation }: Props) {
           />
         )}
         {showRoute && (
-          <GeneratedRouteLayer 
-            startLat={59.4036} 
-            startLong={17.9418} 
+          <GeneratedRouteLayer
+            startLat={59.4036}
+            startLong={17.9418}
             distance={5} // Du kan ändra distansen här
           />
         )}
       </MapView>
-      <TouchableOpacity style = {styles.backButton} onPress={onBack}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backText}>Tillbaka</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style = {styles.generateButton} onPress={handleGenerateRoute}>
-        <Text style = {styles.generateText}>Generera rutt</Text>
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerateRoute}
+      >
+        <Text style={styles.generateText}>Generera rutt</Text>
       </TouchableOpacity>
     </View>
   );
@@ -101,5 +104,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-

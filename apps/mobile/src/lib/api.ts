@@ -153,14 +153,17 @@ export function saveMyProfile(input: ProfileInput): Promise<Profile> {
   });
 }
 
-export async function generateRoute(start: Coordinate, distance: number): Promise <RouteResponse> {
-   return request<RouteResponse>('/api/routes/generate-route', {
+export async function generateRoute(
+  start: Coordinate,
+  distance: number
+): Promise<RouteResponse> {
+  return request<RouteResponse>('/api/routes/generate-route', {
     method: 'POST',
     body: {
       id: `route-${Date.now()}`,
       start,
-      distance
+      distance,
     },
-    auth: false // true if login requerd
-   });
+    auth: false, // true if login requerd
+  });
 }
