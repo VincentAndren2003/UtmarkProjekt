@@ -1,11 +1,10 @@
-import { Router } from 'express';
-import { Route } from '../models/route';
+import { Request, Response } from 'express';
+import { Route } from '../models/route'; // Dubbelkolla om det är Route eller route (stort/litet R)
 
-const router = Router();
-
-router.post('/generate-route', (req, res) => {
-    try{
-        const{ id, start, distance, type } = req.body;
+export const generateRouteController = async (req: Request, res: Response) => {
+    try {
+        const { id, start, distance } = req.body;
+        
         const newRoute = new Route(id, start, distance);
         const checkpoints = newRoute.setCheckpoints();
 
@@ -15,9 +14,8 @@ router.post('/generate-route', (req, res) => {
             distance: newRoute.distance,
             checkpoints: checkpoints
         });
-    } catch (error){
-        res.status(500).json({message: "Rutt kunnde inte genegeras"});
+    } catch (error) {
+        console.error("Error generating route:", error);
+        res.status(500).json({ message: "Rutt kunde inte genereras" });
     }
-});
-
-export default router;
+};
