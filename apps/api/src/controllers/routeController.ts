@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { route } from '../routes/route';
+import { Route } from '../models/route';
 
 const router = Router();
 
 router.post('/generate-route', (req, res) => {
     try{
         const{ id, start, distance, type } = req.body;
-        const newRoute = new route(id, start, distance);
+        const newRoute = new Route(id, start, distance);
         const checkpoints = newRoute.setCheckpoints();
 
         res.status(200).json({

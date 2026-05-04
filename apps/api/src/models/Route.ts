@@ -1,6 +1,6 @@
 import { checkPoint } from '../checkPoint';  
 
-export class route { // slut koridnater ? // antal checkpoints? 
+export class Route { // slut koridnater ? // antal checkpoints? 
     id: string;
     start: {    
         latitude: number;

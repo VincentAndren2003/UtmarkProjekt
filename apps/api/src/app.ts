@@ -22,6 +22,7 @@ import { env } from './config/env';
 import { signup, login } from './controllers/authController';
 import { getMyProfile, upsertMyProfile } from './controllers/profileController';
 import { listGreenAreas } from './controllers/greenAreaController';
+import routeRouter from './routes/routeRouter';
 
 export function createApp() {
   const app = express();
@@ -48,6 +49,7 @@ export function createApp() {
 
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);
+  app.use('/api/routes', routeRouter);
 
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to
