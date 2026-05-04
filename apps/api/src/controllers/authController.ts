@@ -1,4 +1,3 @@
-
 // This file handles signup and login
 
 import { Request, Response, NextFunction } from 'express';

@@ -1,4 +1,3 @@
-
 // -----------------------------------------------------------------------------
 // This file handles the user's profile (username, full name, age, gender).
 

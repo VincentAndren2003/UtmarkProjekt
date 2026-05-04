@@ -1,86 +1,88 @@
-import { checkPoint } from '../checkPoint';  
+import { checkPoint } from '../checkPoint';
 
-export class route { // slut koridnater ? // antal checkpoints? 
-    id: string;
-    start: {    
-        latitude: number;
-        longitude: number;
-    }
-    distance: number; // km t.ex 2, 5, 10
-    checkpoints: checkPoint[] = [];
+export class route {
+  // slut koridnater ? // antal checkpoints?
+  id: string;
+  start: {
+    latitude: number;
+    longitude: number;
+  };
+  distance: number; // km t.ex 2, 5, 10
+  checkpoints: checkPoint[] = [];
 
-    constructor(
-        id: string,
-        start: { latitude: number; longitude: number },
-        distance: number
-    ) {
-        this.id = id;
-        this.start = start;
-        this.distance = distance;
-    }
+  constructor(
+    id: string,
+    start: { latitude: number; longitude: number },
+    distance: number
+  ) {
+    this.id = id;
+    this.start = start;
+    this.distance = distance;
+  }
 
-    setCheckpoints(
-        numCeckpoints: number = this.distance * 2,
-        bearing: number = 0,
-        checkpointRadius: number = 20
-    ): checkPoint[]{ 
-        this.checkpoints = [];
-        const distancePerCheckpoint = this.distance/(numCeckpoints);
+  setCheckpoints(
+    numCeckpoints: number = this.distance * 2,
+    bearing: number = 0,
+    checkpointRadius: number = 20
+  ): checkPoint[] {
+    this.checkpoints = [];
+    const distancePerCheckpoint = this.distance / numCeckpoints;
 
-        let currentPos = { 
-            latitude: this.start.latitude, 
-            longitude: this.start.longitude 
-        };
+    let currentPos = {
+      latitude: this.start.latitude,
+      longitude: this.start.longitude,
+    };
 
-        for (let i = 1; i<= numCeckpoints; i++){
-            bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
-            //bearing += (Math.random()* 40 - 20) // Om snirklar åt samma håll
-            const newCheckPoint = this.calculateCheckpoint(
-                `checkpoint-${i}`,
-                currentPos,
-                distancePerCheckpoint,
-                bearing,
-                checkpointRadius
-            );
-            this.checkpoints.push(newCheckPoint);
-            currentPos = { 
-                latitude: newCheckPoint.coordinate.latitude, 
-                longitude: newCheckPoint.coordinate.longitude 
-            };
-        }
-
-        return this.checkpoints;
+    for (let i = 1; i <= numCeckpoints; i++) {
+      bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
+      //bearing += (Math.random()* 40 - 20) // Om snirklar åt samma håll
+      const newCheckPoint = this.calculateCheckpoint(
+        `checkpoint-${i}`,
+        currentPos,
+        distancePerCheckpoint,
+        bearing,
+        checkpointRadius
+      );
+      this.checkpoints.push(newCheckPoint);
+      currentPos = {
+        latitude: newCheckPoint.coordinate.latitude,
+        longitude: newCheckPoint.coordinate.longitude,
+      };
     }
 
-    private calculateCheckpoint(
-        id: string,
-        origin: {latitude: number; longitude: number;},
-        distanceKm: number,
-        bearing: number,
-        radius: number
-    ): checkPoint{
-        const R = 6371; //jorden i km 
-        const bearingRad = (bearing * Math.PI) / 180;
-        const lat1 = (origin.latitude * Math.PI) / 180;
-        const long1 = (origin.longitude * Math.PI) / 180;
-        const angularDistance = distanceKm / R;
+    return this.checkpoints;
+  }
 
-        const lat2 = Math.asin(
-            Math.sin(lat1) * Math.cos(angularDistance) + 
-            Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearingRad)
-        );
+  private calculateCheckpoint(
+    id: string,
+    origin: { latitude: number; longitude: number },
+    distanceKm: number,
+    bearing: number,
+    radius: number
+  ): checkPoint {
+    const R = 6371; //jorden i km
+    const bearingRad = (bearing * Math.PI) / 180;
+    const lat1 = (origin.latitude * Math.PI) / 180;
+    const long1 = (origin.longitude * Math.PI) / 180;
+    const angularDistance = distanceKm / R;
 
-        const long2 = long1 + Math.atan2(
-            Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1),
-            Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
-        );
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(angularDistance) +
+        Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearingRad)
+    );
 
-        const coordinate = {
-            latitude: (lat2 * 180) / Math.PI,
-            longitude: (long2 * 180) / Math.PI, 
-        };
+    const long2 =
+      long1 +
+      Math.atan2(
+        Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1),
+        Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
+      );
 
-        return new checkPoint(id, coordinate, false, radius)     
-    }
+    const coordinate = {
+      latitude: (lat2 * 180) / Math.PI,
+      longitude: (long2 * 180) / Math.PI,
+    };
+
+    return new checkPoint(id, coordinate, false, radius);
+  }
 }
-

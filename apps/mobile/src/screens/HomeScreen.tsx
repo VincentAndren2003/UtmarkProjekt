@@ -2,6 +2,8 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Video, ResizeMode } from 'expo-av';
 import { RootStackParamList } from '../../App';
+import backgroundVideo from '../../assets/video/33212-395657672.mp4';
+import logoIcon from '../../assets/icon.png';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -9,7 +11,7 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Video
-        source={require('../../assets/video/33212-395657672.mp4')}
+        source={backgroundVideo}
         style={StyleSheet.absoluteFillObject}
         resizeMode={ResizeMode.COVER}
         shouldPlay
@@ -22,10 +24,7 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.main}>
         <View style={styles.logoBlock}>
           <View style={styles.logo}>
-            <Image
-              source={require('../../assets/icon.png')}
-              style={styles.logo}
-            />
+            <Image source={logoIcon} style={styles.logo} />
           </View>
           <Text style={styles.logoHeaderText}>UTMARK</Text>
           <Text style={styles.logoSubText}>
