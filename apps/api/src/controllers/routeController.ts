@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Route } from '../models/route'; // Dubbelkolla om det är Route eller route (stort/litet R)
+import { Route } from '../models/Route';
 
 export const generateRouteController = async (req: Request, res: Response) => {
     try {

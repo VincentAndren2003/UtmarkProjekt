@@ -49,6 +49,8 @@ export function createApp() {
 
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);
+
+  // route
   app.use('/api/routes', routeRouter);
 
   // Error handler, Express identifies it by the 4 args

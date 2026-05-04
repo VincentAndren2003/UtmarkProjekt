@@ -1,4 +1,4 @@
-import { checkPoint } from '../checkPoint';  
+import { checkPoint } from './checkPoint';  
 
 export class Route { // slut koridnater ? // antal checkpoints? 
     id: string;
