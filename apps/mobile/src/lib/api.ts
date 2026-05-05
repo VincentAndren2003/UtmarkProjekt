@@ -155,7 +155,8 @@ export function saveMyProfile(input: ProfileInput): Promise<Profile> {
 
 export async function generateRoute(
   start: Coordinate,
-  distance: number
+  distance: number,
+  options?: { filters?: string[] }
 ): Promise<RouteResponse> {
   return request<RouteResponse>('/api/routes/generate-route', {
     method: 'POST',
@@ -163,6 +164,7 @@ export async function generateRoute(
       id: `route-${Date.now()}`,
       start,
       distance,
+      filters: options?.filters ?? [],
     },
     auth: false, // true if login requerd
   });
