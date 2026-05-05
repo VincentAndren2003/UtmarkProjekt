@@ -45,9 +45,6 @@ function createApp() {
     // Green areas (public — anyone can view).
     app.get('/api/green-areas', greenAreaController_1.listGreenAreas);
     // route
-    app.post('/api/routes/generate-route', (req, res) => {
-        res.json({ debug: 'direkt route fungerar' });
-    });
     app.use('/api/routes', routeRouter_1.default);
     // Error handler, Express identifies it by the 4 args
     // (err, req, res, next). Any error thrown in a controller and passed to
