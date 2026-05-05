@@ -13,6 +13,233 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 export function MapScreen({ navigation }: Props) {
   const { location, loading } = useUserLocation();
 
+  const mapStyle = [{
+  "variant": "light",
+  "styles": [
+    {
+      "id": "infrastructure.building",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000",
+        "strokeWidth": 0
+      }
+    },
+    {
+      "id": "infrastructure.businessCorridor",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.noTraffic",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.noTraffic.trail.paved",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000",
+        "strokeOpacity": 0,
+        "strokeColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.noTraffic.trail.unpaved",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000",
+        "strokeOpacity": 0,
+        "strokeColor": "#000000",
+        "strokeWidth": 0
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.ramp",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991",
+        "strokeOpacity": 1,
+        "strokeColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.arterial",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991",
+        "strokeOpacity": 1,
+        "strokeColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.highway",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991",
+        "strokeOpacity": 1,
+        "strokeColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.local",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991",
+        "strokeOpacity": 1,
+        "strokeColor": "#000000",
+        "strokeWidth": 0.5
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.noOutlet",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991",
+        "strokeOpacity": 1,
+        "strokeColor": "#000000",
+        "strokeWidth": 0.5
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.directionArrow",
+      "label": {
+        "visible": false,
+        "pinFillColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.intersection",
+      "label": {
+        "visible": true
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.marking",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.marking.crosswalk",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#000000"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.sidewalk",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.roadDetail.surface",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991"
+      }
+    },
+    {
+      "id": "infrastructure.urbanArea",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#979715"
+      }
+    },
+    {
+      "id": "natural.base",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffffff"
+      }
+    },
+    {
+      "id": "natural.land.landCover.crops",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffffff"
+      }
+    },
+    {
+      "id": "natural.land.landCover.dryCrops",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#a8f17a"
+      }
+    },
+    {
+      "id": "natural.land.landCover.forest",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffffff"
+      }
+    },
+    {
+      "id": "natural.land.landCover.shrub",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffcc32"
+      }
+    },
+    {
+      "id": "natural.water",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#5ae4e4"
+      }
+    },
+    {
+      "id": "pointOfInterest.emergency.hospital",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#e3a991"
+      }
+    },
+    {
+      "id": "pointOfInterest.other.cemetery",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffffff"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.golfCourse",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#eebd31"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.park",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffcc32"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.sportsComplex",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffcc32"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.sportsField",
+      "geometry": {
+        "fillOpacity": 1,
+        "fillColor": "#ffcc32"
+      }
+    }
+  ]
+}];
+
+
   const initialRegion = location
     ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
     : {
@@ -29,6 +256,9 @@ export function MapScreen({ navigation }: Props) {
       <StatusBar style="light" />
       <MapView
         style={StyleSheet.absoluteFill}
+        provider="google"
+        //googleMapId='109a430d0b2b53dcfe56cca2'
+        customMapStyle={mapStyle}
         initialRegion={initialRegion}
         showsUserLocation
         showsMyLocationButton
