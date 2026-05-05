@@ -83,6 +83,12 @@ export function CreateAccountScreen({ navigation }: Props) {
             {!!msg && <Text style={styles.errorText}>{msg}</Text>}
             <Text style={styles.buttonText}>Skapa konto</Text>
           </Pressable>
+          <View style={styles.loginRow}>
+            <Text style={styles.loginPrompt}>Har du redan konto? </Text>
+            <Pressable onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginLink}>Logga in</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </View>
@@ -175,6 +181,7 @@ const styles = StyleSheet.create({
   buttonBlock: {
     gap: 14,
     alignSelf: 'center',
+    alignItems: 'center',
   },
 
   buttonText: {
@@ -196,5 +203,21 @@ const styles = StyleSheet.create({
     color: 'rgba(26, 26, 26, 0.8)',
     fontSize: 15,
     fontWeight: '500',
+  },
+  loginRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginPrompt: {
+    color: 'rgba(26, 26, 26, 0.75)',
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  loginLink: {
+    color: 'rgba(26, 26, 26, 0.95)',
+    fontSize: 15,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
