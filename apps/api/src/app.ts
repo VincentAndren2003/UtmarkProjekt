@@ -51,6 +51,10 @@ export function createApp() {
   app.get('/api/green-areas', listGreenAreas);
 
   // route
+  app.post('/api/routes/generate-route', (req, res) => {
+  res.json({ debug: 'direkt route fungerar' });
+  });
+
   app.use('/api/routes', routeRouter);
 
   // Error handler, Express identifies it by the 4 args
