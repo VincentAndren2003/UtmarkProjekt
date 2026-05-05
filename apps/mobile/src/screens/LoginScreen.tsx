@@ -15,7 +15,7 @@ export function LoginScreen({ navigation }: Props) {
     setMsg('');
     try {
       await login(email.trim().toLowerCase(), password);
-      navigation.navigate('ProfileUpsert');
+      navigation.navigate('CreateRoute', { from: 'Login' });
     } catch (err) {
       setMsg(err instanceof Error ? err.message : 'Login failed');
     }
@@ -63,6 +63,12 @@ export function LoginScreen({ navigation }: Props) {
         <View style={styles.buttonBlock}>
           <Pressable style={styles.primaryButton} onPress={handleLogin}>
             <Text style={styles.buttonText}>Logga in</Text>
+          </Pressable>
+          <Pressable
+            style={styles.tempRouteButton}
+            onPress={() => navigation.navigate('CreateRoute', { from: 'Login' })}
+          >
+            <Text style={styles.tempRouteButtonText}>Temp: Gå till CreateRoute</Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('CreateAccount')}>
             <Text style={[styles.helpText, { textAlign: 'center' }]}>
@@ -185,6 +191,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7A44',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  tempRouteButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(62, 122, 68, 0.35)',
+    backgroundColor: 'rgba(62, 122, 68, 0.08)',
+  },
+  tempRouteButtonText: {
+    color: '#3E7A44',
+    fontSize: 12,
+    fontWeight: '600',
   },
   backLink: {
     color: 'rgba(26, 26, 26, 0.8)',
