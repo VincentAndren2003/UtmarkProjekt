@@ -15,7 +15,12 @@ export const generateRouteController = async (req: Request, res: Response) => {
     );
 
     const newRoute = new Route(id, start, distance);
-    const checkpoints = newRoute.setCheckpoints(undefined, undefined, undefined, greenAreas);
+    const checkpoints = newRoute.setCheckpoints(
+      undefined,
+      undefined,
+      undefined,
+      greenAreas
+    );
 
     res.status(200).json({
       id: newRoute.id,
