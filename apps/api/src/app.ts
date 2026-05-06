@@ -25,7 +25,7 @@ import { listGreenAreas } from './controllers/greenAreaController';
 import routeRouter from './routes/routeRouter';
 
 export function createApp() {
- onst app = express();
+  const app = express();
 
   // CORS lets the mobile app (different origin) call this API.
   // env.CORS_ORIGIN says which origins are allowed (set in .env).
