@@ -1,4 +1,4 @@
-export class checkPoint {
+export class Checkpoint {
   id: string;
   coordinate: {
     latitude: number;

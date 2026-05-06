@@ -1,12 +1,21 @@
 import { Request, Response } from 'express';
 import { Route } from '../models/Route';
+import { GreenAreaService } from '../services/GreenAreaService';
+
+const greenAreaService = new GreenAreaService();
 
 export const generateRouteController = async (req: Request, res: Response) => {
   try {
     const { id, start, distance } = req.body;
 
+    const greenAreas = await greenAreaService.fetchGreenAreas(
+      start.latitude,
+      start.longitude,
+      distance * 1000
+    );
+
     const newRoute = new Route(id, start, distance);
-    const checkpoints = newRoute.setCheckpoints();
+    const checkpoints = newRoute.setCheckpoints(undefined, undefined, undefined, greenAreas);
 
     res.status(200).json({
       id: newRoute.id,
