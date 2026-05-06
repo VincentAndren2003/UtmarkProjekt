@@ -1,4 +1,4 @@
-import { checkPoint } from '../checkPoint';
+import { Checkpoint } from '../models/checkpoint';
 
 export class route {
   // slut koridnater ? // antal checkpoints?
@@ -8,7 +8,7 @@ export class route {
     longitude: number;
   };
   distance: number; // km t.ex 2, 5, 10
-  checkpoints: checkPoint[] = [];
+  checkpoints: Checkpoint[] = [];
 
   constructor(
     id: string,
@@ -24,7 +24,7 @@ export class route {
     numCeckpoints: number = this.distance * 2,
     bearing: number = 0,
     checkpointRadius: number = 20
-  ): checkPoint[] {
+  ): Checkpoint[] {
     this.checkpoints = [];
     const distancePerCheckpoint = this.distance / numCeckpoints;
 
@@ -59,7 +59,7 @@ export class route {
     distanceKm: number,
     bearing: number,
     radius: number
-  ): checkPoint {
+  ): Checkpoint {
     const R = 6371; //jorden i km
     const bearingRad = (bearing * Math.PI) / 180;
     const lat1 = (origin.latitude * Math.PI) / 180;
@@ -83,6 +83,6 @@ export class route {
       longitude: (long2 * 180) / Math.PI,
     };
 
-    return new checkPoint(id, coordinate, false, radius);
+    return new Checkpoint(id, coordinate, false, radius);
   }
 }

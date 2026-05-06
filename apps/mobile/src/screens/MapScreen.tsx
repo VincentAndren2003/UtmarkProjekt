@@ -44,9 +44,9 @@ export function MapScreen({ navigation }: Props) {
             radius={1000}
           />
         )}
-        {showRoute && location !== null &&(
+        {showRoute && location !== null && (
           <GeneratedRouteLayer
-            startLat={location.latitude} 
+            startLat={location.latitude}
             startLong={location.longitude}
             distance={5} // Du kan ändra distansen här
           />

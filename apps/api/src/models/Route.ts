@@ -22,7 +22,7 @@ export class Route {
   }
 
   setCheckpoints(
-    numCeckpoints: number = Math.round(this.distance / 1.25), // Math.trunc(this.distance * 1.5) 
+    numCeckpoints: number = Math.round(this.distance / 1.25), // Math.trunc(this.distance * 1.5)
     bearing: number = 0,
     checkpointRadius: number = 20,
     greenAreas?: GreenAreaCollection
@@ -36,13 +36,15 @@ export class Route {
     };
 
     for (let i = 1; i <= numCeckpoints; i++) {
-      
       let newCheckPoint: Checkpoint;
       let attempts = 0;
       const maxAttempts = 50;
 
-      do{
-        const variedDistance = attempts < 30 ? distancePerCheckpoint : distancePerCheckpoint * (0.5 + Math.random()); 
+      do {
+        const variedDistance =
+          attempts < 30
+            ? distancePerCheckpoint
+            : distancePerCheckpoint * (0.5 + Math.random());
         bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
         //bearing += (Math.random()* 40 - 20) // Om snirklar åt samma håll
 
@@ -53,9 +55,11 @@ export class Route {
           bearing,
           checkpointRadius
         );
-        attempts ++;
+        attempts++;
       } while (
-        greenAreas && !this.checkpointLegal(newCheckPoint, greenAreas) && attempts < 50
+        greenAreas &&
+        !this.checkpointLegal(newCheckPoint, greenAreas) &&
+        attempts < 50
       );
       if (
         attempts >= maxAttempts &&
@@ -68,27 +72,28 @@ export class Route {
       }
 
       this.checkpoints.push(newCheckPoint);
-      currentPos = { latitude: newCheckPoint.coordinate.latitude, 
-      longitude: newCheckPoint.coordinate.longitude};
+      currentPos = {
+        latitude: newCheckPoint.coordinate.latitude,
+        longitude: newCheckPoint.coordinate.longitude,
+      };
     }
     return this.checkpoints;
   }
 
-  private checkpointLegal( 
-    checkpoint: Checkpoint, 
+  private checkpointLegal(
+    checkpoint: Checkpoint,
     greenAreas: GreenAreaCollection
-  ): boolean{
-    const {latitude, longitude} = checkpoint.coordinate;
+  ): boolean {
+    const { latitude, longitude } = checkpoint.coordinate;
 
-   return greenAreas.features.some((feature) => {
-    if (feature.geometry.type !== 'Polygon') return false;
-    return feature.geometry.coordinates.some((ring) => {
-      const r = ring as [number, number][];
-      if (!this.pointInBoundingBox(latitude, longitude, r)) return false;
-      return this.pointInPolygon(longitude, latitude, r);
+    return greenAreas.features.some((feature) => {
+      if (feature.geometry.type !== 'Polygon') return false;
+      return feature.geometry.coordinates.some((ring) => {
+        const r = ring as [number, number][];
+        if (!this.pointInBoundingBox(latitude, longitude, r)) return false;
+        return this.pointInPolygon(longitude, latitude, r);
+      });
     });
-  });
-
   }
 
   private calculateCheckpoint(
@@ -124,7 +129,11 @@ export class Route {
     return new Checkpoint(id, coordinate, false, radius);
   }
 
-  private pointInBoundingBox(lat: number, lon: number, polygon: [number, number][]): boolean {
+  private pointInBoundingBox(
+    lat: number,
+    lon: number,
+    polygon: [number, number][]
+  ): boolean {
     let minLat = polygon[0][1];
     let maxLat = polygon[0][1];
     let minLon = polygon[0][0];
@@ -140,7 +149,11 @@ export class Route {
     return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
   }
 
-  private pointInPolygon(lon: number, lat: number, polygon: [number, number][]): boolean {
+  private pointInPolygon(
+    lon: number,
+    lat: number,
+    polygon: [number, number][]
+  ): boolean {
     // Ray-casting algorithm for point-in-polygon test
     let isInside = false;
 
@@ -148,11 +161,12 @@ export class Route {
       const [xi, yi] = polygon[i];
       const [xj, yj] = polygon[j];
 
-      const intersect = ((yi > lat) !== (yj > lat)) && (lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi);
+      const intersect =
+        yi > lat !== yj > lat &&
+        lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
       if (intersect) isInside = !isInside;
     }
 
     return isInside;
   }
-
 }
