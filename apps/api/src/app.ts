@@ -22,9 +22,10 @@ import { env } from './config/env';
 import { signup, login } from './controllers/authController';
 import { getMyProfile, upsertMyProfile } from './controllers/profileController';
 import { listGreenAreas } from './controllers/greenAreaController';
+import routeRouter from './routes/routeRouter';
 
 export function createApp() {
-  const app = express();
+ onst app = express();
 
   // CORS lets the mobile app (different origin) call this API.
   // env.CORS_ORIGIN says which origins are allowed (set in .env).
@@ -49,9 +50,12 @@ export function createApp() {
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);
 
+  // route
+  app.use('/api/routes', routeRouter);
+
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to
-  // next(err) lands here and gets turned into a JSON response.
+  // next(err) lands here and get into a JSON response.
   app.use(errorHandler);
 
   return app;
