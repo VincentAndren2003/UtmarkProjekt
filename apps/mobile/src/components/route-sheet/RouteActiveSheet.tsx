@@ -17,7 +17,8 @@ export function RouteActiveSheet({
   onEmergency,
   onFetchCheckpoint,
 }: Props) {
-  const routeName = (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
+  const routeName =
+    (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
 
   return (
     <>
@@ -161,4 +162,3 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 });
-

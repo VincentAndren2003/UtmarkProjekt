@@ -5,8 +5,14 @@ import { RootStackParamList } from '../../App';
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckpointTaken'>;
 
 export function CheckpointTakenScreen({ navigation, route }: Props) {
-  const { routeName, currentCheckpoint, totalCheckpoints, elapsedMin, distanceKm, paceMinPerKm } =
-    route.params;
+  const {
+    routeName,
+    currentCheckpoint,
+    totalCheckpoints,
+    elapsedMin,
+    distanceKm,
+    paceMinPerKm,
+  } = route.params;
 
   const checkpointsLeft = Math.max(0, totalCheckpoints - currentCheckpoint);
   const nextDistanceMeters = 500;
@@ -37,7 +43,9 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.progressNumbersRow}>
           <Text style={styles.progressNumber}>1</Text>
-          <Text style={[styles.progressNumber, styles.progressNumberCurrent]}>2</Text>
+          <Text style={[styles.progressNumber, styles.progressNumberCurrent]}>
+            2
+          </Text>
           <Text style={styles.progressNumber}>3</Text>
           <Text style={styles.progressNumber}>4</Text>
         </View>
@@ -68,7 +76,9 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 
         <Text style={styles.nextTitle}>Nästa checkpoint</Text>
         <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
-        <Text style={styles.leftText}>{checkpointsLeft} checkpoints kvar till mål</Text>
+        <Text style={styles.leftText}>
+          {checkpointsLeft} checkpoints kvar till mål
+        </Text>
 
         <Pressable
           style={styles.cta}
@@ -269,4 +279,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-

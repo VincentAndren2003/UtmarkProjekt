@@ -11,21 +11,32 @@ type BottomNavProps = {
   fromOrigin?: 'Login' | 'CreateAccount';
 };
 
-export function BottomNav({ navigation, activeTab, fromOrigin }: BottomNavProps) {
+export function BottomNav({
+  navigation,
+  activeTab,
+  fromOrigin,
+}: BottomNavProps) {
   return (
     <View style={styles.wrapper}>
       <View style={styles.line} />
       <View style={styles.row}>
         <Pressable
           style={styles.item}
-          onPress={() => navigation.navigate('CreateRoute', { from: fromOrigin })}
+          onPress={() =>
+            navigation.navigate('CreateRoute', { from: fromOrigin })
+          }
         >
           <Ionicons
             name={activeTab === 'CreateRoute' ? 'home' : 'home-outline'}
             size={26}
             color={activeTab === 'CreateRoute' ? '#2b2f33' : '#7c8189'}
           />
-          <Text style={[styles.label, activeTab === 'CreateRoute' && styles.activeText]}>
+          <Text
+            style={[
+              styles.label,
+              activeTab === 'CreateRoute' && styles.activeText,
+            ]}
+          >
             Hem
           </Text>
         </Pressable>
@@ -39,7 +50,12 @@ export function BottomNav({ navigation, activeTab, fromOrigin }: BottomNavProps)
             size={26}
             color={activeTab === 'Favorites' ? '#2b2f33' : '#7c8189'}
           />
-          <Text style={[styles.label, activeTab === 'Favorites' && styles.activeText]}>
+          <Text
+            style={[
+              styles.label,
+              activeTab === 'Favorites' && styles.activeText,
+            ]}
+          >
             Favoriter
           </Text>
         </Pressable>
@@ -53,7 +69,9 @@ export function BottomNav({ navigation, activeTab, fromOrigin }: BottomNavProps)
             size={26}
             color={activeTab === 'Profile' ? '#2b2f33' : '#7c8189'}
           />
-          <Text style={[styles.label, activeTab === 'Profile' && styles.activeText]}>
+          <Text
+            style={[styles.label, activeTab === 'Profile' && styles.activeText]}
+          >
             Profil
           </Text>
         </Pressable>

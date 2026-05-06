@@ -20,7 +20,9 @@ export type RootStackParamList = {
   Welcome: undefined;
   Map: undefined;
   ProfileUpsert: undefined;
-  CreateRoute: { from?: 'Login' | 'CreateAccount'; activeRoute?: RouteResponse } | undefined;
+  CreateRoute:
+    | { from?: 'Login' | 'CreateAccount'; activeRoute?: RouteResponse }
+    | undefined;
   RouteStarted: { route: RouteResponse };
   CheckpointTaken: {
     routeName: string;
@@ -79,27 +81,47 @@ export default function App() {
         <Stack.Screen
           name="CreateRoute"
           component={CreateRouteScreen}
-          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
         />
         <Stack.Screen
           name="RouteStarted"
           component={RouteStartedScreen}
-          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
         />
         <Stack.Screen
           name="CheckpointTaken"
           component={CheckpointTakenScreen}
-          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
         />
         <Stack.Screen
           name="Favorites"
           component={FavoritesScreen}
-          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
         />
         <Stack.Screen
           name="Profile"
           component={ProfileScreen}
-          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

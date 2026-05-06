@@ -59,12 +59,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
   const ACTIVE_COLLAPSED_HEIGHT = 44;
-  const REQUEST_COLLAPSED_TRANSLATE = EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
-  const GENERATED_EXPANDED_TRANSLATE = EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
+  const REQUEST_COLLAPSED_TRANSLATE =
+    EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
+  const GENERATED_EXPANDED_TRANSLATE =
+    EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
   const sheetTranslateY = useRef(
     new Animated.Value(
-      PREVIEW_GENERATED_SHEET ? GENERATED_EXPANDED_TRANSLATE : REQUEST_COLLAPSED_TRANSLATE,
-    ),
+      PREVIEW_GENERATED_SHEET
+        ? GENERATED_EXPANDED_TRANSLATE
+        : REQUEST_COLLAPSED_TRANSLATE
+    )
   ).current;
   const sliderX = useRef(new Animated.Value(0)).current;
   const sliderXRef = useRef(0);
@@ -80,9 +84,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showActiveHud, setShowActiveHud] = useState(false);
-  const [sheetMode, setSheetMode] = useState<'request' | 'generated' | 'active'>(
-    PREVIEW_GENERATED_SHEET ? 'generated' : 'request'
-  );
+  const [sheetMode, setSheetMode] = useState<
+    'request' | 'generated' | 'active'
+  >(PREVIEW_GENERATED_SHEET ? 'generated' : 'request');
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
     PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
   );
@@ -94,7 +98,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     paceMinPerKm: '9:33/km',
   };
   const activeRouteName =
-    (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ?? 'Genererad rutt';
+    (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ??
+    'Genererad rutt';
   const minTranslate =
     sheetMode === 'active'
       ? EXPANDED_HEIGHT - ACTIVE_EXPANDED_HEIGHT
@@ -137,7 +142,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     sheetTranslateY.stopAnimation((currentValue) => {
-      const clamped = Math.max(minTranslate, Math.min(maxTranslate, currentValue));
+      const clamped = Math.max(
+        minTranslate,
+        Math.min(maxTranslate, currentValue)
+      );
       sheetTranslateY.setValue(clamped);
       setIsExpanded(clamped === minTranslate);
     });
@@ -211,7 +219,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         onPanResponderMove: (_, gesture) => {
           const next = Math.max(
             minTranslate,
-            Math.min(maxTranslate, maxTranslate + gesture.dy),
+            Math.min(maxTranslate, maxTranslate + gesture.dy)
           );
           sheetTranslateY.setValue(next);
         },
@@ -223,25 +231,27 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           } else {
             sheetTranslateY.stopAnimation((currentValue) => {
               const midpoint = (minTranslate + maxTranslate) / 2;
-              animateSheetTo(currentValue < midpoint ? minTranslate : maxTranslate);
+              animateSheetTo(
+                currentValue < midpoint ? minTranslate : maxTranslate
+              );
             });
           }
         },
       }),
-    [minTranslate, maxTranslate, sheetTranslateY],
+    [minTranslate, maxTranslate, sheetTranslateY]
   );
 
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
   const sliderMaxX = Math.max(
     sliderMinX,
-    sliderWidth - LINE_INSET - THUMB_SIZE / 2,
+    sliderWidth - LINE_INSET - THUMB_SIZE / 2
   );
   const sliderTravel = Math.max(1, sliderMaxX - sliderMinX);
 
   const updateSliderX = (locationX: number) => {
     const nextX = Math.max(
       sliderMinX,
-      Math.min(sliderMaxX, locationX - THUMB_SIZE / 2),
+      Math.min(sliderMaxX, locationX - THUMB_SIZE / 2)
     );
     sliderX.setValue(nextX);
   };
@@ -290,7 +300,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           if (!sliderWidth) return;
           const nextX = Math.max(
             sliderMinX,
-            Math.min(sliderMaxX, sliderStartRef.current + gesture.dx),
+            Math.min(sliderMaxX, sliderStartRef.current + gesture.dx)
           );
           sliderX.setValue(nextX);
           sliderXRef.current = nextX;
@@ -310,7 +320,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           updateDistanceLive(sliderXRef.current);
         },
       }),
-    [sliderWidth, sliderMaxX, sliderMinX],
+    [sliderWidth, sliderMaxX, sliderMinX]
   );
 
   const handleSliderLayout = (rawWidth: number) => {
@@ -357,7 +367,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               <Text style={styles.activeHudFetchText}>Hämta checkpoint</Text>
               <Text style={styles.activeHudFetchArrow}>›</Text>
             </Pressable>
-            <Pressable style={styles.activeHudEmergencyButton} onPress={() => {}}>
+            <Pressable
+              style={styles.activeHudEmergencyButton}
+              onPress={() => {}}
+            >
               <Text style={styles.activeHudEmergencyText}>Nödknapp</Text>
             </Pressable>
           </View>
@@ -366,7 +379,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       <Animated.View
         style={[
           styles.filterSheet,
-          { height: EXPANDED_HEIGHT, transform: [{ translateY: sheetTranslateY }] },
+          {
+            height: EXPANDED_HEIGHT,
+            transform: [{ translateY: sheetTranslateY }],
+          },
         ]}
       >
         <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
@@ -418,7 +434,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           />
         ) : null}
       </Animated.View>
-      <BottomNav navigation={navigation} activeTab="CreateRoute" fromOrigin={from} />
+      <BottomNav
+        navigation={navigation}
+        activeTab="CreateRoute"
+        fromOrigin={from}
+      />
     </View>
   );
 }

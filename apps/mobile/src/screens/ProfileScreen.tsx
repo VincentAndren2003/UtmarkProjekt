@@ -14,7 +14,11 @@ export function ProfileScreen({ navigation, route }: Props) {
         <Text style={styles.title}>Profil</Text>
         <Text style={styles.subtitle}>Profilinställningar kommer här.</Text>
       </View>
-      <BottomNav navigation={navigation} activeTab="Profile" fromOrigin={from} />
+      <BottomNav
+        navigation={navigation}
+        activeTab="Profile"
+        fromOrigin={from}
+      />
     </View>
   );
 }

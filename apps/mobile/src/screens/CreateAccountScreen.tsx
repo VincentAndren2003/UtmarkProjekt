@@ -89,7 +89,9 @@ export function CreateAccountScreen({ navigation }: Props) {
               navigation.push('CreateRoute', { from: 'CreateAccount' })
             }
           >
-            <Text style={styles.tempRouteButtonText}>Temp: Gå till CreateRoute</Text>
+            <Text style={styles.tempRouteButtonText}>
+              Temp: Gå till CreateRoute
+            </Text>
           </Pressable>
           <View style={styles.loginRow}>
             <Text style={styles.loginPrompt}>Har du redan konto? </Text>

@@ -68,7 +68,9 @@ export function LoginScreen({ navigation }: Props) {
             style={styles.tempRouteButton}
             onPress={() => navigation.push('CreateRoute', { from: 'Login' })}
           >
-            <Text style={styles.tempRouteButtonText}>Temp: Gå till CreateRoute</Text>
+            <Text style={styles.tempRouteButtonText}>
+              Temp: Gå till CreateRoute
+            </Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('CreateAccount')}>
             <Text style={[styles.helpText, { textAlign: 'center' }]}>

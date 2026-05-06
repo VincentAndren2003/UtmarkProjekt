@@ -17,28 +17,36 @@ export function ActiveRouteStatsBar({ stats, variant = 'sheet' }: Props) {
   return (
     <View style={[styles.root, variant === 'hud' && styles.rootHud]}>
       <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>Tid</Text>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Tid
+        </Text>
         <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
           {stats.timeMin} min
         </Text>
       </View>
       <View style={styles.divider} />
       <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>Checkpoint</Text>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Checkpoint
+        </Text>
         <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
           {stats.checkpointDone}/{stats.checkpointTotal}
         </Text>
       </View>
       <View style={styles.divider} />
       <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>Distans</Text>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Distans
+        </Text>
         <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
           {stats.distanceToNextM} m
         </Text>
       </View>
       <View style={styles.divider} />
       <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>Snitt</Text>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Snitt
+        </Text>
         <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
           {stats.paceMinPerKm}
         </Text>
@@ -47,7 +55,8 @@ export function ActiveRouteStatsBar({ stats, variant = 'sheet' }: Props) {
   );
 }
 
-const HUD_TOP = (Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0) + 69;
+const HUD_TOP =
+  (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0) + 69;
 
 const styles = StyleSheet.create({
   root: {
@@ -99,4 +108,3 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 });
-

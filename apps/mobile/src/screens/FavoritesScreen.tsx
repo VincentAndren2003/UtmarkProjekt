@@ -19,10 +19,16 @@ export function FavoritesScreen({ navigation, route }: Props) {
           style={styles.tempBackButton}
           onPress={() => navigation.navigate(targetScreen)}
         >
-          <Text style={styles.tempBackText}>Temp: Tillbaka till {targetLabel}</Text>
+          <Text style={styles.tempBackText}>
+            Temp: Tillbaka till {targetLabel}
+          </Text>
         </Pressable>
       </View>
-      <BottomNav navigation={navigation} activeTab="Favorites" fromOrigin={from} />
+      <BottomNav
+        navigation={navigation}
+        activeTab="Favorites"
+        fromOrigin={from}
+      />
     </View>
   );
 }

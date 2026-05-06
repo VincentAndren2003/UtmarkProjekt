@@ -14,7 +14,8 @@ export function RouteGeneratedSheet({
   onGenerateNew,
   onBackToRequest,
 }: Props) {
-  const routeName = (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
+  const routeName =
+    (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
 
   return (
     <>

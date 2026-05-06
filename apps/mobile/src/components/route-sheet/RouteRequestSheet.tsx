@@ -1,4 +1,11 @@
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { PanResponderInstance } from 'react-native';
 
 type Props = {
@@ -40,7 +47,9 @@ export function RouteRequestSheet({
         style={styles.sliderRow}
       >
         <View style={styles.sliderLine} />
-        <Animated.View style={[styles.sliderThumb, { transform: [{ translateX: sliderX }] }]} />
+        <Animated.View
+          style={[styles.sliderThumb, { transform: [{ translateX: sliderX }] }]}
+        />
       </View>
       <Text style={styles.sliderValue}>{distanceKm} km</Text>
 
@@ -55,7 +64,11 @@ export function RouteRequestSheet({
                 style={[styles.chip, isActive && styles.chipActive]}
                 onPress={() => onToggleFilter(chip)}
               >
-                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{chip}</Text>
+                <Text
+                  style={[styles.chipText, isActive && styles.chipTextActive]}
+                >
+                  {chip}
+                </Text>
               </Pressable>
             );
           })}
@@ -75,7 +88,11 @@ export function RouteRequestSheet({
                 style={[styles.chip, isActive && styles.chipActive]}
                 onPress={() => onToggleFilter(chip)}
               >
-                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{chip}</Text>
+                <Text
+                  style={[styles.chipText, isActive && styles.chipTextActive]}
+                >
+                  {chip}
+                </Text>
               </Pressable>
             );
           })}
@@ -83,7 +100,10 @@ export function RouteRequestSheet({
       )}
 
       <Pressable
-        style={[styles.generateButton, isGenerating && styles.generateButtonDisabled]}
+        style={[
+          styles.generateButton,
+          isGenerating && styles.generateButtonDisabled,
+        ]}
         onPress={onGenerate}
         disabled={isGenerating}
       >

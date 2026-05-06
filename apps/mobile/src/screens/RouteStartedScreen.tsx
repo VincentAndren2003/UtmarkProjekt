@@ -15,7 +15,8 @@ function estimateMinutes(distanceKm: number) {
 export function RouteStartedScreen({ navigation, route }: Props) {
   const generatedRoute = route.params.route;
   const routeName =
-    (generatedRoute as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
+    (generatedRoute as RouteResponse & { name?: string }).name ??
+    'Genererad rutt';
   const etaMin = estimateMinutes(generatedRoute.distance);
 
   return (
@@ -23,8 +24,8 @@ export function RouteStartedScreen({ navigation, route }: Props) {
       <View style={styles.content}>
         <Text style={styles.title}>Rutten har startat!</Text>
         <Text style={styles.subtitle}>
-          {routeName} · {generatedRoute.distance} km · {generatedRoute.checkpoints.length}{' '}
-          checkpoints
+          {routeName} · {generatedRoute.distance} km ·{' '}
+          {generatedRoute.checkpoints.length} checkpoints
         </Text>
 
         <View style={styles.statsCard}>
@@ -35,7 +36,9 @@ export function RouteStartedScreen({ navigation, route }: Props) {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Checkpoints</Text>
-            <Text style={styles.statValue}>{generatedRoute.checkpoints.length} st</Text>
+            <Text style={styles.statValue}>
+              {generatedRoute.checkpoints.length} st
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -49,7 +52,9 @@ export function RouteStartedScreen({ navigation, route }: Props) {
         <Pressable
           style={styles.primaryButton}
           onPress={() =>
-            navigation.navigate('CreateRoute', { activeRoute: generatedRoute } as never)
+            navigation.navigate('CreateRoute', {
+              activeRoute: generatedRoute,
+            } as never)
           }
         >
           <Text style={styles.primaryButtonText}>Öppna kartvy →</Text>
@@ -133,4 +138,3 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
-
