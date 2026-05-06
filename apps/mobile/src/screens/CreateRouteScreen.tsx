@@ -51,7 +51,7 @@ const PREVIEW_ROUTE: RouteResponse = {
 
 export function CreateRouteScreen({ navigation, route }: Props) {
   const MIN_DISTANCE = 1;
-  const MAX_DISTANCE = 30;
+  const MAX_DISTANCE = 20;
   const THUMB_SIZE = 20;
   const LINE_INSET = 10;
   const EXPANDED_HEIGHT = 560;
@@ -357,7 +357,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               onPress={() =>
                 navigation.navigate('CheckpointTaken', {
                   routeName: activeRouteName,
-                  currentCheckpoint: 2,
+                  currentCheckpoint: activeStats.checkpointDone + 1,
                   totalCheckpoints: activeStats.checkpointTotal,
                   elapsedMin: activeStats.timeMin,
                   distanceKm: '1,9',
@@ -425,7 +425,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             onFetchCheckpoint={() =>
               navigation.navigate('CheckpointTaken', {
                 routeName: activeRouteName,
-                currentCheckpoint: 2,
+                currentCheckpoint: activeStats.checkpointDone + 1,
                 totalCheckpoints: activeStats.checkpointTotal,
                 elapsedMin: activeStats.timeMin,
                 distanceKm: '1,9',
@@ -469,7 +469,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e8eb',
     paddingHorizontal: 18,
     paddingTop: 10,
-    paddingHorizontal: 20,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,

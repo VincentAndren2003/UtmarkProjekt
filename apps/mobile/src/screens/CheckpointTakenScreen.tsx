@@ -1,8 +1,13 @@
+import { useEffect, useMemo, useRef } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckpointTaken'>;
+type ProgressItem = { id: string; number: number };
+
+/** Horizontal space per checkpoint (dot + connector to next checkpoint). */
+const PROGRESS_SEGMENT_WIDTH = 86;
 
 export function CheckpointTakenScreen({ navigation, route }: Props) {
   const {
@@ -16,6 +21,31 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 
   const checkpointsLeft = Math.max(0, totalCheckpoints - currentCheckpoint);
   const nextDistanceMeters = 500;
+  const isRouteComplete = checkpointsLeft === 0;
+  const progressRef = useRef<FlatList<ProgressItem>>(null);
+  const progressData = useMemo(
+    () =>
+      Array.from({ length: totalCheckpoints }, (_, index) => ({
+        id: `checkpoint-${index + 1}`,
+        number: index + 1,
+      })),
+    [totalCheckpoints]
+  );
+
+  useEffect(() => {
+    if (progressData.length === 0) return;
+    const targetIndex = Math.min(
+      Math.max(currentCheckpoint - 1, 0),
+      progressData.length - 1
+    );
+    requestAnimationFrame(() => {
+      progressRef.current?.scrollToIndex({
+        index: targetIndex,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
+  }, [currentCheckpoint, progressData]);
 
   return (
     <View style={styles.root}>
@@ -27,28 +57,64 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
         </View>
 
         <Text style={styles.title}>Checkpoint {currentCheckpoint} tagen!</Text>
-        <Text style={styles.subtitle}>Fortsätt mot nästa kontroll!</Text>
+        <Text style={styles.subtitle}>
+          {isRouteComplete
+            ? 'Bra jobbat, Du har tagit alla checkpoints!'
+            : 'Fortsätt mot nästa kontroll!'}
+        </Text>
 
         <View style={styles.divider} />
 
         <Text style={styles.progressTitle}>Framsteg</Text>
-        <View style={styles.progressRow}>
-          <View style={[styles.progressDot, styles.progressDotDone]} />
-          <View style={[styles.progressLine, styles.progressLineDone]} />
-          <View style={[styles.progressDot, styles.progressDotCurrent]} />
-          <View style={styles.progressLine} />
-          <View style={styles.progressDot} />
-          <View style={styles.progressLine} />
-          <View style={styles.progressDot} />
-        </View>
-        <View style={styles.progressNumbersRow}>
-          <Text style={styles.progressNumber}>1</Text>
-          <Text style={[styles.progressNumber, styles.progressNumberCurrent]}>
-            2
-          </Text>
-          <Text style={styles.progressNumber}>3</Text>
-          <Text style={styles.progressNumber}>4</Text>
-        </View>
+        <FlatList
+          ref={progressRef}
+          data={progressData}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.progressListContent}
+          getItemLayout={(_, index) => ({
+            length: PROGRESS_SEGMENT_WIDTH,
+            offset: PROGRESS_SEGMENT_WIDTH * index,
+            index,
+          })}
+          onScrollToIndexFailed={() => {}}
+          renderItem={({ item, index }) => {
+            const isDone = item.number < currentCheckpoint;
+            const isCurrent = item.number === currentCheckpoint;
+            const isLast = index === progressData.length - 1;
+
+            return (
+              <View style={styles.progressItem}>
+                <View style={styles.progressTopRow}>
+                  <View
+                    style={[
+                      styles.progressDot,
+                      isDone && styles.progressDotDone,
+                      isCurrent && styles.progressDotCurrent,
+                    ]}
+                  />
+                  {!isLast && (
+                    <View
+                      style={[
+                        styles.progressLine,
+                        isDone && styles.progressLineDone,
+                      ]}
+                    />
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.progressNumber,
+                    isCurrent && styles.progressNumberCurrent,
+                  ]}
+                >
+                  {item.number}
+                </Text>
+              </View>
+            );
+          }}
+        />
 
         <View style={styles.divider} />
 
@@ -74,8 +140,12 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 
         <View style={styles.divider} />
 
-        <Text style={styles.nextTitle}>Nästa checkpoint</Text>
-        <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+        <Text style={styles.nextTitle}>
+          {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
+        </Text>
+        {!isRouteComplete && (
+          <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+        )}
         <Text style={styles.leftText}>
           {checkpointsLeft} checkpoints kvar till mål
         </Text>
@@ -163,10 +233,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 10,
   },
-  progressRow: {
+  progressListContent: {
+    paddingHorizontal: 8,
+  },
+  progressItem: {
+    width: PROGRESS_SEGMENT_WIDTH,
+    alignItems: 'flex-start',
+    marginBottom: 2,
+  },
+  progressTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    alignSelf: 'stretch',
     marginBottom: 4,
   },
   progressDot: {
@@ -184,23 +262,21 @@ const styles = StyleSheet.create({
     borderColor: '#e051de',
   },
   progressLine: {
-    width: 30,
+    flex: 1,
     height: 2,
+    alignSelf: 'center',
+    minWidth: 0,
     backgroundColor: '#4d5a50',
   },
   progressLineDone: {
     backgroundColor: '#6ea97b',
   },
-  progressNumbersRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 44,
-    marginBottom: 2,
-  },
   progressNumber: {
     color: '#6f8c75',
     fontSize: 12,
     fontWeight: '600',
+    width: 20,
+    textAlign: 'center',
   },
   progressNumberCurrent: {
     color: '#d65ad5',

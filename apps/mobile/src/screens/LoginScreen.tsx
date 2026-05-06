@@ -72,6 +72,23 @@ export function LoginScreen({ navigation }: Props) {
               Temp: Gå till CreateRoute
             </Text>
           </Pressable>
+          <Pressable
+            style={styles.tempRouteButton}
+            onPress={() =>
+              navigation.push('CheckpointTaken', {
+                routeName: 'Demorutt',
+                currentCheckpoint: 2,
+                totalCheckpoints: 5,
+                elapsedMin: 18,
+                distanceKm: '1,9',
+                paceMinPerKm: '10:5',
+              })
+            }
+          >
+            <Text style={styles.tempRouteButtonText}>
+              Temp: Gå till CheckpointTaken
+            </Text>
+          </Pressable>
           <Pressable onPress={() => navigation.navigate('CreateAccount')}>
             <Text style={[styles.helpText, { textAlign: 'center' }]}>
               Har du inget konto? Skapa konto
