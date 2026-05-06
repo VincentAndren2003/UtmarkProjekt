@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Checkpoint = void 0;
-class Checkpoint {
+exports.checkPoint = void 0;
+class checkPoint {
     constructor(id, coordinate, completed, radius = 20) {
         this.id = id;
         this.coordinate = coordinate;
@@ -27,4 +27,4 @@ class Checkpoint {
         return false;
     }
 }
-exports.Checkpoint = Checkpoint;
+exports.checkPoint = checkPoint;
