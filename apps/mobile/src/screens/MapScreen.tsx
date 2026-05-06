@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, StyleSheet, Touchable, TouchableOpacity } from 'react-native';
-import MapView, {Region} from 'react-native-maps';
+import MapView, {UrlTile} from 'react-native-maps';
 import { StatusBar } from 'expo-status-bar';
 import { useUserLocation } from '../hooks/userLocation';
 import { Button, Text } from 'react-native';
@@ -112,6 +112,21 @@ export function MapScreen({ navigation }: Props) {
         showsUserLocation
         showsMyLocationButton
       >
+        <UrlTile
+          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+          maximumZ={18}
+          minimumZ={14}
+          shouldReplaceMapContent={false}
+          tileSize={256}
+        />
+
+        {location &&(
+          <GreenAreaLayer
+            lat={location.latitude}
+            lng={location.longitude}
+            radius={1000}
+          />
+        )}
       </MapView>
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backText}>Tillbaka</Text>
