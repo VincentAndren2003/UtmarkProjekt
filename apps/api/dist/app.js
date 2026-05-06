@@ -48,7 +48,7 @@ function createApp() {
     app.use('/api/routes', routeRouter_1.default);
     // Error handler, Express identifies it by the 4 args
     // (err, req, res, next). Any error thrown in a controller and passed to
-    // next(err) lands here and gets turned into a JSON response.
+    // next(err) lands here and get into a JSON response.
     app.use(errorHandler_1.errorHandler);
     return app;
 }
