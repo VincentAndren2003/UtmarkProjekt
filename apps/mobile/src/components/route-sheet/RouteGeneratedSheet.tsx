@@ -67,7 +67,7 @@ export function RouteGeneratedSheet({
           <Text style={styles.secondaryButtonText}>Slumpa ny rutt</Text>
         </Pressable>
         <Pressable style={styles.backButton} onPress={onBackToRequest}>
-          <Text style={styles.backButtonText}>Tillbaka till val</Text>
+          <Text style={styles.backButtonText}>← Tillbaka</Text>
         </Pressable>
       </View>
     </>
@@ -162,16 +162,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   backButton: {
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: '#f0f3f5',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginTop: -5,
   },
   backButtonText: {
-    color: '#25313a',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#525252',
+    fontSize: 14,
+    fontWeight: '500',
   },
   primaryButton: {
     height: 56,

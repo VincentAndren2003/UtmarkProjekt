@@ -9,6 +9,9 @@ import { ProfileUpsertScreen } from './src/screens/ProfileUpsertScreen';
 import { CreateRouteScreen } from './src/screens/CreateRouteScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
+import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
+import { RouteResponse } from './src/types/route';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -17,7 +20,16 @@ export type RootStackParamList = {
   Welcome: undefined;
   Map: undefined;
   ProfileUpsert: undefined;
-  CreateRoute: { from?: 'Login' | 'CreateAccount' } | undefined;
+  CreateRoute: { from?: 'Login' | 'CreateAccount'; activeRoute?: RouteResponse } | undefined;
+  RouteStarted: { route: RouteResponse };
+  CheckpointTaken: {
+    routeName: string;
+    currentCheckpoint: number;
+    totalCheckpoints: number;
+    elapsedMin: number;
+    distanceKm: string;
+    paceMinPerKm: string;
+  };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
   Profile: { from?: 'Login' | 'CreateAccount' } | undefined;
 };
@@ -67,6 +79,16 @@ export default function App() {
         <Stack.Screen
           name="CreateRoute"
           component={CreateRouteScreen}
+          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+        />
+        <Stack.Screen
+          name="RouteStarted"
+          component={RouteStartedScreen}
+          options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
+        />
+        <Stack.Screen
+          name="CheckpointTaken"
+          component={CheckpointTakenScreen}
           options={{ headerShown: false, animation: 'fade', animationDuration: 140 }}
         />
         <Stack.Screen

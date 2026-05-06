@@ -86,7 +86,7 @@ export function CreateAccountScreen({ navigation }: Props) {
           <Pressable
             style={styles.tempRouteButton}
             onPress={() =>
-              navigation.navigate('CreateRoute', { from: 'CreateAccount' })
+              navigation.push('CreateRoute', { from: 'CreateAccount' })
             }
           >
             <Text style={styles.tempRouteButtonText}>Temp: Gå till CreateRoute</Text>

@@ -2,12 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   PanResponder,
+  Pressable,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
+import { ActiveRouteStatsBar } from '../components/route-sheet/ActiveRouteStatsBar';
+import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
 import { RouteGeneratedSheet } from '../components/route-sheet/RouteGeneratedSheet';
 import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
@@ -16,7 +20,7 @@ import { RouteResponse } from '../types/route';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
-const PREVIEW_GENERATED_SHEET = true;
+const PREVIEW_GENERATED_SHEET = false;
 
 const PREVIEW_ROUTE: RouteResponse = {
   id: 'preview-route',
@@ -50,27 +54,66 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const THUMB_SIZE = 20;
   const LINE_INSET = 10;
   const EXPANDED_HEIGHT = 560;
-  const COLLAPSED_HEIGHT = 384;
-  const MAX_TRANSLATE = EXPANDED_HEIGHT - COLLAPSED_HEIGHT;
-  const sheetTranslateY = useRef(new Animated.Value(MAX_TRANSLATE)).current;
+  const GENERATED_EXPANDED_HEIGHT = 516;
+  const REQUEST_COLLAPSED_HEIGHT = 384;
+  const GENERATED_COLLAPSED_HEIGHT = 384;
+  const ACTIVE_EXPANDED_HEIGHT = 384;
+  const ACTIVE_COLLAPSED_HEIGHT = 44;
+  const REQUEST_COLLAPSED_TRANSLATE = EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
+  const GENERATED_EXPANDED_TRANSLATE = EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
+  const sheetTranslateY = useRef(
+    new Animated.Value(
+      PREVIEW_GENERATED_SHEET ? GENERATED_EXPANDED_TRANSLATE : REQUEST_COLLAPSED_TRANSLATE,
+    ),
+  ).current;
   const sliderX = useRef(new Animated.Value(0)).current;
   const sliderXRef = useRef(0);
   const sliderStartRef = useRef(0);
   const distanceRef = useRef(MIN_DISTANCE);
   const frameRef = useRef<number | null>(null);
   const from = route.params?.from;
+  const activeRouteParam = route.params?.activeRoute;
   const { location } = useUserLocation();
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sheetMode, setSheetMode] = useState<'request' | 'generated'>(
+  const [showActiveHud, setShowActiveHud] = useState(false);
+  const [sheetMode, setSheetMode] = useState<'request' | 'generated' | 'active'>(
     PREVIEW_GENERATED_SHEET ? 'generated' : 'request'
   );
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
     PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
   );
+  const activeStats = {
+    timeMin: 9,
+    checkpointDone: 0,
+    checkpointTotal: generatedRoute?.checkpoints.length ?? 0,
+    distanceToNextM: 300,
+    paceMinPerKm: '9:33/km',
+  };
+  const activeRouteName =
+    (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ?? 'Genererad rutt';
+  const minTranslate =
+    sheetMode === 'active'
+      ? EXPANDED_HEIGHT - ACTIVE_EXPANDED_HEIGHT
+      : sheetMode === 'generated'
+        ? EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT
+        : 0;
+  const collapsedHeight =
+    sheetMode === 'active'
+      ? ACTIVE_COLLAPSED_HEIGHT
+      : sheetMode === 'generated'
+        ? GENERATED_COLLAPSED_HEIGHT
+        : REQUEST_COLLAPSED_HEIGHT;
+  const maxTranslate = EXPANDED_HEIGHT - collapsedHeight;
+
+  useEffect(() => {
+    if (!activeRouteParam) return;
+    setGeneratedRoute(activeRouteParam);
+    setSheetMode('active');
+  }, [activeRouteParam]);
 
   const filterChips = [
     'Vid vatten',
@@ -89,8 +132,45 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       tension: 80,
       friction: 14,
     }).start();
-    setIsExpanded(toValue === 0);
+    setIsExpanded(toValue === minTranslate);
   };
+
+  useEffect(() => {
+    sheetTranslateY.stopAnimation((currentValue) => {
+      const clamped = Math.max(minTranslate, Math.min(maxTranslate, currentValue));
+      sheetTranslateY.setValue(clamped);
+      setIsExpanded(clamped === minTranslate);
+    });
+  }, [minTranslate, maxTranslate, sheetTranslateY]);
+
+  useEffect(() => {
+    if (sheetMode === 'request') {
+      sheetTranslateY.stopAnimation();
+      sheetTranslateY.setValue(REQUEST_COLLAPSED_TRANSLATE);
+      setIsExpanded(false);
+    } else if (sheetMode === 'generated') {
+      sheetTranslateY.stopAnimation();
+      sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
+      setIsExpanded(true);
+    }
+  }, [
+    sheetMode,
+    GENERATED_EXPANDED_TRANSLATE,
+    REQUEST_COLLAPSED_TRANSLATE,
+    sheetTranslateY,
+  ]);
+
+  useEffect(() => {
+    if (sheetMode !== 'active') {
+      setShowActiveHud(false);
+      return;
+    }
+    const id = sheetTranslateY.addListener(({ value }) => {
+      // Show HUD when sheet is close to collapsed (handle-only) position.
+      setShowActiveHud(value > maxTranslate - 6);
+    });
+    return () => sheetTranslateY.removeListener(id);
+  }, [sheetMode, maxTranslate, sheetTranslateY]);
 
   const toggleFilter = (chip: string) => {
     setActiveFilters((prev) => {
@@ -116,7 +196,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       );
       setGeneratedRoute(response);
       setSheetMode('generated');
-      animateSheetTo(0);
     } catch (error) {
       console.error('Kunde inte generera rutt:', error);
     } finally {
@@ -130,22 +209,26 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
         onPanResponderMove: (_, gesture) => {
-          const next = Math.max(0, Math.min(MAX_TRANSLATE, MAX_TRANSLATE + gesture.dy));
+          const next = Math.max(
+            minTranslate,
+            Math.min(maxTranslate, maxTranslate + gesture.dy),
+          );
           sheetTranslateY.setValue(next);
         },
         onPanResponderRelease: (_, gesture) => {
           if (gesture.dy < -20) {
-            animateSheetTo(0);
+            animateSheetTo(minTranslate);
           } else if (gesture.dy > 20) {
-            animateSheetTo(MAX_TRANSLATE);
+            animateSheetTo(maxTranslate);
           } else {
             sheetTranslateY.stopAnimation((currentValue) => {
-              animateSheetTo(currentValue < MAX_TRANSLATE / 2 ? 0 : MAX_TRANSLATE);
+              const midpoint = (minTranslate + maxTranslate) / 2;
+              animateSheetTo(currentValue < midpoint ? minTranslate : maxTranslate);
             });
           }
         },
       }),
-    [MAX_TRANSLATE, sheetTranslateY],
+    [minTranslate, maxTranslate, sheetTranslateY],
   );
 
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
@@ -244,6 +327,42 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <View style={styles.mapBackdrop} />
       <View style={styles.content} />
+      {sheetMode === 'active' && generatedRoute && showActiveHud && (
+        <>
+          <ActiveRouteStatsBar variant="hud" stats={activeStats} />
+          <View style={styles.activeHudPill}>
+            <View style={styles.activeHudArrowWrap}>
+              <View style={styles.activeHudArrowLine} />
+              <View style={styles.activeHudArrowHeadLeft} />
+              <View style={styles.activeHudArrowHeadRight} />
+            </View>
+            <Text style={styles.activeHudPillText}>
+              {activeStats.distanceToNextM} m till nästa checkpoint
+            </Text>
+          </View>
+          <View style={styles.activeHudBottomActions}>
+            <Pressable
+              style={styles.activeHudFetchButton}
+              onPress={() =>
+                navigation.navigate('CheckpointTaken', {
+                  routeName: activeRouteName,
+                  currentCheckpoint: 2,
+                  totalCheckpoints: activeStats.checkpointTotal,
+                  elapsedMin: activeStats.timeMin,
+                  distanceKm: '1,9',
+                  paceMinPerKm: '10:5',
+                })
+              }
+            >
+              <Text style={styles.activeHudFetchText}>Hämta checkpoint</Text>
+              <Text style={styles.activeHudFetchArrow}>›</Text>
+            </Pressable>
+            <Pressable style={styles.activeHudEmergencyButton} onPress={() => {}}>
+              <Text style={styles.activeHudEmergencyText}>Nödknapp</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
       <Animated.View
         style={[
           styles.filterSheet,
@@ -267,12 +386,35 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             onToggleFilter={toggleFilter}
             onGenerate={handleGenerateRoute}
           />
-        ) : generatedRoute ? (
+        ) : sheetMode === 'generated' && generatedRoute ? (
           <RouteGeneratedSheet
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
-            onStartOrienteering={() => navigation.navigate('Map')}
-            onBackToRequest={() => setSheetMode('request')}
+            onStartOrienteering={() =>
+              navigation.navigate('RouteStarted', { route: generatedRoute })
+            }
+            onBackToRequest={() => {
+              setSheetMode('request');
+            }}
+          />
+        ) : sheetMode === 'active' && generatedRoute ? (
+          <RouteActiveSheet
+            route={generatedRoute}
+            terrain={activeStats}
+            onAbort={() => {
+              setSheetMode('generated');
+            }}
+            onEmergency={() => {}}
+            onFetchCheckpoint={() =>
+              navigation.navigate('CheckpointTaken', {
+                routeName: activeRouteName,
+                currentCheckpoint: 2,
+                totalCheckpoints: activeStats.checkpointTotal,
+                elapsedMin: activeStats.timeMin,
+                distanceKm: '1,9',
+                paceMinPerKm: '10:5',
+              })
+            }
           />
         ) : null}
       </Animated.View>
@@ -329,5 +471,102 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#222',
     marginTop: 3,
+  },
+  activeHudPill: {
+    position: 'absolute',
+    top: 151,
+    left: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  activeHudArrowWrap: {
+    width: 12,
+    height: 12,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeHudArrowLine: {
+    width: 2,
+    height: 9,
+    backgroundColor: '#1f2933',
+    borderRadius: 1,
+  },
+  activeHudArrowHeadLeft: {
+    position: 'absolute',
+    top: 1,
+    left: 3,
+    width: 2,
+    height: 5,
+    backgroundColor: '#1f2933',
+    transform: [{ rotate: '50deg' }],
+    borderRadius: 1,
+  },
+  activeHudArrowHeadRight: {
+    position: 'absolute',
+    top: 1,
+    right: 3,
+    width: 2,
+    height: 5,
+    backgroundColor: '#1f2933',
+    transform: [{ rotate: '-50deg' }],
+    borderRadius: 1,
+  },
+  activeHudPillText: {
+    fontSize: 13,
+    color: '#1f2933',
+    fontWeight: '600',
+  },
+  activeHudBottomActions: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    bottom: 123,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  activeHudEmergencyButton: {
+    backgroundColor: '#c0392b',
+    borderRadius: 18,
+    height: 36,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeHudEmergencyText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  activeHudFetchButton: {
+    height: 36,
+    borderRadius: 14,
+    backgroundColor: '#7aa681',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  activeHudFetchText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    marginRight: 8,
+  },
+  activeHudFetchArrow: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: -1,
   },
 });

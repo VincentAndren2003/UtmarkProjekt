@@ -66,7 +66,7 @@ export function LoginScreen({ navigation }: Props) {
           </Pressable>
           <Pressable
             style={styles.tempRouteButton}
-            onPress={() => navigation.navigate('CreateRoute', { from: 'Login' })}
+            onPress={() => navigation.push('CreateRoute', { from: 'Login' })}
           >
             <Text style={styles.tempRouteButtonText}>Temp: Gå till CreateRoute</Text>
           </Pressable>
