@@ -8,12 +8,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { GreenAreaLayer } from '../components/GreenAreaLayer';
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer'; // Importera ditt nya layer
+import { useCompassHeading } from '../hooks/userCompassHeading';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
 export function MapScreen({ navigation }: Props) {
   const { location, loading } = useUserLocation();
   const [showRoute, setShowRoute] = useState(false);
+  const heading = useCompassHeading();
 
   const initialRegion = location
     ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
@@ -52,6 +54,19 @@ export function MapScreen({ navigation }: Props) {
           />
         )}
       </MapView>
+
+      <View style={styles.compass}>
+        <View
+          style={[
+            styles.compassInner,
+            { transform: [{ rotate: `${-heading}deg` }] },
+          ]}
+        >
+          <Text style={styles.compassArrow}>↑</Text>
+        </View>
+        <Text style={styles.compassLabel}>N</Text>
+      </View>
+
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backText}>Tillbaka</Text>
       </TouchableOpacity>
@@ -102,5 +117,37 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+
+  compass: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    backgroundColor: 'white',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  compassInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compassArrow: {
+    fontSize: 24,
+    color: '#e53e3e',
+    fontWeight: 'bold',
+    lineHeight: 26,
+  },
+  compassLabel: {
+    fontSize: 10,
+    color: '#888',
+    fontWeight: '600',
+    marginTop: -2,
   },
 });

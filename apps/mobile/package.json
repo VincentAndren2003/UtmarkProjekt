@@ -19,6 +19,7 @@
     "expo-checkbox": "^55.0.4",
     "expo-location": "~19.0.8",
     "expo-secure-store": "~15.0.8",
+    "expo-sensors": "~15.0.8",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
