@@ -5,7 +5,6 @@ import {
   Map,
   GeoJSONSource,
   Layer,
-  Images,
 } from '@maplibre/maplibre-react-native';
 
 type Props = {
@@ -14,19 +13,42 @@ type Props = {
 };
 
 export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
+  const heading = 0;
   const ISOM_PURPLE = '#f94edf';
+  const [styleURL, setStyleURL] = React.useState<string | null>(null);
 
-  const mapTilerKey = process.env.EXPO_PUBLIC_MAPTILER_KEY;
+React.useEffect(() => {
+  fetch('https://tiles.openfreemap.org/styles/positron')
+    .then(r => {
+      console.log('Status:', r.status);
+      return r.json();
+    })
+    .then(style => {
+      console.log('Style laddad:', style.name);
+      style.sources['custom-tiles'] = {
+        type: 'raster',
+        tiles: ['http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        minzoom: 14,
+        maxzoom: 18,
+      };
+      style.layers.push({
+        id: 'custom-tiles-layer',
+        type: 'raster',
+        source: 'custom-tiles',
+      });
+      setStyleURL(JSON.stringify(style));
+    })
+    .catch(err => console.log('Fel:', err));
+}, []);
 
-  if (!mapTilerKey) {
+  if (!styleURL) {
     return (
-      <View>
-        <Text>Missing MapTiler Key. Add to .env file.</Text>
+      <View style={styles.loading}>
+        <Text>Laddar karta...</Text>
       </View>
     );
   }
-
-  const styleURL = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
 
   return (
     <View style={styles.container}>
@@ -37,7 +59,7 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
         >
           <Camera
             zoom={10}
-            center={[18.0656, 59.3327]} //Koordinater för stockholm (hårdkodad test)
+            center={[18.0656, 59.3327]}
           />
           <GeoJSONSource id="course-source" data={courseGeoJSON}>
             {/* -- Connecting Line -- */}
@@ -51,7 +73,6 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
                 lineJoin: 'round',
               }}
             />
-
             {/* -- Kontroller -- */}
             <Layer
               type="circle"
@@ -78,9 +99,7 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
                 textHaloWidth: 1,
               }}
             />
-
-            {/* -- Finnish -- */}
-            {/* Outer Circle */}
+            {/* -- Finish -- */}
             <Layer
               type="circle"
               id="finish-outer"
@@ -92,7 +111,6 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
                 circleStrokeColor: ISOM_PURPLE,
               }}
             />
-            {/* Inner Circle */}
             <Layer
               type="circle"
               id="finish-inner"
@@ -104,7 +122,6 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
                 circleStrokeColor: ISOM_PURPLE,
               }}
             />
-
             {/* -- Start -- */}
             <Layer
               type="symbol"
@@ -120,7 +137,21 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
             />
           </GeoJSONSource>
         </Map>
+
+        {/* Kompass */}
+        <View style={styles.compass}>
+          <View
+            style={[
+              styles.compassInner,
+              { transform: [{ rotate: `${-heading}deg` }] },
+            ]}
+          >
+            <Text style={styles.compassArrow}>↑</Text>
+          </View>
+          <Text style={styles.compassLabel}>N</Text>
+        </View>
       </View>
+
       <View style={styles.menu}>
         <Button title="Back" onPress={onBack} />
       </View>
@@ -134,6 +165,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   mapContainer: {
     width: '100%',
     height: '100%',
@@ -141,5 +177,36 @@ const styles = StyleSheet.create({
   menu: {
     bottom: 10,
     position: 'absolute',
+  },
+  compass: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    backgroundColor: 'white',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  compassInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compassArrow: {
+    fontSize: 24,
+    color: '#e53e3e',
+    fontWeight: 'bold',
+    lineHeight: 26,
+  },
+  compassLabel: {
+    fontSize: 10,
+    color: '#888',
+    fontWeight: '600',
+    marginTop: -2,
   },
 });

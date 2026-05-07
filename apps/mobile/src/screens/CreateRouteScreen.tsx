@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
@@ -18,6 +17,8 @@ import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute } from '../lib/api';
 import { RouteResponse } from '../types/route';
+import { Camera, Map } from '@maplibre/maplibre-react-native';
+import { MapLibreRouteLayer } from '../components/MapLibreRouteLayer';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
@@ -60,10 +61,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
   const ACTIVE_COLLAPSED_HEIGHT = 44;
-  const REQUEST_COLLAPSED_TRANSLATE =
-    EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
-  const GENERATED_EXPANDED_TRANSLATE =
-    EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
+  const REQUEST_COLLAPSED_TRANSLATE = EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
+  const GENERATED_EXPANDED_TRANSLATE = EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
   const sheetTranslateY = useRef(
     new Animated.Value(
       PREVIEW_GENERATED_SHEET
@@ -85,12 +84,14 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showActiveHud, setShowActiveHud] = useState(false);
-  const [sheetMode, setSheetMode] = useState<
-    'request' | 'generated' | 'active'
-  >(PREVIEW_GENERATED_SHEET ? 'generated' : 'request');
+  const [styleURL, setStyleURL] = useState<string | null>(null);
+  const [sheetMode, setSheetMode] = useState<'request' | 'generated' | 'active'>(
+    PREVIEW_GENERATED_SHEET ? 'generated' : 'request'
+  );
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
     PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
   );
+
   const activeStats = {
     timeMin: 9,
     checkpointDone: 0,
@@ -114,6 +115,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ? GENERATED_COLLAPSED_HEIGHT
         : REQUEST_COLLAPSED_HEIGHT;
   const maxTranslate = EXPANDED_HEIGHT - collapsedHeight;
+
+  useEffect(() => {
+    fetch('https://tiles.openfreemap.org/styles/liberty')
+      .then(r => r.json())
+      .then(style => {
+        style.glyphs = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
+        setStyleURL(JSON.stringify(style));
+      })
+      .catch(err => console.error('Kunde inte ladda kartstil:', err));
+}, []);
 
   useEffect(() => {
     if (!activeRouteParam) return;
@@ -143,10 +154,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     sheetTranslateY.stopAnimation((currentValue) => {
-      const clamped = Math.max(
-        minTranslate,
-        Math.min(maxTranslate, currentValue)
-      );
+      const clamped = Math.max(minTranslate, Math.min(maxTranslate, currentValue));
       sheetTranslateY.setValue(clamped);
       setIsExpanded(clamped === minTranslate);
     });
@@ -162,12 +170,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
       setIsExpanded(true);
     }
-  }, [
-    sheetMode,
-    GENERATED_EXPANDED_TRANSLATE,
-    REQUEST_COLLAPSED_TRANSLATE,
-    sheetTranslateY,
-  ]);
+  }, [sheetMode, GENERATED_EXPANDED_TRANSLATE, REQUEST_COLLAPSED_TRANSLATE, sheetTranslateY]);
 
   useEffect(() => {
     if (sheetMode !== 'active') {
@@ -175,7 +178,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       return;
     }
     const id = sheetTranslateY.addListener(({ value }) => {
-      // Show HUD when sheet is close to collapsed (handle-only) position.
       setShowActiveHud(value > maxTranslate - 6);
     });
     return () => sheetTranslateY.removeListener(id);
@@ -195,7 +197,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   const handleGenerateRoute = async () => {
     if (isGenerating) return;
-
     setIsGenerating(true);
     try {
       const response = await generateRoute(
@@ -232,9 +233,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           } else {
             sheetTranslateY.stopAnimation((currentValue) => {
               const midpoint = (minTranslate + maxTranslate) / 2;
-              animateSheetTo(
-                currentValue < midpoint ? minTranslate : maxTranslate
-              );
+              animateSheetTo(currentValue < midpoint ? minTranslate : maxTranslate);
             });
           }
         },
@@ -243,17 +242,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   );
 
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
-  const sliderMaxX = Math.max(
-    sliderMinX,
-    sliderWidth - LINE_INSET - THUMB_SIZE / 2
-  );
+  const sliderMaxX = Math.max(sliderMinX, sliderWidth - LINE_INSET - THUMB_SIZE / 2);
   const sliderTravel = Math.max(1, sliderMaxX - sliderMinX);
 
   const updateSliderX = (locationX: number) => {
-    const nextX = Math.max(
-      sliderMinX,
-      Math.min(sliderMaxX, locationX - THUMB_SIZE / 2)
-    );
+    const nextX = Math.max(sliderMinX, Math.min(sliderMaxX, locationX - THUMB_SIZE / 2));
     sliderX.setValue(nextX);
   };
 
@@ -305,7 +298,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           );
           sliderX.setValue(nextX);
           sliderXRef.current = nextX;
-
           if (frameRef.current == null) {
             frameRef.current = requestAnimationFrame(() => {
               updateDistanceLive(sliderXRef.current);
@@ -336,8 +328,27 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.mapBackdrop} />
+      {/* Karta i bakgrunden */}
+      <View style={styles.mapBackdrop}>
+        {styleURL && (
+          <Map
+            style={StyleSheet.absoluteFillObject}
+            mapStyle={styleURL}
+          >
+            <Camera
+              zoom={14}
+              center={[
+                location?.longitude ?? 18.0656,
+                location?.latitude ?? 59.3327,
+              ]}
+            />
+            {generatedRoute && <MapLibreRouteLayer route={generatedRoute} />}
+          </Map>
+        )}
+      </View>
+
       <View style={styles.content} />
+
       {sheetMode === 'active' && generatedRoute && showActiveHud && (
         <>
           <ActiveRouteStatsBar variant="hud" stats={activeStats} />
@@ -377,6 +388,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           </View>
         </>
       )}
+
       <Animated.View
         style={[
           styles.filterSheet,
@@ -435,6 +447,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           />
         ) : null}
       </Animated.View>
+
       <BottomNav
         navigation={navigation}
         activeTab="CreateRoute"
@@ -451,7 +464,6 @@ const styles = StyleSheet.create({
   },
   mapBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#cfe6c9',
   },
   content: {
     flex: 1,
@@ -469,7 +481,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e8eb',
     paddingHorizontal: 18,
     paddingTop: 10,
-    paddingHorizontal: 20,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,
