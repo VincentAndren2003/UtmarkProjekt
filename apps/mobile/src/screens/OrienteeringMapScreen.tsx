@@ -30,7 +30,7 @@ export function OrienteeringMapScreen({ onBack, courseGeoJSON }: Props) {
 
   const styleURL = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
 
-return (
+  return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
         <Map
@@ -122,15 +122,16 @@ return (
 
         {/* Kompass */}
         <View style={styles.compass}>
-          <View style={[
-            styles.compassInner,
-            { transform: [{ rotate: `${-heading}deg` }] }
-          ]}>
+          <View
+            style={[
+              styles.compassInner,
+              { transform: [{ rotate: `${-heading}deg` }] },
+            ]}
+          >
             <Text style={styles.compassArrow}>↑</Text>
           </View>
           <Text style={styles.compassLabel}>N</Text>
         </View>
-
       </View>
       <View style={styles.menu}>
         <Button title="Back" onPress={onBack} />
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     bottom: 10,
     position: 'absolute',
   },
-    compass: {
+  compass: {
     position: 'absolute',
     top: 60,
     right: 16,

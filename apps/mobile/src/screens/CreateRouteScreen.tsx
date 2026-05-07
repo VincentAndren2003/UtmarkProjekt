@@ -18,10 +18,16 @@ import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute } from '../lib/api';
 import { RouteResponse } from '../types/route';
+import { Camera, Map } from '@maplibre/maplibre-react-native';
+import { useCompassHeading } from '../hooks/userCompassHeading';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
 const PREVIEW_GENERATED_SHEET = false;
+
+const heading = useCompassHeading();
+const mapTilerKey = process.env.EXPO_PUBLIC_MAPTILER_KEY;
+const styleURL = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
 
 const PREVIEW_ROUTE: RouteResponse = {
   id: 'preview-route',
@@ -336,7 +342,33 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.mapBackdrop} />
+      {/* Karta */}
+    <Map
+      style={StyleSheet.absoluteFill}
+      mapStyle={styleURL}
+    >
+      <Camera
+        initialViewState={{
+          center: location
+            ? [location.longitude, location.latitude]
+            : [18.0656, 59.3327],
+          zoom: 14,
+        }}
+        trackUserLocation="default"
+      />
+    </Map>
+
+      {/* Kompass */}
+      <View style={styles.compass}>
+        <View style={[
+          styles.compassInner,
+          { transform: [{ rotate: `${-heading}deg` }] }
+        ]}>
+          <Text style={styles.compassArrow}>↑</Text>
+        </View>
+        <Text style={styles.compassLabel}>N</Text>
+      </View>
+
       <View style={styles.content} />
       {sheetMode === 'active' && generatedRoute && showActiveHud && (
         <>
@@ -449,13 +481,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f4f6f8',
   },
-  mapBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#cfe6c9',
-  },
   content: {
     flex: 1,
     paddingBottom: 72,
+  },
+  compass: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    backgroundColor: 'white',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    zIndex: 10,
+  },
+  compassInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compassArrow: {
+    fontSize: 24,
+    color: '#e53e3e',
+    fontWeight: 'bold',
+    lineHeight: 26,
+  },
+  compassLabel: {
+    fontSize: 10,
+    color: '#888',
+    fontWeight: '600',
+    marginTop: -2,
   },
   filterSheet: {
     position: 'absolute',
@@ -467,7 +527,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 22,
     borderWidth: 1,
     borderColor: '#e5e8eb',
-    paddingHorizontal: 18,
     paddingTop: 10,
     paddingHorizontal: 20,
     shadowColor: '#000',
