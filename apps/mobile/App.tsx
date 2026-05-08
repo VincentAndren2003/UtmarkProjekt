@@ -30,7 +30,7 @@ export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Map">
         <Stack.Screen
           name="Home"
           component={HomeScreen}
