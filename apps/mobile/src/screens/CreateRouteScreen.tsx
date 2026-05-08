@@ -18,7 +18,8 @@ import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute } from '../lib/api';
 import { RouteResponse } from '../types/route';
 
-import MapView, { UrlTile } from 'react-native-maps';
+import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
+import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
@@ -84,7 +85,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showActiveHud, setShowActiveHud] = useState(false);
-  const [styleURL, setStyleURL] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<'request' | 'generated' | 'active'>(
     PREVIEW_GENERATED_SHEET ? 'generated' : 'request'
   );
@@ -115,16 +115,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ? GENERATED_COLLAPSED_HEIGHT
         : REQUEST_COLLAPSED_HEIGHT;
   const maxTranslate = EXPANDED_HEIGHT - collapsedHeight;
-
-  useEffect(() => {
-    fetch('https://tiles.openfreemap.org/styles/liberty')
-      .then(r => r.json())
-      .then(style => {
-        style.glyphs = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
-        setStyleURL(JSON.stringify(style));
-      })
-      .catch(err => console.error('Kunde inte ladda kartstil:', err));
-}, []);
 
   useEffect(() => {
     if (!activeRouteParam) return;
@@ -325,9 +315,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const ratio = (distanceKm - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
     sliderX.setValue(minX + ratio * travel);
   };
-  //{generatedRoute && <MapLibreRouteLayer route={generatedRoute} />}
+  //
   
-  /** Styling för standard kartan **/
+  /** Styling för Google Maps kartan **/
   const roadFIll = "#E7AB83"
   const roadOutline = "#000000"
   const waterFIll = "#009ee2"
@@ -401,26 +391,28 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         latitudeDelta: 0.1,
         longitudeDelta: 0.1,
       };
-
-
+      
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
       <View style={styles.mapBackdrop}>
         <MapView
           style={StyleSheet.absoluteFill}
-          provider="google"
+          provider={PROVIDER_GOOGLE}
           customMapStyle={mapStyle}
           showsBuildings={false}
           showsCompass={false}
           initialRegion={initialRegion}
         >
+          {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
+          
           <UrlTile
             urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
             maximumZ={20}
             minimumZ={12}
             shouldReplaceMapContent={false}
             tileSize={512}
+            zIndex={1}
           />
         </MapView>
       </View>
