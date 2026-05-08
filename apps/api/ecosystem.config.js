@@ -1,16 +1,30 @@
-require('dotenv').config();
-
 module.exports = {
   apps: [
     {
-      name: 'server',
+      name: 'api',
+      cwd: 'apps/api',
       script: 'dist/server.js',
+      env_file: '.env',
       env: {
         PORT: 3000,
-        MONGODB_URI: 'mongodb://127.0.0.1:27017/utmarkprojekt',
-        JWT_SECRET: '#very-LONG-RANDOM-secret',
-        JWT_EXPIRES_IN: '7d',
-        CORS_ORIGIN: '*',
+      },
+    },
+    {
+      name: 'auth-service',
+      cwd: 'apps/auth-service',
+      script: 'dist/server.js',
+      env_file: '.env',
+      env: {
+        PORT: 3001,
+      },
+    },
+    {
+      name: 'profile-service',
+      cwd: 'apps/profile-service',
+      script: 'dist/server.js',
+      env_file: '.env',
+      env: {
+        PORT: 3002,
       },
     },
   ],

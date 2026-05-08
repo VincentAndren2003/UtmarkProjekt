@@ -12,12 +12,16 @@
   "scripts": {
     "prepare": "husky",
     "format": "npx prettier --check .",
-    "lint": "npm run lint:mobile && npm run lint:api",
-    "test": "npm run test:mobile && npm run test:api",
+    "lint": "npm run lint:mobile && npm run lint:api && npm run lint:auth-service && npm run lint:profile-service",
+    "test": "npm run test:mobile && npm run test:api && npm run test:auth-service && npm run test:profile-service",
     "lint:mobile": "npm --prefix apps/mobile run lint",
     "lint:api": "npm --prefix apps/api run lint",
+    "lint:auth-service": "npm --prefix apps/auth-service run lint",
+    "lint:profile-service": "npm --prefix apps/profile-service run lint",
     "test:mobile": "npm --prefix apps/mobile run test",
-    "test:api": "npm --prefix apps/api run test"
+    "test:api": "npm --prefix apps/api run test",
+    "test:auth-service": "npm --prefix apps/auth-service run test",
+    "test:profile-service": "npm --prefix apps/profile-service run test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1"

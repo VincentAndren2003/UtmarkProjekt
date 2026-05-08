@@ -17,16 +17,22 @@ A single, beginner-friendly guide. Follow the steps in order:
 
 ## 1. Mental model (what actually runs)
 
-Three things run on your machine **at the same time**:
+There are two supported backend modes:
+
+- **Mode A (microservices, recommended for the course requirement)**: Gateway + Auth service + Profile service (3 Node servers)
+- **Mode B (legacy monolith)**: a single API server that contains all backend logic
+
+### Mode A — microservices (Gateway + services)
+
+Four things run on your machine **at the same time**:
 
 ```
- Mobile app (Expo)  ──HTTP──▶  API (Express)  ──Mongoose──▶  MongoDB
- apps/mobile                   apps/api                      127.0.0.1:27017
- Terminal 3                    Terminal 2                    Terminal 1 (background)
+ Mobile app (Expo) ──HTTP──▶ Gateway (Express) ──HTTP──▶ Auth/Profile services ──Mongoose──▶ MongoDB
+ apps/mobile                  apps/api                      apps/auth-service + apps/profile-service    127.0.0.1:27017
 ```
 
 - **MongoDB** stores the data.
-- **API** is the only thing that talks to MongoDB.
+- **Auth/Profile services** talk to MongoDB (not the Gateway).
 - **Mobile app** only talks to the API (never to MongoDB directly).
 
 If something breaks, ask: *which of the three is the problem?*
@@ -101,7 +107,7 @@ Open `apps/api/.env` and replace `JWT_SECRET=replace_with_a_long_random_secret` 
 
 ## 5. Run the stack (every time)
 
-Open **3 terminals** at the repo root.
+Open **5 terminals** at the repo root (microservice mode).
 
 ### Terminal 1 — MongoDB
 
@@ -117,7 +123,35 @@ nc -z 127.0.0.1 27017 && echo "Mongo UP"
 
 > **Windows:** MongoDB installs as a Windows Service and starts automatically. Verify with `Get-Service MongoDB`.
 
-### Terminal 2 — API
+### Terminal 2 — Auth service
+
+```bash
+cd apps/auth-service
+npm run dev
+```
+
+You should see:
+
+```
+MongoDB connected
+auth-service listening on http://localhost:3001
+```
+
+### Terminal 3 — Profile service
+
+```bash
+cd apps/profile-service
+npm run dev
+```
+
+You should see:
+
+```
+MongoDB connected
+profile-service listening on http://localhost:3002
+```
+
+### Terminal 4 — Gateway
 
 ```bash
 cd apps/api
@@ -127,11 +161,10 @@ npm run dev
 You should see:
 
 ```
-MongoDB connected
 API listening on http://localhost:3000
 ```
 
-### Terminal 3 — Mobile app
+### Terminal 5 — Mobile app
 
 ```bash
 cd apps/mobile
