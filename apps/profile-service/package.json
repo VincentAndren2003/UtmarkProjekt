@@ -1,5 +1,5 @@
 {
-  "name": "@utmarkprojekt/api",
+  "name": "@utmarkprojekt/profile-service",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -13,13 +13,12 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "mongoose": "^9.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
     "eslint": "^9.37.0",
     "globals": "^16.4.0",

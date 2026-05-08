@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
-import { env } from '../config/env';
-
+/**
+ * Gateway does not connect to MongoDB.
+ * (Auth/Profile services own the DB connection in microservice mode.)
+ */
 export async function connectDB(): Promise<void> {
-  await mongoose.connect(env.MONGODB_URI);
-  console.warn('MongoDB connected');
+  return;
 }

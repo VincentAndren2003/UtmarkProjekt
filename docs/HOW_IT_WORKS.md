@@ -8,28 +8,32 @@ If you're presenting this, each numbered section is roughly 5 minutes of talking
 
 ## TL;DR (the 30-second pitch)
 
-We built a full-stack app split into three pieces:
+We built a full-stack app split into three pieces (and we can also run the backend as microservices for the course requirement):
 
 1. **Mobile app** (Expo / React Native) — what the user actually taps.
-2. **API server** (Express + Node.js + TypeScript) — answers HTTP requests.
-3. **Database** (MongoDB via Mongoose) — stores users and profiles.
+2. **API Gateway** (Express + Node.js + TypeScript) — the single public HTTP entrypoint the phone calls.
+3. **Services + Database**:
+   - **Auth service** + **Profile service** (Node/Express + Mongoose) — store users/profiles in MongoDB
+   - MongoDB (local or Atlas)
 
 Authentication uses **JWT** (a signed token the phone keeps and sends on every request). The whole stack is small, deliberately simple, and organized so you can find any piece of code in two clicks.
+
+For the microservice setup (ports, env vars, how to run on the VM), see `docs/MICROSERVICES.md`.
 
 ---
 
 ## 1. The Big Picture
 
 ```
-┌───────────────┐     HTTP + JSON     ┌───────────────┐    Mongoose     ┌───────────────┐
-│   Mobile App  │  ─────────────────► │   API Server  │ ──────────────► │   MongoDB     │
-│  (Expo / RN)  │  ◄───────────────── │  (Express)    │ ◄────────────── │  (database)   │
-└───────────────┘                     └───────────────┘                  └───────────────┘
-   apps/mobile                          apps/api                        local mongod or Atlas
+┌───────────────┐     HTTP + JSON     ┌───────────────┐     HTTP + JSON     ┌────────────────┐   Mongoose   ┌───────────────┐
+│   Mobile App  │  ─────────────────► │ API Gateway   │  ─────────────────► │ Auth/Profile   │ ───────────► │   MongoDB     │
+│  (Expo / RN)  │  ◄───────────────── │ (apps/api)    │  ◄───────────────── │ services       │ ◄─────────── │ (local/Atlas) │
+└───────────────┘                     └───────────────┘                     └────────────────┘             └───────────────┘
+   apps/mobile
 ```
 
 - The **mobile app** never touches MongoDB directly. It only knows how to talk to our API.
-- The **API** is the only thing that talks to the database. That's the whole reason it exists — a security/structure boundary.
+- The **gateway** does auth + routing/proxy. The **services** talk to MongoDB.
 - They communicate over **HTTP** (`fetch` calls) carrying **JSON** bodies.
 
 That's it. Three pieces, two boundaries.
@@ -42,25 +46,24 @@ That's it. Three pieces, two boundaries.
 
 ```
 config/
-  env.ts            ← reads .env vars (DB URL, JWT secret, port, ...)
-  db.ts             ← connects to MongoDB on startup
+  env.ts            ← reads .env vars (JWT secret, service URLs, port, ...)
 controllers/
-  authController.ts        ← signup + login logic
-  profileController.ts     ← get / save profile logic
   greenAreaController.ts   ← lists green areas (map data)
 middleware/
   authMiddleware.ts ← verifies JWT, attaches req.userId to the request
   errorHandler.ts   ← turns thrown errors into clean JSON responses
-models/
-  User.ts           ← what a user document looks like in Mongo
-  Profile.ts        ← what a profile document looks like in Mongo
 utils/
   jwt.ts            ← signToken / verifyToken helpers
 services/
   GreenAreaService.ts ← wraps the external Overpass API (kept because it has its own concerns)
 app.ts              ← THE file. All routes live here.
-server.ts           ← bootstrap: connect DB, then start listening
+server.ts           ← bootstrap: start gateway
 ```
+
+### Backend services — `apps/auth-service/` and `apps/profile-service/`
+
+- `apps/auth-service`: `/auth/signup`, `/auth/login` + MongoDB (Mongoose) + JWT signing
+- `apps/profile-service`: `/profile/me` (GET/PUT) + MongoDB (Mongoose)
 
 **One sentence per file** — every file has a clear, single job. If a file's purpose can't be explained in one sentence, that's a smell. Right now they all can.
 
@@ -97,7 +100,7 @@ This is the most important section — it touches every layer. Follow it once an
     setMsg('');
     try {
       await signup(email.trim(), password);
-      navigation.navigate('ProfileUpsert');
+      navigation.navigate('CreateRoute', { from: 'CreateAccount' });
     } catch (err) {
       setMsg(err instanceof Error ? err.message : 'Sign up failed');
     }
@@ -132,42 +135,48 @@ It builds the headers (always `Content-Type: application/json`, plus `Authorizat
 
 ### Step 4 — The request hits the backend (`app.ts`)
 
-```37:51:apps/api/src/app.ts
+```50:115:apps/api/src/app.ts
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
 
-  // Auth (public — no JWT required to call these).
-  app.post('/api/auth/signup', signup);
-  app.post('/api/auth/login', login);
+  // Auth (public) — gateway proxies to auth-service.
+  app.post('/api/auth/signup', async (req, res, next) => { /* proxyJson(...) */ });
+  app.post('/api/auth/login', async (req, res, next) => { /* proxyJson(...) */ });
 
-  // Profile (protected — authMiddleware runs first; if no valid JWT it
-  // returns 401 and the controller never runs).
-  app.get('/api/profile/me', authMiddleware, getMyProfile);
-  app.put('/api/profile/me', authMiddleware, upsertMyProfile);
+  // Profile (protected) — gateway verifies JWT, then proxies to profile-service.
+  app.get('/api/profile/me', authMiddleware, async (req, res, next) => { /* proxyJson(...) */ });
+  app.put('/api/profile/me', authMiddleware, async (req, res, next) => { /* proxyJson(...) */ });
 
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);
 ```
 
-**This is the menu.** Every URL the API answers, in one screen. The backend looks at the URL + method and finds the matching line. For `POST /api/auth/signup` it runs the `signup` controller.
+**This is the menu.** Every URL the Gateway answers is defined here. For `POST /api/auth/signup` the gateway proxies to the auth-service.
 
 Two middlewares run before that:
 - `cors()` — allows the phone (different origin) to call us.
 - `express.json()` — parses the JSON body into `req.body`.
 
-### Step 5 — The signup controller does the work (`authController.ts`)
+### Step 5 — The gateway proxies to the auth-service
 
-The controller does, in order:
+The gateway does an internal HTTP call to the auth-service:
 
-1. Pull `email` and `password` from `req.body`.
-2. Bail if either is missing → 400 "Bad Request."
-3. Normalize email (`trim().toLowerCase()`).
-4. `User.findOne({ email })` — check if the email is already taken. If yes → 409 "Conflict."
-5. `bcrypt.hash(password, 10)` — scramble the password into a hash we can safely store.
-6. `User.create(...)` — insert the new user document into MongoDB.
-7. `signToken({ userId })` — make a JWT.
-8. `res.status(201).json({ token, user })` — send it back.
+```55:76:apps/api/src/app.ts
+  // Auth (public — no JWT required to call these).
+  app.post('/api/auth/signup', async (req, res, next) => {
+    try {
+      await proxyJson(res, `${env.AUTH_SERVICE_URL}/auth/signup`, {
+        method: 'POST',
+        body: req.body,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+```
+
+Then the auth-service runs the real signup logic (validation, hashing, MongoDB, JWT signing).
 
 Done. That's the whole signup flow.
 
@@ -177,7 +186,7 @@ Back in `signup()` (mobile), `tokenStorage.set(result.token)` saves the JWT to t
 
 ### Step 7 — Screen navigates forward
 
-`navigation.navigate('ProfileUpsert')` — user moves to the next screen.
+`navigation.navigate('CreateRoute')` — user moves to the next screen.
 
 ### The same flow visually
 
@@ -199,14 +208,17 @@ lib/api.ts (request)
                                        (matches /api/auth/signup)
                                           │
                                           ▼
-                                    authController.ts (signup)
-                                       1. validate body
-                                       2. normalize email
-                                       3. User.findOne     ──► MongoDB
-                                       4. bcrypt.hash
-                                       5. User.create      ──► MongoDB
-                                       6. signToken
-                                       7. res.json({ token, user })
+                                    proxyJson(...) to auth-service
+                                          │
+                                          ▼
+                                  apps/auth-service (signup)
+                                     1. validate body
+                                     2. normalize email
+                                     3. User.findOne     ──► MongoDB
+                                     4. bcrypt.hash
+                                     5. User.create      ──► MongoDB
+                                     6. signToken
+                                     7. res.json({ token, user })
                                           │
    ◄────── HTTP 201 ─────────────────────┘
    │
@@ -217,7 +229,7 @@ lib/api.ts (signup resumes, saves token)
 CreateAccountScreen.tsx (handleSignUp resumes)
    │
    ▼
-navigation.navigate('ProfileUpsert')
+navigation.navigate('CreateRoute')
 ```
 
 ---
@@ -229,10 +241,12 @@ Same pattern, but with one extra step: **authMiddleware runs first.**
 The route is registered in `app.ts` with TWO functions:
 
 ```typescript
-app.get('/api/profile/me', authMiddleware, getMyProfile);
+app.get('/api/profile/me', authMiddleware, async (req, res, next) => {
+  // proxyJson(...) to profile-service, with x-user-id header
+});
 ```
 
-When the request comes in, Express runs `authMiddleware` first. Only if it calls `next()` does `getMyProfile` run.
+When the request comes in, Express runs `authMiddleware` first. Only if it calls `next()` does the gateway proxy to the profile-service.
 
 ### What `authMiddleware` does
 
@@ -266,9 +280,13 @@ In plain English:
 
 If anything fails, the controller never runs. The user gets 401.
 
-### Then `getMyProfile` runs
+### Then the gateway proxies to profile-service
 
-It reads `req.userId` (set by the middleware), calls `Profile.findOne({ userId })`, and returns either the profile or 404.
+The gateway forwards the user identity to the profile-service via a trusted header:
+
+- Gateway verifies JWT and sets `req.userId`.
+- Gateway calls the profile-service with header `x-user-id: <userId>`.
+- Profile-service reads `x-user-id`, queries MongoDB, and returns either the profile or 404.
 
 **That's the magic of middleware:** the controller can just trust `req.userId` exists. Auth is handled before the controller ever sees the request.
 
@@ -278,16 +296,20 @@ It reads `req.userId` (set by the middleware), calls `Profile.findOne({ userId }
 
 | Goal | File(s) to edit |
 |------|-----------------|
-| Add a new API endpoint | `app.ts` (add the route) + a new function in `controllers/` |
-| Add a field to a user / profile | `models/User.ts` or `models/Profile.ts` (add to schema) |
-| Change auth rules (e.g. require auth on more routes) | `app.ts` (add `authMiddleware` to the route) |
-| Change how passwords are hashed | `controllers/authController.ts` (`bcrypt.hash` line) |
-| Change JWT expiration / secret | `apps/api/.env` (edit `JWT_EXPIRES_IN`, `JWT_SECRET`) |
+| Add a new public gateway endpoint | `apps/api/src/app.ts` (route + proxy or controller) |
+| Add a new auth endpoint | `apps/auth-service/src/app.ts` + `apps/auth-service/src/controllers/` |
+| Add a new profile endpoint | `apps/profile-service/src/app.ts` + `apps/profile-service/src/controllers/` |
+| Add a field to a user | `apps/auth-service/src/models/User.ts` |
+| Add a field to a profile | `apps/profile-service/src/models/Profile.ts` |
+| Change auth rules for protected routes | `apps/api/src/app.ts` (add/remove `authMiddleware`) |
+| Change how passwords are hashed | `apps/auth-service/src/controllers/authController.ts` |
+| Change JWT expiration / secret | `apps/api/.env` AND `apps/auth-service/.env` (must match) |
 | Change which origins can call the API | `apps/api/.env` (edit `CORS_ORIGIN`) |
 | Change the API URL the phone calls | `apps/mobile/.env` (edit `EXPO_PUBLIC_API_URL`) |
 | Add a new function the phone can call | `apps/mobile/src/lib/api.ts` (export a new helper using `request()`) |
 | Add a new screen | `apps/mobile/src/screens/` + register in `App.tsx` |
-| Change error message format | `middleware/errorHandler.ts` |
+| Change gateway error message format | `apps/api/src/middleware/errorHandler.ts` |
+| Change service error message format | `apps/auth-service/src/middleware/errorHandler.ts` and `apps/profile-service/src/middleware/errorHandler.ts` |
 
 If you ever can't find something, search by feature name (`signup`, `profile`, `green-areas`) — names are consistent across the codebase.
 
@@ -311,7 +333,7 @@ We use them for: CORS, JSON parsing, JWT verification, error handling.
 A function that handles a specific request. Takes `(req, res, next)`. Does the real work (validation, DB calls, hashing, etc.) and sends a response via `res`.
 
 ### Model
-A schema definition (via Mongoose) that says what a document in MongoDB looks like. Models give us validation + TypeScript types + ergonomic query methods (`User.findOne(...)`, `User.create(...)`).
+A schema definition (via Mongoose) that says what a document in MongoDB looks like. Models give us validation + TypeScript types + ergonomic query methods (`User.findOne(...)`, `User.create(...)`). In our microservice setup, models live in the service that owns that data (auth/profile services), not in the gateway.
 
 ### ODM (Object Document Mapper) — Mongoose
 The tool that lets us define schemas, get types, and do `User.findOne(...)` instead of writing raw Mongo queries. Like an ORM but for document databases.
