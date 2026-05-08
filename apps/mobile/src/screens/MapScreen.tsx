@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, Touchable, TouchableOpacity } from 'react-native';
-import MapView, {UrlTile} from 'react-native-maps';
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import MapView, { UrlTile } from 'react-native-maps';
 import { StatusBar } from 'expo-status-bar';
 import { useUserLocation } from '../hooks/userLocation';
-import { Button, Text } from 'react-native';
+import { Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { GreenAreaLayer } from '../components/GreenAreaLayer';
@@ -14,12 +14,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 export function MapScreen({ navigation }: Props) {
   const { location, loading } = useUserLocation();
 
-  const roadFIll = "#e4ac81"
+  const roadFIll = "#E7AB83"
   const roadOutline = "#000000"
-
   const waterFIll = "#009ee2"
   const forestFIll = "#ffffff"
-  const parkFill =  "#FFC052"
+  const parkFill =  "#FFBA36"
 
   const mapStyle = [
     {
@@ -99,16 +98,6 @@ export function MapScreen({ navigation }: Props) {
           />
         )}*/
 
-  /*{
-    <UrlTile
-          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
-          maximumZ={18}
-          minimumZ={14}
-          shouldReplaceMapContent={false}
-          tileSize={256}
-        />
-  }*/
-
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
@@ -117,9 +106,8 @@ export function MapScreen({ navigation }: Props) {
         provider="google"
         customMapStyle={mapStyle}
         showsBuildings={false}
+        showsCompass={false}
         initialRegion={initialRegion}
-        showsUserLocation
-        showsMyLocationButton
       >
         <UrlTile
           urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
