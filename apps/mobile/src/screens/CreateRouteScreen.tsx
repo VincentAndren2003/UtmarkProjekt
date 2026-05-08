@@ -17,8 +17,8 @@ import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute } from '../lib/api';
 import { RouteResponse } from '../types/route';
-import { Camera, Map } from '@maplibre/maplibre-react-native';
-import { MapLibreRouteLayer } from '../components/MapLibreRouteLayer';
+
+import MapView, { UrlTile } from 'react-native-maps';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
@@ -325,26 +325,104 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const ratio = (distanceKm - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
     sliderX.setValue(minX + ratio * travel);
   };
+  //{generatedRoute && <MapLibreRouteLayer route={generatedRoute} />}
+  
+  /** Styling för standard kartan **/
+  const roadFIll = "#E7AB83"
+  const roadOutline = "#000000"
+  const waterFIll = "#009ee2"
+  const forestFIll = "#ffffff"
+  const parkFill =  "#FFBA36"
+
+  const mapStyle = [
+    {
+      "elementType": "labels",
+      "stylers": [
+        {
+          "visibility": "off"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": roadFIll
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
+          "color": roadOutline
+        },
+        {
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": waterFIll
+        }
+      ]
+    },
+    {
+      "featureType": "landscape",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": forestFIll
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": parkFill
+        }
+      ]
+    }
+  ]
+
+  const initialRegion = location
+    ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+    : {
+        latitude: 59.334591,
+        longitude: 18.06324,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+      };
+
 
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
       <View style={styles.mapBackdrop}>
-        {styleURL && (
-          <Map
-            style={StyleSheet.absoluteFillObject}
-            mapStyle={styleURL}
-          >
-            <Camera
-              zoom={14}
-              center={[
-                location?.longitude ?? 18.0656,
-                location?.latitude ?? 59.3327,
-              ]}
-            />
-            {generatedRoute && <MapLibreRouteLayer route={generatedRoute} />}
-          </Map>
-        )}
+        <MapView
+          style={StyleSheet.absoluteFill}
+          provider="google"
+          customMapStyle={mapStyle}
+          showsBuildings={false}
+          showsCompass={false}
+          initialRegion={initialRegion}
+        >
+          <UrlTile
+            urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+            maximumZ={20}
+            minimumZ={12}
+            shouldReplaceMapContent={false}
+            tileSize={512}
+          />
+        </MapView>
       </View>
 
       <View style={styles.content} />
