@@ -121,6 +121,13 @@ export function MapScreen({ navigation }: Props) {
         showsUserLocation
         showsMyLocationButton
       >
+        <UrlTile
+          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+          maximumZ={20}
+          minimumZ={12}
+          shouldReplaceMapContent={false}
+          tileSize={512}
+        />
         
       </MapView>
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
