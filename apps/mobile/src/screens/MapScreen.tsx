@@ -17,9 +17,8 @@ export function MapScreen({ navigation }: Props) {
   const roadFIll = "#e4ac81"
   const roadOutline = "#000000"
 
-  const waterFIll = "#00D4D5"
+  const waterFIll = "#009ee2"
   const forestFIll = "#ffffff"
-  const lawnFill = "#858611"
   const parkFill =  "#FFC052"
 
   const mapStyle = [
@@ -71,7 +70,7 @@ export function MapScreen({ navigation }: Props) {
       ]
     },
     {
-      "featureType": "poi.park",
+      "featureType": "poi",
       "elementType": "geometry.fill",
       "stylers": [
         {
@@ -100,6 +99,16 @@ export function MapScreen({ navigation }: Props) {
           />
         )}*/
 
+  /*{
+    <UrlTile
+          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+          maximumZ={18}
+          minimumZ={14}
+          shouldReplaceMapContent={false}
+          tileSize={256}
+        />
+  }*/
+
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
@@ -112,21 +121,7 @@ export function MapScreen({ navigation }: Props) {
         showsUserLocation
         showsMyLocationButton
       >
-        <UrlTile
-          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
-          maximumZ={18}
-          minimumZ={14}
-          shouldReplaceMapContent={false}
-          tileSize={256}
-        />
-
-        {location &&(
-          <GreenAreaLayer
-            lat={location.latitude}
-            lng={location.longitude}
-            radius={1000}
-          />
-        )}
+        
       </MapView>
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backText}>Tillbaka</Text>
