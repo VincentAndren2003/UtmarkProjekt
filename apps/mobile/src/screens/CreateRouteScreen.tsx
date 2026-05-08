@@ -343,27 +343,26 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       {/* Karta */}
-    <Map
-      style={StyleSheet.absoluteFill}
-      mapStyle={styleURL}
-    >
-      <Camera
-        initialViewState={{
-          center: location
-            ? [location.longitude, location.latitude]
-            : [18.0656, 59.3327],
-          zoom: 14,
-        }}
-        trackUserLocation="default"
-      />
-    </Map>
+      <Map style={StyleSheet.absoluteFill} mapStyle={styleURL}>
+        <Camera
+          initialViewState={{
+            center: location
+              ? [location.longitude, location.latitude]
+              : [18.0656, 59.3327],
+            zoom: 14,
+          }}
+          trackUserLocation="default"
+        />
+      </Map>
 
       {/* Kompass */}
       <View style={styles.compass}>
-        <View style={[
-          styles.compassInner,
-          { transform: [{ rotate: `${-heading}deg` }] }
-        ]}>
+        <View
+          style={[
+            styles.compassInner,
+            { transform: [{ rotate: `${-heading}deg` }] },
+          ]}
+        >
           <Text style={styles.compassArrow}>↑</Text>
         </View>
         <Text style={styles.compassLabel}>N</Text>
