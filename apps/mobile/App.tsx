@@ -8,6 +8,7 @@ import { ProfileUpsertScreen } from './src/screens/ProfileUpsertScreen';
 import { CreateRouteScreen } from './src/screens/CreateRouteScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { HistoryScreen } from './src/screens/HistoryScreen';
 import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
 import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
 import { RouteResponse } from './src/types/route';
@@ -33,6 +34,7 @@ export type RootStackParamList = {
   };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
   Profile: { from?: 'Login' | 'CreateAccount' } | undefined;
+  History: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -115,6 +117,15 @@ export default function App() {
         <Stack.Screen
           name="Profile"
           component={ProfileScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="History"
+          component={HistoryScreen}
           options={{
             headerShown: false,
             animation: 'fade',
