@@ -106,6 +106,9 @@ export function createApp() {
   // route
   app.use('/api/routes', routeRouter);
 
+  //Map tiles
+  app.use('/tiles', express.static('/var/www/html/tiles'));
+
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to
   // next(err) lands here and gets turned into a JSON response.
