@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Text, TextInput, View, StyleSheet, Pressable } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Checkbox from 'expo-checkbox';
 import { RootStackParamList } from '../../App';
@@ -7,11 +15,22 @@ import { signup } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateAccount'>;
 
+const TERMS_TEXT = `Denna app är ett studentprojekt inom kursen PVT15 på Stockholms universitet. Genom att använda appen godkänner du följande:
+
+Data: Vi samlar endast in personuppgifter såsom för- och efternamn, användarnamn och positionsdata för att kunna generera rutter och för att göra upplevelsen personligt anpassad.
+
+Integritet: Din exakta position eller hemadress sparas aldrig permanent och delas aldrig med utomstående.
+
+Lagring: All data hanteras endast inom ramen för projektet och raderas senast 2026-06-07.
+
+Kontakt: Ansvariga för projektet är grupp 15_1.`;
+
 export function CreateAccountScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false);
 
   const handleSignUp = async () => {
     setMsg('');
@@ -65,18 +84,23 @@ export function CreateAccountScreen({ navigation }: Props) {
             //onChangeText={setPassword}
             style={styles.inputContainer}
           />
-          <Pressable
-            style={styles.checkboxRow}
-            onPress={() => setAcceptTerms((prev) => !prev)}
-          >
+          <View style={styles.checkboxRow}>
             <Checkbox
               value={acceptTerms}
               onValueChange={setAcceptTerms}
               color={acceptTerms ? 'rgba(223, 230, 233, 1)' : undefined}
               style={styles.checkbox}
             />
-            <Text style={styles.checkboxLabel}>Jag godkänner villkoren</Text>
-          </Pressable>
+            <Text style={styles.checkboxLabel}>
+              Jag godkänner{' '}
+              <Text
+                style={styles.termsLink}
+                onPress={() => setTermsVisible(true)}
+              >
+                användarvillkoren
+              </Text>
+            </Text>
+          </View>
         </View>
         <View style={styles.buttonBlock}>
           <Pressable style={styles.primaryButton} onPress={handleSignUp}>
@@ -101,6 +125,36 @@ export function CreateAccountScreen({ navigation }: Props) {
           </View>
         </View>
       </View>
+      <Modal
+        visible={termsVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setTermsVisible(false)}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable
+            style={styles.sheetBackdrop}
+            onPress={() => setTermsVisible(false)}
+          />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Användarvillkor</Text>
+            <ScrollView
+              style={styles.sheetScroll}
+              contentContainerStyle={styles.sheetScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.sheetBody}>{TERMS_TEXT}</Text>
+            </ScrollView>
+            <Pressable
+              style={styles.sheetCloseButton}
+              onPress={() => setTermsVisible(false)}
+            >
+              <Text style={styles.sheetCloseButtonText}>Stäng</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -172,6 +226,13 @@ const styles = StyleSheet.create({
     color: 'rgba(26, 26, 26, 0.8)',
     fontSize: 13,
     fontWeight: '400',
+    flexShrink: 1,
+  },
+
+  termsLink: {
+    color: '#3E7A44',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
   helpText: {
@@ -242,5 +303,70 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  sheet: {
+    maxHeight: '78%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 28,
+  },
+
+  sheetHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(26, 26, 26, 0.15)',
+    marginBottom: 18,
+  },
+
+  sheetTitle: {
+    color: 'rgba(26, 26, 26, 1)',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 14,
+  },
+
+  sheetScroll: {
+    flexGrow: 0,
+  },
+
+  sheetScrollContent: {
+    paddingBottom: 8,
+  },
+
+  sheetBody: {
+    color: 'rgba(26, 26, 26, 0.8)',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+
+  sheetCloseButton: {
+    marginTop: 16,
+    height: 46,
+    borderRadius: 15,
+    backgroundColor: '#3E7A44',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  sheetCloseButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
