@@ -15,23 +15,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { getMyProfile, Profile } from '../lib/api';
+import { BADGES } from '../data/badges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
-
-// Stub-data för badges. Upplåsnings-logik kopplas in senare — just nu visas
-// alla som låsta. Lägg till fler genom att utöka listan här.
-type Badge = {
-  id: string;
-  name: string;
-  unlocked: boolean;
-};
-
-const BADGES: Badge[] = [
-  { id: 'ny-utforskare', name: 'Ny utforskare', unlocked: false },
-  { id: 'skogsvandrare', name: 'Skogsvandrare', unlocked: false },
-  { id: 'terrangmastare', name: 'Terrängmästare', unlocked: false },
-  { id: 'morgonpigg', name: 'Morgonpigg', unlocked: false },
-];
 
 // Utmaning skickad av en annan användare. Sätt avatarUri när vi har bilder.
 type Challenge = {
@@ -69,10 +55,7 @@ export function ProfileScreen({ navigation, route }: Props) {
 
   // TODO: Hämta från backend när utmaningar finns. Sätt till [] för att
   // se tomma tillståndet i UI:t.
-  const [challenges, setChallenges] = useState<Challenge[]>([
-    { id: 'c1', fromName: 'Johan', timeLabel: 'För 2 timmar sedan' },
-    { id: 'c2', fromName: 'Anna', timeLabel: 'För 1 dag sedan' },
-  ]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
 
   const onAcceptChallenge = (id: string) => {
     // TODO: anropa backend för att acceptera utmaningen.
@@ -172,9 +155,17 @@ export function ProfileScreen({ navigation, route }: Props) {
               >
                 {BADGES.map((badge) => (
                   <View key={badge.id} style={styles.badgeItem}>
-                    <View style={styles.badgeIcon}>
-                      <Ionicons name="lock-closed" size={28} color="#9aa1a8" />
-                    </View>
+                    {badge.unlocked && badge.image ? (
+                      <Image source={badge.image} style={styles.badgeImage} />
+                    ) : (
+                      <View style={styles.badgeIcon}>
+                        <Ionicons
+                          name="lock-closed"
+                          size={28}
+                          color="#9aa1a8"
+                        />
+                      </View>
+                    )}
                     <Text style={styles.badgeName} numberOfLines={1}>
                       {badge.name}
                     </Text>
@@ -364,6 +355,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
+  badgeImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 8,
+  },
   badgeName: {
     fontSize: 13,
     fontWeight: '600',
@@ -450,7 +447,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 28,
+    marginTop: 16,
     paddingHorizontal: 4,
   },
   historyLinkText: {
