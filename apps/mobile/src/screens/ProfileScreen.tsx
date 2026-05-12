@@ -173,11 +173,7 @@ export function ProfileScreen({ navigation, route }: Props) {
                 {BADGES.map((badge) => (
                   <View key={badge.id} style={styles.badgeItem}>
                     <View style={styles.badgeIcon}>
-                      <Ionicons
-                        name="lock-closed"
-                        size={28}
-                        color="#9aa1a8"
-                      />
+                      <Ionicons name="lock-closed" size={28} color="#9aa1a8" />
                     </View>
                     <Text style={styles.badgeName} numberOfLines={1}>
                       {badge.name}
@@ -217,25 +213,15 @@ export function ProfileScreen({ navigation, route }: Props) {
                             style={styles.challengeAvatarImage}
                           />
                         ) : (
-                          <Ionicons
-                            name="person"
-                            size={26}
-                            color="#b8bec5"
-                          />
+                          <Ionicons name="person" size={26} color="#b8bec5" />
                         )}
                       </View>
 
                       <View style={styles.challengeText}>
-                        <Text
-                          style={styles.challengeName}
-                          numberOfLines={1}
-                        >
+                        <Text style={styles.challengeName} numberOfLines={1}>
                           {challenge.fromName} utmanar dig!
                         </Text>
-                        <Text
-                          style={styles.challengeTime}
-                          numberOfLines={1}
-                        >
+                        <Text style={styles.challengeTime} numberOfLines={1}>
                           {challenge.timeLabel}
                         </Text>
                       </View>
