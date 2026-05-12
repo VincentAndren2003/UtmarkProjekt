@@ -1,7 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { BADGES } from '../data/badges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Badges'>;
 
@@ -21,11 +29,33 @@ export function BadgesScreen({ navigation }: Props) {
         <View style={styles.backButton} />
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.placeholder}>
-          Här kommer en lista över alla badges.
-        </Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+      >
+        {BADGES.map((badge) => (
+          <View key={badge.id} style={styles.row}>
+            {badge.unlocked && badge.image ? (
+              <Image source={badge.image} style={styles.image} />
+            ) : (
+              <View style={styles.icon}>
+                <Ionicons name="lock-closed" size={28} color="#9aa1a8" />
+              </View>
+            )}
+            <View style={styles.textBlock}>
+              <Text style={styles.name} numberOfLines={1}>
+                {badge.name}
+              </Text>
+              <Text style={styles.description} numberOfLines={2}>
+                {badge.description}
+              </Text>
+              <Text style={styles.status}>
+                {badge.unlocked ? 'Upplåst' : 'Ej upplåst'}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -54,15 +84,51 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
   },
-  content: {
-    flex: 1,
+  list: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    gap: 14,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: '#f7f8f9',
+    borderRadius: 16,
+  },
+  icon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#ececee',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    marginRight: 14,
   },
-  placeholder: {
-    fontSize: 15,
-    color: '#7c8189',
-    textAlign: 'center',
+  image: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginRight: 14,
+  },
+  textBlock: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  description: {
+    fontSize: 13,
+    color: '#525860',
+    marginTop: 2,
+  },
+  status: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9aa1a8',
+    marginTop: 6,
   },
 });
