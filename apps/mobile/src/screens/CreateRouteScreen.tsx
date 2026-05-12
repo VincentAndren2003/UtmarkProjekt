@@ -18,6 +18,9 @@ import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute } from '../lib/api';
 import { RouteResponse } from '../types/route';
+import { Route } from '../models/Route';
+import { Checkpoint } from '../models/Checkpoint';
+
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -454,16 +457,41 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <View style={styles.activeHudBottomActions}>
             <Pressable
               style={styles.activeHudFetchButton}
-              onPress={() =>
-                navigation.navigate('CheckpointTaken', {
-                  routeName: activeRouteName,
-                  currentCheckpoint: activeStats.checkpointDone + 1,
-                  totalCheckpoints: activeStats.checkpointTotal,
-                  elapsedMin: activeStats.timeMin,
-                  distanceKm: '1,9',
-                  paceMinPerKm: '10:5',
-                })
-              }
+              onPress={() => {  
+                if (!location || !generatedRoute) return;
+
+                const routeInstance = new Route(generatedRoute.id, generatedRoute.start, generatedRoute.distance);
+                routeInstance.checkpoints = generatedRoute.checkpoints.map(cp => 
+                  new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
+                );
+
+                const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
+
+                if (completed && routeInstance.isFinished()) {
+                  // Alla checkpoints avklarade
+                  navigation.navigate('CheckpointTaken', {
+                    routeName: activeRouteName,
+                    currentCheckpoint: activeStats.checkpointTotal,
+                    totalCheckpoints: activeStats.checkpointTotal,
+                    elapsedMin: activeStats.timeMin,
+                    distanceKm: '1,9',
+                    paceMinPerKm: '10:5',
+                  });
+                } else if (completed) {
+                  // Checkpoint avklarad, fler kvar
+                  navigation.navigate('CheckpointTaken', {
+                    routeName: activeRouteName,
+                    currentCheckpoint: activeStats.checkpointDone + 1,
+                    totalCheckpoints: activeStats.checkpointTotal,
+                    elapsedMin: activeStats.timeMin,
+                    distanceKm: '1,9',
+                    paceMinPerKm: '10:5',
+                  });
+                } else {
+                  // Inte inom radie
+                  console.log('Du är inte inom checkpointens radie');
+                }
+              }}
             >
               <Text style={styles.activeHudFetchText}>Hämta checkpoint</Text>
               <Text style={styles.activeHudFetchArrow}>›</Text>
@@ -523,16 +551,41 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               setSheetMode('generated');
             }}
             onEmergency={() => {}}
-            onFetchCheckpoint={() =>
-              navigation.navigate('CheckpointTaken', {
-                routeName: activeRouteName,
-                currentCheckpoint: activeStats.checkpointDone + 1,
-                totalCheckpoints: activeStats.checkpointTotal,
-                elapsedMin: activeStats.timeMin,
-                distanceKm: '1,9',
-                paceMinPerKm: '10:5',
-              })
-            }
+
+            onFetchCheckpoint={() => {
+              if (!location || !generatedRoute) return;
+
+              const routeInstance = new Route(generatedRoute.id, generatedRoute.start, generatedRoute.distance);
+              routeInstance.checkpoints = generatedRoute.checkpoints.map(cp => 
+                new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
+              );
+
+              const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
+              
+              if (completed && routeInstance.isFinished()) {
+                // Alla checkpoints avklarade
+                navigation.navigate('CheckpointTaken', {
+                  routeName: activeRouteName,
+                  currentCheckpoint: activeStats.checkpointTotal,
+                  totalCheckpoints: activeStats.checkpointTotal,
+                  elapsedMin: activeStats.timeMin,
+                  distanceKm: '1,9',
+                  paceMinPerKm: '10:5',
+                });
+              } else if (completed) {
+                // Checkpoint avklarad, fler kvar
+                navigation.navigate('CheckpointTaken', {
+                  routeName: activeRouteName,
+                  currentCheckpoint: activeStats.checkpointDone + 1,
+                  totalCheckpoints: activeStats.checkpointTotal,
+                  elapsedMin: activeStats.timeMin,
+                  distanceKm: '1,9',
+                  paceMinPerKm: '10:5',
+                });
+              } else {
+                console.log('Du är inte inom checkpointens radie');
+              }
+            }}
           />
         ) : null}
       </Animated.View>
