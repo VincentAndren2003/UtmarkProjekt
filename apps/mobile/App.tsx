@@ -8,6 +8,9 @@ import { ProfileUpsertScreen } from './src/screens/ProfileUpsertScreen';
 import { CreateRouteScreen } from './src/screens/CreateRouteScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { HistoryScreen } from './src/screens/HistoryScreen';
+import { ChallengesScreen } from './src/screens/ChallengesScreen';
+import { BadgesScreen } from './src/screens/BadgesScreen';
 import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
 import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
 import { RouteResponse } from './src/types/route';
@@ -33,20 +36,12 @@ export type RootStackParamList = {
   };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
   Profile: { from?: 'Login' | 'CreateAccount' } | undefined;
+  History: undefined;
+  Challenges: undefined;
+  Badges: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-type screen =
-  | 'home'
-  | 'welcome'
-  | 'map'
-  | 'login'
-  | 'createAccount'
-  | 'profileUpsert'
-  | 'createRoute'
-  | 'favorites'
-  | 'profile';
 
 export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
@@ -115,6 +110,33 @@ export default function App() {
         <Stack.Screen
           name="Profile"
           component={ProfileScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="History"
+          component={HistoryScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="Challenges"
+          component={ChallengesScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="Badges"
+          component={BadgesScreen}
           options={{
             headerShown: false,
             animation: 'fade',

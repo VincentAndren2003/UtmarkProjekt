@@ -14,4 +14,3 @@ export function errorHandler(
   }
   res.status(status).json({ error: err.message ?? 'Internal server error' });
 }
-

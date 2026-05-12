@@ -31,7 +31,6 @@ export class GreenAreaService {
     radius: number
   ): Promise<GreenAreaCollection> {
     const query = this.buildQuery(lat, lng, radius);
-    console.log('Skickar query:', query);
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       headers: {
@@ -40,8 +39,6 @@ export class GreenAreaService {
       },
       body: `data=${encodeURIComponent(query)}`,
     });
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
     if (!response.ok) {
       const text = await response.text();
       console.error('Response body: ', text);
@@ -62,11 +59,16 @@ export class GreenAreaService {
           return false;
         })
         .map((el) => this.elementToFeature(el))
-        .filter(Boolean) as any,
+        .filter(
+          (feature): feature is GreenAreaCollection['features'][number] =>
+            feature !== null
+        ),
     };
   }
 
-  private elementToFeature(el: OverpassElement) {
+  private elementToFeature(
+    el: OverpassElement
+  ): GreenAreaCollection['features'][number] | null {
     let coordinates;
 
     if (el.type === 'way') {

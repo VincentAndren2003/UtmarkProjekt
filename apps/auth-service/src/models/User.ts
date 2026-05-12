@@ -16,4 +16,3 @@ const userSchema = new Schema(
 
 export type UserDoc = InferSchemaType<typeof userSchema>;
 export const User = model('User', userSchema);
-

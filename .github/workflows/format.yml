@@ -30,6 +30,12 @@ jobs:
       - name: Install api dependencies
         run: npm ci --prefix apps/api
 
+      - name: Install auth-service dependencies
+        run: npm ci --prefix apps/auth-service
+
+      - name: Install profile-service dependencies
+        run: npm ci --prefix apps/profile-service
+
       - name: Check formatting
         run: npm run format
 

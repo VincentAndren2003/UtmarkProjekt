@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Polyline, Marker} from 'react-native-maps';
+import { Polyline, Marker } from 'react-native-maps';
 import { RouteResponse } from '../types/route';
 
 type Props = {
@@ -31,12 +31,12 @@ export function GeneratedRouteLayer({ route }: Props) {
         </Marker>
       ))}
     </>
-  ); 
+  );
 }
 
 const styles = StyleSheet.create({
   markerWrapper: {
-    paddingRight: 20, 
+    paddingRight: 20,
     paddingBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -53,6 +53,6 @@ const styles = StyleSheet.create({
     color: '#BA55A0',
     fontWeight: 'bold',
     fontSize: 20,
-    transform: [{ translateX: 12 }, { translateY: -18 }], 
+    transform: [{ translateX: 12 }, { translateY: -18 }],
   },
 });

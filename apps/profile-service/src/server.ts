@@ -14,4 +14,3 @@ bootstrap().catch((err) => {
   console.error('Failed to start profile-service:', err);
   process.exit(1);
 });
-

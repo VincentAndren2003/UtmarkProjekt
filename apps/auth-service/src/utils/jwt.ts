@@ -11,4 +11,3 @@ export function signToken(payload: { userId: string }): string {
 export function verifyToken(token: string): { userId: string } {
   return jwt.verify(token, env.JWT_SECRET) as { userId: string };
 }
-
