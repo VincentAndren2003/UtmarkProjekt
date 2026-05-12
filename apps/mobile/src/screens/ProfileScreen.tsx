@@ -58,6 +58,7 @@ export function ProfileScreen({ navigation, route }: Props) {
   // se tomma tillståndet i UI:t.
   const [challenges, setChallenges] = useState<Challenge[]>([
     { id: 'c1', fromName: 'Johan', timeLabel: 'För 2 timmar sedan' },
+    { id: 'c2', fromName: 'Anna', timeLabel: 'För 1 dag sedan' },
   ]);
 
   const onAcceptChallenge = (id: string) => {
@@ -158,8 +159,7 @@ export function ProfileScreen({ navigation, route }: Props) {
                 <Pressable
                   accessibilityLabel="Visa alla badges"
                   hitSlop={8}
-                  // TODO: navigera till "alla badges"-skärm när den finns.
-                  onPress={() => {}}
+                  onPress={() => navigation.navigate('Badges')}
                 >
                   <Ionicons name="chevron-forward" size={22} color="#1a1a1a" />
                 </Pressable>
@@ -191,7 +191,16 @@ export function ProfileScreen({ navigation, route }: Props) {
             </View>
 
             <View style={styles.challengesSection}>
-              <Text style={styles.challengesTitle}>Aktuella utmaningar</Text>
+              <View style={styles.challengesHeader}>
+                <Text style={styles.challengesTitle}>Aktuella utmaningar</Text>
+                <Pressable
+                  accessibilityLabel="Visa alla utmaningar"
+                  hitSlop={8}
+                  onPress={() => navigation.navigate('Challenges')}
+                >
+                  <Ionicons name="chevron-forward" size={22} color="#1a1a1a" />
+                </Pressable>
+              </View>
 
               {challenges.length === 0 ? (
                 <Text style={styles.challengesEmpty}>
@@ -385,12 +394,17 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginTop: 28,
   },
+  challengesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginBottom: 16,
+  },
   challengesTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
-    paddingHorizontal: 4,
-    marginBottom: 16,
   },
   challengesEmpty: {
     fontSize: 14,
@@ -450,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 44,
+    marginTop: 28,
     paddingHorizontal: 4,
   },
   historyLinkText: {
