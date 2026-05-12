@@ -70,7 +70,11 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="ProfileUpsert" component={ProfileUpsertScreen} />
+        <Stack.Screen
+          name="ProfileUpsert"
+          component={ProfileUpsertScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="CreateRoute"
           component={CreateRouteScreen}
