@@ -41,6 +41,19 @@ type Challenge = {
   avatarUri?: string;
 };
 
+// TODO: Ta bort denna dev-fallback när auth-flödet är på plats.
+// Används bara så vi kan se profil-UI:t utan att vara inloggade.
+const DEV_FALLBACK_PROFILE: Profile = {
+  _id: 'dev',
+  userId: 'dev',
+  username: 'användarnamn',
+  fullName: 'Förnamn Efternamn',
+  age: 0,
+  gender: 'other',
+  createdAt: '',
+  updatedAt: '',
+};
+
 export function ProfileScreen({ navigation, route }: Props) {
   const from = route.params?.from;
 
@@ -64,19 +77,6 @@ export function ProfileScreen({ navigation, route }: Props) {
   const onAcceptChallenge = (id: string) => {
     // TODO: anropa backend för att acceptera utmaningen.
     setChallenges((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  // TODO: Ta bort denna dev-fallback när auth-flödet är på plats.
-  // Används bara så vi kan se profil-UI:t utan att vara inloggade.
-  const DEV_FALLBACK_PROFILE: Profile = {
-    _id: 'dev',
-    userId: 'dev',
-    username: 'användarnamn',
-    fullName: 'Förnamn Efternamn',
-    age: 0,
-    gender: 'other',
-    createdAt: '',
-    updatedAt: '',
   };
 
   useEffect(() => {
