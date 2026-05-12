@@ -20,7 +20,7 @@ router.post('/generate-route', (req, res) => {
       filters: normalizedFilters,
       checkpoints: checkpoints,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Rutt kunnde inte genegeras' });
   }
 });

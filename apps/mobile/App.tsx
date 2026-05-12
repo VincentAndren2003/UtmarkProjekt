@@ -43,17 +43,6 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type screen =
-  | 'home'
-  | 'welcome'
-  | 'map'
-  | 'login'
-  | 'createAccount'
-  | 'profileUpsert'
-  | 'createRoute'
-  | 'favorites'
-  | 'profile';
-
 export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
