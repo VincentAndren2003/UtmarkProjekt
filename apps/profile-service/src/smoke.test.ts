@@ -5,4 +5,3 @@ describe('profile-service smoke test', () => {
     expect(true).toBe(true);
   });
 });
-

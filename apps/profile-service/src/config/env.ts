@@ -13,4 +13,3 @@ export const env = {
   MONGODB_URI: required('MONGODB_URI'),
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? '*',
 };
-

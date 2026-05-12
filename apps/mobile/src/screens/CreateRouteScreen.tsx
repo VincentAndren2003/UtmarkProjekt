@@ -62,8 +62,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
   const ACTIVE_COLLAPSED_HEIGHT = 44;
-  const REQUEST_COLLAPSED_TRANSLATE = EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
-  const GENERATED_EXPANDED_TRANSLATE = EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
+  const REQUEST_COLLAPSED_TRANSLATE =
+    EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
+  const GENERATED_EXPANDED_TRANSLATE =
+    EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
   const sheetTranslateY = useRef(
     new Animated.Value(
       PREVIEW_GENERATED_SHEET
@@ -85,9 +87,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showActiveHud, setShowActiveHud] = useState(false);
-  const [sheetMode, setSheetMode] = useState<'request' | 'generated' | 'active'>(
-    PREVIEW_GENERATED_SHEET ? 'generated' : 'request'
-  );
+  const [sheetMode, setSheetMode] = useState<
+    'request' | 'generated' | 'active'
+  >(PREVIEW_GENERATED_SHEET ? 'generated' : 'request');
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
     PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
   );
@@ -144,7 +146,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     sheetTranslateY.stopAnimation((currentValue) => {
-      const clamped = Math.max(minTranslate, Math.min(maxTranslate, currentValue));
+      const clamped = Math.max(
+        minTranslate,
+        Math.min(maxTranslate, currentValue)
+      );
       sheetTranslateY.setValue(clamped);
       setIsExpanded(clamped === minTranslate);
     });
@@ -160,7 +165,12 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
       setIsExpanded(true);
     }
-  }, [sheetMode, GENERATED_EXPANDED_TRANSLATE, REQUEST_COLLAPSED_TRANSLATE, sheetTranslateY]);
+  }, [
+    sheetMode,
+    GENERATED_EXPANDED_TRANSLATE,
+    REQUEST_COLLAPSED_TRANSLATE,
+    sheetTranslateY,
+  ]);
 
   useEffect(() => {
     if (sheetMode !== 'active') {
@@ -223,7 +233,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           } else {
             sheetTranslateY.stopAnimation((currentValue) => {
               const midpoint = (minTranslate + maxTranslate) / 2;
-              animateSheetTo(currentValue < midpoint ? minTranslate : maxTranslate);
+              animateSheetTo(
+                currentValue < midpoint ? minTranslate : maxTranslate
+              );
             });
           }
         },
@@ -232,11 +244,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   );
 
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
-  const sliderMaxX = Math.max(sliderMinX, sliderWidth - LINE_INSET - THUMB_SIZE / 2);
+  const sliderMaxX = Math.max(
+    sliderMinX,
+    sliderWidth - LINE_INSET - THUMB_SIZE / 2
+  );
   const sliderTravel = Math.max(1, sliderMaxX - sliderMinX);
 
   const updateSliderX = (locationX: number) => {
-    const nextX = Math.max(sliderMinX, Math.min(sliderMaxX, locationX - THUMB_SIZE / 2));
+    const nextX = Math.max(
+      sliderMinX,
+      Math.min(sliderMaxX, locationX - THUMB_SIZE / 2)
+    );
     sliderX.setValue(nextX);
   };
 
@@ -316,72 +334,72 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     sliderX.setValue(minX + ratio * travel);
   };
   //
-  
+
   /** Styling för Google Maps kartan **/
-  const roadFIll = "#E7AB83"
-  const roadOutline = "#000000"
-  const waterFIll = "#009ee2"
-  const forestFIll = "#ffffff"
-  const parkFill =  "#FFBA36"
+  const roadFIll = '#E7AB83';
+  const roadOutline = '#000000';
+  const waterFIll = '#009ee2';
+  const forestFIll = '#ffffff';
+  const parkFill = '#FFBA36';
 
   const mapStyle = [
     {
-      "elementType": "labels",
-      "stylers": [
+      elementType: 'labels',
+      stylers: [
         {
-          "visibility": "off"
-        }
-      ]
+          visibility: 'off',
+        },
+      ],
     },
     {
-      "featureType": "road",
-      "elementType": "geometry.fill",
-      "stylers": [
+      featureType: 'road',
+      elementType: 'geometry.fill',
+      stylers: [
         {
-          "color": roadFIll
-        }
-      ]
+          color: roadFIll,
+        },
+      ],
     },
     {
-      "featureType": "road",
-      "elementType": "geometry.stroke",
-      "stylers": [
+      featureType: 'road',
+      elementType: 'geometry.stroke',
+      stylers: [
         {
-          "color": roadOutline
+          color: roadOutline,
         },
         {
-          "weight": 0.5
-        }
-      ]
+          weight: 0.5,
+        },
+      ],
     },
     {
-      "featureType": "water",
-      "elementType": "geometry.fill",
-      "stylers": [
+      featureType: 'water',
+      elementType: 'geometry.fill',
+      stylers: [
         {
-          "color": waterFIll
-        }
-      ]
+          color: waterFIll,
+        },
+      ],
     },
     {
-      "featureType": "landscape",
-      "elementType": "geometry.fill",
-      "stylers": [
+      featureType: 'landscape',
+      elementType: 'geometry.fill',
+      stylers: [
         {
-          "color": forestFIll
-        }
-      ]
+          color: forestFIll,
+        },
+      ],
     },
     {
-      "featureType": "poi",
-      "elementType": "geometry.fill",
-      "stylers": [
+      featureType: 'poi',
+      elementType: 'geometry.fill',
+      stylers: [
         {
-          "color": parkFill
-        }
-      ]
-    }
-  ]
+          color: parkFill,
+        },
+      ],
+    },
+  ];
 
   const initialRegion = location
     ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
@@ -391,7 +409,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         latitudeDelta: 0.1,
         longitudeDelta: 0.1,
       };
-      
+
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
@@ -405,7 +423,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           initialRegion={initialRegion}
         >
           {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
-          
+
           <UrlTile
             urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
             maximumZ={20}

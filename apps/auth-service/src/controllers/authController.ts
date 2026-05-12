@@ -50,7 +50,9 @@ export async function login(
       return;
     }
 
-    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
+    const user = await User.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
@@ -71,4 +73,3 @@ export async function login(
     next(err);
   }
 }
-

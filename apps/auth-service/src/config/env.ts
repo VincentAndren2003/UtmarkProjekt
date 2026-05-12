@@ -15,4 +15,3 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? '*',
 };
-

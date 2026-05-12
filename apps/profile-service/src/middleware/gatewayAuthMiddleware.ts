@@ -20,10 +20,11 @@ export function gatewayAuthMiddleware(
 ): void {
   const userId = req.header('x-user-id');
   if (!userId) {
-    res.status(401).json({ error: 'Missing x-user-id (gateway auth required)' });
+    res
+      .status(401)
+      .json({ error: 'Missing x-user-id (gateway auth required)' });
     return;
   }
   req.userId = userId;
   next();
 }
-

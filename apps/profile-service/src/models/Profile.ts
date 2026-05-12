@@ -23,4 +23,3 @@ const profileSchema = new Schema(
 
 export type ProfileDoc = InferSchemaType<typeof profileSchema>;
 export const Profile = model('Profile', profileSchema);
-

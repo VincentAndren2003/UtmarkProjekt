@@ -5,4 +5,3 @@ describe('auth-service smoke test', () => {
     expect(true).toBe(true);
   });
 });
-
