@@ -16,7 +16,7 @@ import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
 import { RouteGeneratedSheet } from '../components/route-sheet/RouteGeneratedSheet';
 import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
-import { generateRoute } from '../lib/api';
+import { generateRoute, getMyProfile } from '../lib/api';
 import { RouteResponse } from '../types/route';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
@@ -94,6 +94,27 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
     PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
   );
+  const [greetingFirstName, setGreetingFirstName] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const profile = await getMyProfile();
+        if (!alive) return;
+        const first =
+          (profile.fullName ?? '').trim().split(/\s+/)[0] || null;
+        setGreetingFirstName(first);
+      } catch {
+        if (alive) setGreetingFirstName(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const activeStats = {
     timeMin: 9,
@@ -493,6 +514,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         </View>
         {sheetMode === 'request' ? (
           <RouteRequestSheet
+            greetingFirstName={greetingFirstName}
             distanceKm={distanceKm}
             activeFilters={activeFilters}
             filterChips={filterChips}

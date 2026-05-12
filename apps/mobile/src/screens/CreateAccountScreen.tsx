@@ -11,6 +11,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Checkbox from 'expo-checkbox';
 import { RootStackParamList } from '../../App';
+import { OnboardingStepDots } from '../components/OnboardingStepDots';
 import { signup } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateAccount'>;
@@ -36,7 +37,7 @@ export function CreateAccountScreen({ navigation }: Props) {
     setMsg('');
     try {
       await signup(email.trim(), password);
-      navigation.navigate('CreateRoute', { from: 'CreateAccount' });
+      navigation.replace('ProfileUpsert');
     } catch (err) {
       setMsg(err instanceof Error ? err.message : 'Sign up failed');
     }
@@ -55,12 +56,6 @@ export function CreateAccountScreen({ navigation }: Props) {
           </Text>
         </View>
         <View style={styles.inputBlock}>
-          <TextInput
-            placeholder="Användarnamn"
-            autoCapitalize="none"
-            style={styles.inputContainer}
-          />
-
           <TextInput
             placeholder="Email"
             autoCapitalize="none"
@@ -110,11 +105,11 @@ export function CreateAccountScreen({ navigation }: Props) {
           <Pressable
             style={styles.tempRouteButton}
             onPress={() =>
-              navigation.push('CreateRoute', { from: 'CreateAccount' })
+              navigation.push('ProfileUpsert')
             }
           >
             <Text style={styles.tempRouteButtonText}>
-              Temp: Gå till CreateRoute
+              Temp: Gå till ProfileUpsert
             </Text>
           </Pressable>
           <View style={styles.loginRow}>
@@ -123,6 +118,9 @@ export function CreateAccountScreen({ navigation }: Props) {
               <Text style={styles.loginLink}>Logga in</Text>
             </Pressable>
           </View>
+        </View>
+        <View style={styles.stepDotsSpacer}>
+          <OnboardingStepDots currentStep={1} />
         </View>
       </View>
       <Modal
@@ -173,7 +171,13 @@ const styles = StyleSheet.create({
     gap: 20,
     paddingHorizontal: 24,
     paddingTop: 100,
-    paddingBottom: 40,
+    paddingBottom: 0,
+  },
+
+  stepDotsSpacer: {
+    marginTop: 'auto',
+    width: '100%',
+    alignItems: 'center',
   },
 
   infoBlock: {
