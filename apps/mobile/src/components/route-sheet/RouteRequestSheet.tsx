@@ -9,6 +9,8 @@ import {
 import type { PanResponderInstance } from 'react-native';
 
 type Props = {
+  /** First word of profile `fullName`; generic line if null. */
+  greetingFirstName: string | null;
   distanceKm: number;
   activeFilters: Set<string>;
   filterChips: string[];
@@ -22,6 +24,7 @@ type Props = {
 };
 
 export function RouteRequestSheet({
+  greetingFirstName,
   distanceKm,
   activeFilters,
   filterChips,
@@ -35,7 +38,11 @@ export function RouteRequestSheet({
 }: Props) {
   return (
     <>
-      <Text style={styles.greeting}>Redo för ett nytt äventyr, Evelina?</Text>
+      <Text style={styles.greeting}>
+        {greetingFirstName
+          ? `Redo för ett nytt äventyr, ${greetingFirstName}?`
+          : 'Redo för ett nytt äventyr?'}
+      </Text>
       <View style={styles.sectionDivider} />
       <Text style={styles.lengthTitle}>Välj längden på din rutt</Text>
 
