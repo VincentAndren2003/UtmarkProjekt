@@ -35,6 +35,10 @@ export function CreateAccountScreen({ navigation }: Props) {
 
   const handleSignUp = async () => {
     setMsg('');
+    if (!email.trim() || !password || !acceptTerms) {
+      setMsg('Fyll i alla fält för att fortsätta');
+      return;
+    }
     try {
       await signup(email.trim(), password);
       navigation.replace('ProfileUpsert');
@@ -99,14 +103,12 @@ export function CreateAccountScreen({ navigation }: Props) {
         </View>
         <View style={styles.buttonBlock}>
           <Pressable style={styles.primaryButton} onPress={handleSignUp}>
-            {!!msg && <Text style={styles.errorText}>{msg}</Text>}
-            <Text style={styles.buttonText}>Skapa konto</Text>
+            <Text style={styles.buttonText}>Nästa steg</Text>
           </Pressable>
+          {!!msg && <Text style={styles.errorText}>{msg}</Text>}
           <Pressable
             style={styles.tempRouteButton}
-            onPress={() =>
-              navigation.push('ProfileUpsert')
-            }
+            onPress={() => navigation.push('ProfileUpsert')}
           >
             <Text style={styles.tempRouteButtonText}>
               Temp: Gå till ProfileUpsert
@@ -247,10 +249,11 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    color: 'rgba(255, 0, 0, 1)',
+    color: '#c0392b',
     fontSize: 13,
-    fontWeight: '400',
-    fontStyle: 'normal',
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 4,
   },
 
   buttonBlock: {

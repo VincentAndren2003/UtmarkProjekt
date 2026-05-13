@@ -23,7 +23,6 @@ import { RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
 
-
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
 
@@ -68,7 +67,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const REQUEST_COLLAPSED_HEIGHT = 384;
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
-  const ACTIVE_COLLAPSED_HEIGHT = 44;
+  const ACTIVE_COLLAPSED_HEIGHT = 66;
   const REQUEST_COLLAPSED_TRANSLATE =
     EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
   const GENERATED_EXPANDED_TRANSLATE =
@@ -110,8 +109,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       try {
         const profile = await getMyProfile();
         if (!alive) return;
-        const first =
-          (profile.fullName ?? '').trim().split(/\s+/)[0] || null;
+        const first = (profile.fullName ?? '').trim().split(/\s+/)[0] || null;
         setGreetingFirstName(first);
       } catch {
         if (alive) setGreetingFirstName(null);
@@ -574,6 +572,22 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHandleSecondary} />
+          {sheetMode === 'active' && (
+            <Animated.Text
+              style={[
+                styles.sheetHandleHint,
+                {
+                  opacity: sheetTranslateY.interpolate({
+                    inputRange: [minTranslate, maxTranslate],
+                    outputRange: [0, 1],
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ]}
+            >
+              Dra upp för mer information
+            </Animated.Text>
+          )}
         </View>
         {sheetMode === 'request' ? (
           <RouteRequestSheet
@@ -702,6 +716,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#222',
     marginTop: 3,
   },
+  sheetHandleHint: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
   activeHudPill: {
     position: 'absolute',
     top: 151,
@@ -760,7 +781,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 14,
     right: 14,
-    bottom: 123,
+    bottom: 145,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
