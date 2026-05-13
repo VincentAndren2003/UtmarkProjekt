@@ -7,8 +7,8 @@ const app_1 = require("./app");
 const env_1 = require("./config/env");
 const mongoose_1 = __importDefault(require("mongoose"));
 async function bootstrap() {
-    await mongoose_1.default.connect(process.env.MONGODB_URI, {
-        dbName: process.env.DB_NAME,
+    await mongoose_1.default.connect(env_1.env.MONGODB_URI, {
+        dbName: env_1.env.DB_NAME,
     });
     console.warn('Ansluten till MongoDB');
     const app = (0, app_1.createApp)();

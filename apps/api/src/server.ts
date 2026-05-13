@@ -3,8 +3,8 @@ import { env } from './config/env';
 import mongoose from 'mongoose';
 
 async function bootstrap(): Promise<void> {
-  await mongoose.connect(process.env.MONGODB_URI as string, {
-    dbName: process.env.DB_NAME,
+  await mongoose.connect(env.MONGODB_URI, {
+    dbName: env.DB_NAME,
   });
   console.warn('Ansluten till MongoDB');
 
