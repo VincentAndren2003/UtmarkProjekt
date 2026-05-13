@@ -213,7 +213,7 @@ export function ProfileUpsertScreen({ navigation }: Props) {
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Fortsätt</Text>
+              <Text style={styles.buttonText}>Skapa konto</Text>
             )}
           </Pressable>
         </View>
