@@ -4,13 +4,15 @@ export interface LocationTimeStamp {
     timeStamp: number;
 }
 
-export interface CheckpointTimeStamp extends LocationTimeStamp {
-    checkpointId: number;
+export interface CheckpointTimeStamp {
+    checkpointId: string;
+    lat: number;
+    long: number;
+    timeStamp: number;
 }
 
 export interface RunSession {
     routeId: string;
-    startTime: number;
     movement: LocationTimeStamp[];
     checkpoints: CheckpointTimeStamp[];
 }

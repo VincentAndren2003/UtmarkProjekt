@@ -7,7 +7,7 @@ export const useTracking = () => {
     const [isTracking, setIsTracking] = useState<boolean>(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const startTracking = useCallback(async () => {
+    const startTracking = useCallback(async (routeId: string) => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             setErrorMsg('Permission to access location was denied');
@@ -30,8 +30,12 @@ export const useTracking = () => {
                 });
             }
         );
-        locationService.start(sub);
+        locationService.start(sub, routeId);
     }, []);
+
+    const recordVisit = (checkpointId: string, lat: number, long: number) => {
+        locationService.addCheckpoint(checkpointId, lat, long);
+    };
 
     const stopTracking = useCallback(() => {
         locationService.clear();
@@ -42,7 +46,8 @@ export const useTracking = () => {
         isTracking,
         startTracking,
         stopTracking,
-        getResults: () => locationService.getData(),
+        recordVisit,
+        getResults: () => locationService.getRunSession(),
         errorMsg
     };
 };
