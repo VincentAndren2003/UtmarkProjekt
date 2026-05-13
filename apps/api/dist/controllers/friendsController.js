@@ -7,6 +7,7 @@ exports.sendFriendRequest = sendFriendRequest;
 exports.acceptFriendRequest = acceptFriendRequest;
 exports.removeFriend = removeFriend;
 exports.getFriends = getFriends;
+exports.getFriendCount = getFriendCount;
 exports.getPendingRequests = getPendingRequests;
 const Friendship_1 = require("../models/Friendship");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -22,16 +23,18 @@ async function sendFriendRequest(req, res, next) {
         const existing = await Friendship_1.Friendship.findOne({
             $or: [
                 { requester: currentUserId, recipient: friendObjectId },
-                { requester: friendObjectId, recipient: currentUserId }
-            ]
+                { requester: friendObjectId, recipient: currentUserId },
+            ],
         });
         if (existing) {
-            res.status(409).json({ error: 'Förfrågan finns redan eller ni är redan vänner' });
+            res
+                .status(409)
+                .json({ error: 'Förfrågan finns redan eller ni är redan vänner' });
             return;
         }
         await Friendship_1.Friendship.create({
             requester: currentUserId,
-            recipient: friendObjectId
+            recipient: friendObjectId,
         });
         res.status(201).json({ message: 'Vänskapsförfrågan skickad!' });
     }
@@ -48,7 +51,11 @@ async function acceptFriendRequest(req, res, next) {
         const currentUserId = new mongoose_1.default.Types.ObjectId(req.userId);
         const { requesterId } = req.params;
         const requesterObjectId = new mongoose_1.default.Types.ObjectId(requesterId);
-        const friendship = await Friendship_1.Friendship.findOneAndUpdate({ requester: requesterObjectId, recipient: currentUserId, status: 'pending' }, { status: 'accepted' }, { new: true });
+        const friendship = await Friendship_1.Friendship.findOneAndUpdate({
+            requester: requesterObjectId,
+            recipient: currentUserId,
+            status: 'pending',
+        }, { status: 'accepted' }, { new: true });
         if (!friendship) {
             res.status(404).json({ error: 'Ingen förfrågan hittades' });
             return;
@@ -71,8 +78,8 @@ async function removeFriend(req, res, next) {
         await Friendship_1.Friendship.findOneAndDelete({
             $or: [
                 { requester: currentUserId, recipient: friendObjectId },
-                { requester: friendObjectId, recipient: currentUserId }
-            ]
+                { requester: friendObjectId, recipient: currentUserId },
+            ],
         });
         res.status(200).json({ message: 'Vän borttagen' });
     }
@@ -92,29 +99,52 @@ async function getFriends(req, res, next) {
                 $match: {
                     $or: [
                         { requester: currentUserId, status: 'accepted' },
-                        { recipient: currentUserId, status: 'accepted' }
-                    ]
-                }
+                        { recipient: currentUserId, status: 'accepted' },
+                    ],
+                },
             },
             {
                 $project: {
                     friendUserId: {
-                        $cond: [{ $eq: ['$requester', currentUserId] }, '$recipient', '$requester']
-                    }
-                }
+                        $cond: [
+                            { $eq: ['$requester', currentUserId] },
+                            '$recipient',
+                            '$requester',
+                        ],
+                    },
+                },
             },
             {
                 $lookup: {
                     from: 'profiles',
                     localField: 'friendUserId',
                     foreignField: 'userId',
-                    as: 'profile'
-                }
+                    as: 'profile',
+                },
             },
             { $unwind: '$profile' },
-            { $replaceRoot: { newRoot: '$profile' } }
+            { $replaceRoot: { newRoot: '$profile' } },
         ]);
         res.status(200).json(friends);
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function getFriendCount(req, res, next) {
+    try {
+        if (!req.userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const currentUserId = new mongoose_1.default.Types.ObjectId(req.userId);
+        const count = await Friendship_1.Friendship.countDocuments({
+            $or: [
+                { requester: currentUserId, status: 'accepted' },
+                { recipient: currentUserId, status: 'accepted' },
+            ],
+        });
+        res.status(200).json({ count });
     }
     catch (err) {
         next(err);
@@ -134,11 +164,11 @@ async function getPendingRequests(req, res, next) {
                     from: 'profiles',
                     localField: 'requester',
                     foreignField: 'userId',
-                    as: 'profile'
-                }
+                    as: 'profile',
+                },
             },
             { $unwind: '$profile' },
-            { $replaceRoot: { newRoot: '$profile' } }
+            { $replaceRoot: { newRoot: '$profile' } },
         ]);
         res.status(200).json(requests);
     }
