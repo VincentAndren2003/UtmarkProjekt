@@ -14,7 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
-import { getMyProfile, Profile } from '../lib/api';
+import { getMyProfile, getFriendCount, Profile } from '../lib/api';
 import { BADGES } from '../data/badges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
@@ -51,7 +51,7 @@ export function ProfileScreen({ navigation, route }: Props) {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   // Placeholder tills vi har en vänner-funktion i backend.
-  const friendsCount = 0;
+  const [friendsCount, setFriendsCount] = useState(0);
 
   // TODO: Hämta från backend när utmaningar finns. Sätt till [] för att
   // se tomma tillståndet i UI:t.
@@ -69,10 +69,16 @@ export function ProfileScreen({ navigation, route }: Props) {
         const data = await getMyProfile();
         if (active) setProfile(data);
       } catch {
-        // TODO: Ta bort fallback när vi har en riktig "ej inloggad"-hantering.
         if (active) setProfile(DEV_FALLBACK_PROFILE);
       } finally {
         if (active) setLoading(false);
+      }
+
+      try {
+        const result = await getFriendCount();
+        if (active) setFriendsCount(result.count);
+      } catch {
+        // behåll 0 om det misslyckas
       }
     })();
     return () => {

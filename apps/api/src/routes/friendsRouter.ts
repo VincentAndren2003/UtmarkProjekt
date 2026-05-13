@@ -5,8 +5,9 @@ import {
   acceptFriendRequest,
   removeFriend,
   getFriends,
-  getPendingRequests
+  getPendingRequests,
 } from '../controllers/friendsController';
+import { getFriendCount } from '../controllers/friendsController';
 
 const router = Router();
 

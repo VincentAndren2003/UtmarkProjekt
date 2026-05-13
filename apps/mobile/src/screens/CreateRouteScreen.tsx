@@ -105,7 +105,14 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     null
   );
 
-  const { isTracking, startTracking, recordVisit, stopTracking, getResults, errorMsg } = useTracking();
+  const {
+    isTracking,
+    startTracking,
+    recordVisit,
+    stopTracking,
+    getResults,
+    errorMsg,
+  } = useTracking();
 
   useEffect(() => {
     let alive = true;
@@ -282,13 +289,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       return;
     }
 
-    
-
     const nextCheckpoint = routeInstance.isFinished()
       ? activeStats.checkpointTotal
       : activeStats.checkpointDone + 1;
 
-    
     const cp = routeInstance.checkpoints[nextCheckpoint];
     recordVisit(cp.id, cp.coordinate.latitude, cp.coordinate.longitude);
 
@@ -619,7 +623,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             onGenerateNew={handleGenerateRoute}
             onStartOrienteering={() => {
               navigation.navigate('RouteStarted', { route: generatedRoute });
-              console.log("started tracking run");
+              console.log('started tracking run');
               startTracking(generatedRoute.id);
             }}
             onBackToRequest={() => {

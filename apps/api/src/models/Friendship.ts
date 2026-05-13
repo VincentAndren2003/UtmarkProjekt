@@ -19,4 +19,7 @@ const FriendshipSchema = new Schema<IFriendship>(
 // Förhindrar dubbletter
 FriendshipSchema.index({ requester: 1, recipient: 1 }, { unique: true });
 
-export const Friendship = mongoose.model<IFriendship>('Friendship', FriendshipSchema);
+export const Friendship = mongoose.model<IFriendship>(
+  'Friendship',
+  FriendshipSchema
+);

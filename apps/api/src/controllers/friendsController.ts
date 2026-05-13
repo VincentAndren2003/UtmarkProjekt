@@ -20,18 +20,20 @@ export async function sendFriendRequest(
     const existing = await Friendship.findOne({
       $or: [
         { requester: currentUserId, recipient: friendObjectId },
-        { requester: friendObjectId, recipient: currentUserId }
-      ]
+        { requester: friendObjectId, recipient: currentUserId },
+      ],
     });
 
     if (existing) {
-      res.status(409).json({ error: 'Förfrågan finns redan eller ni är redan vänner' });
+      res
+        .status(409)
+        .json({ error: 'Förfrågan finns redan eller ni är redan vänner' });
       return;
     }
 
     await Friendship.create({
       requester: currentUserId,
-      recipient: friendObjectId
+      recipient: friendObjectId,
     });
 
     res.status(201).json({ message: 'Vänskapsförfrågan skickad!' });
@@ -56,7 +58,11 @@ export async function acceptFriendRequest(
     const requesterObjectId = new mongoose.Types.ObjectId(requesterId);
 
     const friendship = await Friendship.findOneAndUpdate(
-      { requester: requesterObjectId, recipient: currentUserId, status: 'pending' },
+      {
+        requester: requesterObjectId,
+        recipient: currentUserId,
+        status: 'pending',
+      },
       { status: 'accepted' },
       { new: true }
     );
@@ -90,8 +96,8 @@ export async function removeFriend(
     await Friendship.findOneAndDelete({
       $or: [
         { requester: currentUserId, recipient: friendObjectId },
-        { requester: friendObjectId, recipient: currentUserId }
-      ]
+        { requester: friendObjectId, recipient: currentUserId },
+      ],
     });
 
     res.status(200).json({ message: 'Vän borttagen' });
@@ -118,30 +124,60 @@ export async function getFriends(
         $match: {
           $or: [
             { requester: currentUserId, status: 'accepted' },
-            { recipient: currentUserId, status: 'accepted' }
-          ]
-        }
+            { recipient: currentUserId, status: 'accepted' },
+          ],
+        },
       },
       {
         $project: {
           friendUserId: {
-            $cond: [{ $eq: ['$requester', currentUserId] }, '$recipient', '$requester']
-          }
-        }
+            $cond: [
+              { $eq: ['$requester', currentUserId] },
+              '$recipient',
+              '$requester',
+            ],
+          },
+        },
       },
       {
         $lookup: {
           from: 'profiles',
           localField: 'friendUserId',
           foreignField: 'userId',
-          as: 'profile'
-        }
+          as: 'profile',
+        },
       },
       { $unwind: '$profile' },
-      { $replaceRoot: { newRoot: '$profile' } }
+      { $replaceRoot: { newRoot: '$profile' } },
     ]);
 
     res.status(200).json(friends);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getFriendCount(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const currentUserId = new mongoose.Types.ObjectId(req.userId);
+
+    const count = await Friendship.countDocuments({
+      $or: [
+        { requester: currentUserId, status: 'accepted' },
+        { recipient: currentUserId, status: 'accepted' },
+      ],
+    });
+
+    res.status(200).json({ count });
   } catch (err) {
     next(err);
   }
@@ -167,11 +203,11 @@ export async function getPendingRequests(
           from: 'profiles',
           localField: 'requester',
           foreignField: 'userId',
-          as: 'profile'
-        }
+          as: 'profile',
+        },
       },
       { $unwind: '$profile' },
-      { $replaceRoot: { newRoot: '$profile' } }
+      { $replaceRoot: { newRoot: '$profile' } },
     ]);
 
     res.status(200).json(requests);
