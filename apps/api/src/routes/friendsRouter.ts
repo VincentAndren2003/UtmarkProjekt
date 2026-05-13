@@ -16,5 +16,6 @@ router.post('/accept/:requesterId', authMiddleware, acceptFriendRequest);
 router.delete('/:friendId', authMiddleware, removeFriend);
 router.get('/', authMiddleware, getFriends);
 router.get('/pending', authMiddleware, getPendingRequests);
+router.get('count', getFriendCount)
 
 export default router;
