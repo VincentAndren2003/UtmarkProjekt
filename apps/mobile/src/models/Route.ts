@@ -23,16 +23,19 @@ export class Route {
 
   getCurrentCheckpoint(): Checkpoint | null {
     if (this.currentCheckPointIndex >= this.checkpoints.length) return null;
-    return this.checkpoints[this.currentCheckPointIndex]
+    return this.checkpoints[this.currentCheckPointIndex];
   }
 
-  tryCompleteCurrentCheckpoint(userLocation: { latitude: number; longitude: number}): boolean{
+  tryCompleteCurrentCheckpoint(userLocation: {
+    latitude: number;
+    longitude: number;
+  }): boolean {
     const current = this.getCurrentCheckpoint();
     if (!current) return false;
 
     const completed = current.checkComplited(userLocation);
     if (completed) {
-        this.currentCheckPointIndex++;
+      this.currentCheckPointIndex++;
     }
     return completed;
   }

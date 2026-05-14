@@ -23,6 +23,8 @@ import { RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
 
+import { useTracking } from '../hooks/useTracking';
+
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
 
@@ -102,6 +104,15 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [greetingFirstName, setGreetingFirstName] = useState<string | null>(
     null
   );
+
+  const {
+    isTracking,
+    startTracking,
+    recordVisit,
+    stopTracking,
+    getResults,
+    errorMsg,
+  } = useTracking();
 
   useEffect(() => {
     let alive = true;
@@ -281,6 +292,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const nextCheckpoint = routeInstance.isFinished()
       ? activeStats.checkpointTotal
       : activeStats.checkpointDone + 1;
+
+    const cp = routeInstance.checkpoints[nextCheckpoint];
+    recordVisit(cp.id, cp.coordinate.latitude, cp.coordinate.longitude);
 
     navigation.navigate('CheckpointTaken', {
       routeName: activeRouteName,
@@ -499,7 +513,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           customMapStyle={mapStyle}
           showsBuildings={false}
           showsCompass={false}
-          initialRegion={initialRegion}
+          region={initialRegion}
         >
           {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
 
@@ -607,9 +621,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <RouteGeneratedSheet
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
-            onStartOrienteering={() =>
-              navigation.navigate('RouteStarted', { route: generatedRoute })
-            }
+            onStartOrienteering={() => {
+              navigation.navigate('RouteStarted', { route: generatedRoute });
+              console.log('started tracking run');
+              startTracking(generatedRoute.id);
+            }}
             onBackToRequest={() => {
               setSheetMode('request');
             }}
@@ -619,6 +635,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             route={generatedRoute}
             terrain={activeStats}
             onAbort={() => {
+              console.log(getResults());
+              stopTracking();
               setSheetMode('generated');
             }}
             onEmergency={() => {}}

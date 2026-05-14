@@ -19,6 +19,7 @@ import { env } from './config/env';
 
 import { listGreenAreas } from './controllers/greenAreaController';
 import routeRouter from './routes/routeRouter';
+import friendsRouter from './routes/friendsRouter';
 
 async function proxyJson(
   res: express.Response,
@@ -108,6 +109,9 @@ export function createApp() {
 
   //Map tiles
   app.use('/tiles', express.static('/var/www/html/tiles'));
+
+  // Friend requests and response
+  app.use('/api/friends', friendsRouter);
 
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to
