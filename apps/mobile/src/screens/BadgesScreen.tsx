@@ -1,5 +1,4 @@
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,11 +8,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { BADGES } from '../data/badges';
+import { BadgeThumbnail } from '../components/BadgeThumbnail';
+import { getBadgesForUser } from '../data/badges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Badges'>;
 
 export function BadgesScreen({ navigation }: Props) {
+  const badges = getBadgesForUser();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -33,15 +34,13 @@ export function BadgesScreen({ navigation }: Props) {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       >
-        {BADGES.map((badge) => (
+        {badges.map((badge) => (
           <View key={badge.id} style={styles.row}>
-            {badge.unlocked && badge.image ? (
-              <Image source={badge.image} style={styles.image} />
-            ) : (
-              <View style={styles.icon}>
-                <Ionicons name="lock-closed" size={28} color="#9aa1a8" />
-              </View>
-            )}
+            <BadgeThumbnail
+              variant="list"
+              unlocked={badge.unlocked}
+              image={badge.image}
+            />
             <View style={styles.textBlock}>
               <Text style={styles.name} numberOfLines={1}>
                 {badge.name}
@@ -96,21 +95,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: '#f7f8f9',
     borderRadius: 16,
-  },
-  icon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#ececee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  image: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 14,
   },
   textBlock: {
     flex: 1,
