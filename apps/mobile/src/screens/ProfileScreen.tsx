@@ -14,8 +14,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
+import { BadgeThumbnail } from '../components/BadgeThumbnail';
+import { getBadgesForUser } from '../data/badges';
 import { getMyProfile, getFriendCount, Profile } from '../lib/api';
-import { BADGES } from '../data/badges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
@@ -108,6 +109,8 @@ export function ProfileScreen({ navigation, route }: Props) {
     }
   };
 
+  const badges = getBadgesForUser();
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -157,21 +160,16 @@ export function ProfileScreen({ navigation, route }: Props) {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                removeClippedSubviews={false}
                 contentContainerStyle={styles.badgesList}
               >
-                {BADGES.map((badge) => (
+                {badges.map((badge) => (
                   <View key={badge.id} style={styles.badgeItem}>
-                    {badge.unlocked && badge.image ? (
-                      <Image source={badge.image} style={styles.badgeImage} />
-                    ) : (
-                      <View style={styles.badgeIcon}>
-                        <Ionicons
-                          name="lock-closed"
-                          size={28}
-                          color="#9aa1a8"
-                        />
-                      </View>
-                    )}
+                    <BadgeThumbnail
+                      variant="profile"
+                      unlocked={badge.unlocked}
+                      image={badge.image}
+                    />
                     <Text style={styles.badgeName} numberOfLines={1}>
                       {badge.name}
                     </Text>
@@ -329,7 +327,7 @@ const styles = StyleSheet.create({
   },
   badgesSection: {
     alignSelf: 'stretch',
-    marginTop: 28,
+    marginTop: 22,
   },
   badgesHeader: {
     flexDirection: 'row',
@@ -346,26 +344,12 @@ const styles = StyleSheet.create({
   badgesList: {
     paddingHorizontal: 4,
     paddingRight: 24,
+    paddingTop: 2,
     gap: 18,
   },
   badgeItem: {
     width: 108,
     alignItems: 'center',
-  },
-  badgeIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#ececee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  badgeImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginBottom: 8,
   },
   badgeName: {
     fontSize: 13,
