@@ -1,10 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Image,
-  ImageSourcePropType,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Image, ImageSourcePropType, StyleSheet, View } from 'react-native';
 
 export type BadgeThumbnailVariant = 'list' | 'profile';
 
@@ -56,9 +51,7 @@ export function BadgeThumbnail({ unlocked, image, variant }: Props) {
         { width: frame, height: frame },
       ]}
     >
-      <View
-        style={[styles.lockedImageStack, { width: frame, height: frame }]}
-      >
+      <View style={[styles.lockedImageStack, { width: frame, height: frame }]}>
         <Image
           source={image}
           style={[

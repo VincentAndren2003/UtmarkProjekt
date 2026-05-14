@@ -136,7 +136,6 @@ export const BADGES: Badge[] = [
 export function getBadgesForUser(
   unlockedIds: ReadonlySet<string> | readonly string[] = []
 ): Badge[] {
-  const set =
-    unlockedIds instanceof Set ? unlockedIds : new Set(unlockedIds);
+  const set = unlockedIds instanceof Set ? unlockedIds : new Set(unlockedIds);
   return BADGES.map((b) => ({ ...b, unlocked: set.has(b.id) }));
 }
