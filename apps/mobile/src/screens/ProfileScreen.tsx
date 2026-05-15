@@ -14,8 +14,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
-import { getMyProfile, Profile } from '../lib/api';
-import { BADGES } from '../data/badges';
+import { BadgeThumbnail } from '../components/BadgeThumbnail';
+import { getBadgesForUser } from '../data/badges';
+import { getMyProfile, getFriendCount, Profile } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
@@ -51,7 +52,7 @@ export function ProfileScreen({ navigation, route }: Props) {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   // Placeholder tills vi har en vänner-funktion i backend.
-  const friendsCount = 0;
+  const [friendsCount, setFriendsCount] = useState(0);
 
   // TODO: Hämta från backend när utmaningar finns. Sätt till [] för att
   // se tomma tillståndet i UI:t.
@@ -69,10 +70,16 @@ export function ProfileScreen({ navigation, route }: Props) {
         const data = await getMyProfile();
         if (active) setProfile(data);
       } catch {
-        // TODO: Ta bort fallback när vi har en riktig "ej inloggad"-hantering.
         if (active) setProfile(DEV_FALLBACK_PROFILE);
       } finally {
         if (active) setLoading(false);
+      }
+
+      try {
+        const result = await getFriendCount();
+        if (active) setFriendsCount(result.count);
+      } catch {
+        // behåll 0 om det misslyckas
       }
     })();
     return () => {
@@ -101,6 +108,8 @@ export function ProfileScreen({ navigation, route }: Props) {
       setAvatarUri(result.assets[0].uri);
     }
   };
+
+  const badges = getBadgesForUser();
 
   return (
     <View style={styles.container}>
@@ -151,21 +160,16 @@ export function ProfileScreen({ navigation, route }: Props) {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                removeClippedSubviews={false}
                 contentContainerStyle={styles.badgesList}
               >
-                {BADGES.map((badge) => (
+                {badges.map((badge) => (
                   <View key={badge.id} style={styles.badgeItem}>
-                    {badge.unlocked && badge.image ? (
-                      <Image source={badge.image} style={styles.badgeImage} />
-                    ) : (
-                      <View style={styles.badgeIcon}>
-                        <Ionicons
-                          name="lock-closed"
-                          size={28}
-                          color="#9aa1a8"
-                        />
-                      </View>
-                    )}
+                    <BadgeThumbnail
+                      variant="profile"
+                      unlocked={badge.unlocked}
+                      image={badge.image}
+                    />
                     <Text style={styles.badgeName} numberOfLines={1}>
                       {badge.name}
                     </Text>
@@ -323,7 +327,7 @@ const styles = StyleSheet.create({
   },
   badgesSection: {
     alignSelf: 'stretch',
-    marginTop: 28,
+    marginTop: 22,
   },
   badgesHeader: {
     flexDirection: 'row',
@@ -340,26 +344,12 @@ const styles = StyleSheet.create({
   badgesList: {
     paddingHorizontal: 4,
     paddingRight: 24,
+    paddingTop: 2,
     gap: 18,
   },
   badgeItem: {
     width: 108,
     alignItems: 'center',
-  },
-  badgeIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#ececee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  badgeImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginBottom: 8,
   },
   badgeName: {
     fontSize: 13,

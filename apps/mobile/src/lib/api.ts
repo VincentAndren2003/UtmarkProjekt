@@ -169,3 +169,7 @@ export async function generateRoute(
     auth: false, // true if login requerd
   });
 }
+
+export function getFriendCount(): Promise<{ count: number }> {
+  return request<{ count: number }>('/api/friends/count', { auth: true });
+}

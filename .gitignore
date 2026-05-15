@@ -4,7 +4,6 @@ node_modules/
 # Build output
 build/
 out/
-dist/
 
 # TypeScript cache
 *.tsbuildinfo

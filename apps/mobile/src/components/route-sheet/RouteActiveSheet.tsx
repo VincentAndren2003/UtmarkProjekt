@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { RouteResponse } from '../../types/route';
 import { ActiveRouteStats, ActiveRouteStatsBar } from './ActiveRouteStatsBar';
@@ -8,6 +9,7 @@ type Props = {
   onAbort: () => void;
   onEmergency: () => void;
   onFetchCheckpoint: () => void;
+  canFetchCheckpoint?: boolean;
 };
 
 export function RouteActiveSheet({
@@ -16,6 +18,7 @@ export function RouteActiveSheet({
   onAbort,
   onEmergency,
   onFetchCheckpoint,
+  canFetchCheckpoint = false,
 }: Props) {
   const routeName =
     (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
@@ -42,6 +45,31 @@ export function RouteActiveSheet({
       <Text style={styles.sectionTitle}>Terränginfo</Text>
       <ActiveRouteStatsBar stats={terrain} variant="sheet" />
 
+      <Pressable
+        style={[
+          styles.fetchButton,
+          !canFetchCheckpoint && styles.fetchButtonDisabled,
+        ]}
+        onPress={onFetchCheckpoint}
+        disabled={!canFetchCheckpoint}
+      >
+        <Ionicons
+          name={canFetchCheckpoint ? 'checkmark-circle' : 'lock-closed'}
+          size={22}
+          color="#fff"
+          style={styles.fetchIcon}
+        />
+        <View style={styles.fetchTextWrap}>
+          <Text style={styles.fetchText}>Hämta checkpoint</Text>
+          <Text style={styles.fetchSubtext}>
+            {canFetchCheckpoint
+              ? 'Nu kan du hämta checkpointen!'
+              : 'Tillgänglig när du når nästa plats'}
+          </Text>
+        </View>
+        <Text style={styles.fetchArrow}>›</Text>
+      </Pressable>
+
       <View style={styles.actionsRow}>
         <Pressable style={styles.abortButton} onPress={onAbort}>
           <Text style={styles.abortText}>Avbryt rutt</Text>
@@ -50,11 +78,6 @@ export function RouteActiveSheet({
           <Text style={styles.emergencyText}>Nödknapp</Text>
         </Pressable>
       </View>
-
-      <Pressable style={styles.fetchButton} onPress={onFetchCheckpoint}>
-        <Text style={styles.fetchText}>Hämta checkpoint</Text>
-        <Text style={styles.fetchArrow}>›</Text>
-      </Pressable>
     </>
   );
 }
@@ -111,54 +134,70 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   abortButton: {
     flex: 1,
-    height: 40,
-    borderRadius: 18,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#dde5ea',
     justifyContent: 'center',
     alignItems: 'center',
   },
   abortText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#23313a',
   },
   emergencyButton: {
     flex: 1,
-    height: 40,
-    borderRadius: 18,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#c0392b',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emergencyText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#fff',
   },
   fetchButton: {
-    height: 36,
-    borderRadius: 12,
+    minHeight: 56,
+    borderRadius: 18,
     backgroundColor: '#7aa681',
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 12,
+  },
+  fetchButtonDisabled: {
+    backgroundColor: '#a8aeb5',
+  },
+  fetchIcon: {
+    marginRight: 12,
+  },
+  fetchTextWrap: {
+    flex: 1,
+    alignItems: 'center',
   },
   fetchText: {
-    flex: 1,
-    textAlign: 'center',
     color: '#fff',
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
+  },
+  fetchSubtext: {
+    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 12,
+    fontWeight: '500',
   },
   fetchArrow: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '900',
+    marginLeft: 8,
   },
 });

@@ -2,12 +2,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  Modal,
   PanResponder,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
@@ -21,12 +23,14 @@ import { RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
 
+import { useTracking } from '../hooks/useTracking';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
+const FETCH_RADIUS_M = 50;
 const PREVIEW_GENERATED_SHEET = false;
 
 const PREVIEW_ROUTE: RouteResponse = {
@@ -65,7 +69,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const REQUEST_COLLAPSED_HEIGHT = 384;
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
-  const ACTIVE_COLLAPSED_HEIGHT = 44;
+  const ACTIVE_COLLAPSED_HEIGHT = 66;
   const REQUEST_COLLAPSED_TRANSLATE =
     EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
   const GENERATED_EXPANDED_TRANSLATE =
@@ -101,14 +105,22 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     null
   );
 
+  const {
+    isTracking,
+    startTracking,
+    recordVisit,
+    stopTracking,
+    getResults,
+    errorMsg,
+  } = useTracking();
+
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         const profile = await getMyProfile();
         if (!alive) return;
-        const first =
-          (profile.fullName ?? '').trim().split(/\s+/)[0] || null;
+        const first = (profile.fullName ?? '').trim().split(/\s+/)[0] || null;
         setGreetingFirstName(first);
       } catch {
         if (alive) setGreetingFirstName(null);
@@ -118,6 +130,25 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       alive = false;
     };
   }, []);
+
+  const [outOfRangeVisible, setOutOfRangeVisible] = useState(false);
+
+  const distanceToNextCheckpointM = useMemo(() => {
+    if (!location || !generatedRoute) return null;
+    const nextCp = generatedRoute.checkpoints.find((cp) => !cp.completed);
+    if (!nextCp) return null;
+    const checkpoint = new Checkpoint(
+      nextCp.id,
+      nextCp.coordinate,
+      nextCp.completed,
+      nextCp.radius
+    );
+    return checkpoint.distanceTo(location);
+  }, [location, generatedRoute]);
+
+  const canFetchCheckpoint =
+    distanceToNextCheckpointM !== null &&
+    distanceToNextCheckpointM <= FETCH_RADIUS_M;
 
   const activeStats = {
     timeMin: 9,
@@ -236,6 +267,43 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleFetchCheckpoint = () => {
+    if (!location || !generatedRoute) return;
+    if (!canFetchCheckpoint) return;
+
+    const routeInstance = new Route(
+      generatedRoute.id,
+      generatedRoute.start,
+      generatedRoute.distance
+    );
+    routeInstance.checkpoints = generatedRoute.checkpoints.map(
+      (cp) => new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
+    );
+
+    const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
+
+    if (!completed) {
+      console.log('Du är inte inom checkpointens radie');
+      return;
+    }
+
+    const nextCheckpoint = routeInstance.isFinished()
+      ? activeStats.checkpointTotal
+      : activeStats.checkpointDone + 1;
+
+    const cp = routeInstance.checkpoints[nextCheckpoint];
+    recordVisit(cp.id, cp.coordinate.latitude, cp.coordinate.longitude);
+
+    navigation.navigate('CheckpointTaken', {
+      routeName: activeRouteName,
+      currentCheckpoint: nextCheckpoint,
+      totalCheckpoints: activeStats.checkpointTotal,
+      elapsedMin: activeStats.timeMin,
+      distanceKm: '1,9',
+      paceMinPerKm: '10:5',
+    });
   };
 
   const panResponder = useMemo(
@@ -445,7 +513,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           customMapStyle={mapStyle}
           showsBuildings={false}
           showsCompass={false}
-          initialRegion={initialRegion}
+          region={initialRegion}
         >
           {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
 
@@ -477,43 +545,22 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.activeHudBottomActions}>
             <Pressable
-              style={styles.activeHudFetchButton}
-              onPress={() => {  
-                if (!location || !generatedRoute) return;
-
-                const routeInstance = new Route(generatedRoute.id, generatedRoute.start, generatedRoute.distance);
-                routeInstance.checkpoints = generatedRoute.checkpoints.map(cp => 
-                  new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
-                );
-
-                const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
-
-                if (completed && routeInstance.isFinished()) {
-                  // Alla checkpoints avklarade
-                  navigation.navigate('CheckpointTaken', {
-                    routeName: activeRouteName,
-                    currentCheckpoint: activeStats.checkpointTotal,
-                    totalCheckpoints: activeStats.checkpointTotal,
-                    elapsedMin: activeStats.timeMin,
-                    distanceKm: '1,9',
-                    paceMinPerKm: '10:5',
-                  });
-                } else if (completed) {
-                  // Checkpoint avklarad, fler kvar
-                  navigation.navigate('CheckpointTaken', {
-                    routeName: activeRouteName,
-                    currentCheckpoint: activeStats.checkpointDone + 1,
-                    totalCheckpoints: activeStats.checkpointTotal,
-                    elapsedMin: activeStats.timeMin,
-                    distanceKm: '1,9',
-                    paceMinPerKm: '10:5',
-                  });
-                } else {
-                  // Inte inom radie
-                  console.log('Du är inte inom checkpointens radie');
-                }
-              }}
+              style={[
+                styles.activeHudFetchButton,
+                !canFetchCheckpoint && styles.activeHudFetchButtonDisabled,
+              ]}
+              onPress={
+                canFetchCheckpoint
+                  ? handleFetchCheckpoint
+                  : () => setOutOfRangeVisible(true)
+              }
             >
+              <Ionicons
+                name={canFetchCheckpoint ? 'checkmark-circle' : 'lock-closed'}
+                size={14}
+                color="#fff"
+                style={styles.activeHudFetchIcon}
+              />
               <Text style={styles.activeHudFetchText}>Hämta checkpoint</Text>
               <Text style={styles.activeHudFetchArrow}>›</Text>
             </Pressable>
@@ -539,6 +586,22 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHandleSecondary} />
+          {sheetMode === 'active' && (
+            <Animated.Text
+              style={[
+                styles.sheetHandleHint,
+                {
+                  opacity: sheetTranslateY.interpolate({
+                    inputRange: [minTranslate, maxTranslate],
+                    outputRange: [0, 1],
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ]}
+            >
+              Dra upp för mer information
+            </Animated.Text>
+          )}
         </View>
         {sheetMode === 'request' ? (
           <RouteRequestSheet
@@ -558,9 +621,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <RouteGeneratedSheet
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
-            onStartOrienteering={() =>
-              navigation.navigate('RouteStarted', { route: generatedRoute })
-            }
+            onStartOrienteering={() => {
+              navigation.navigate('RouteStarted', { route: generatedRoute });
+              console.log('started tracking run');
+              startTracking(generatedRoute.id);
+            }}
             onBackToRequest={() => {
               setSheetMode('request');
             }}
@@ -570,44 +635,13 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             route={generatedRoute}
             terrain={activeStats}
             onAbort={() => {
+              console.log(getResults());
+              stopTracking();
               setSheetMode('generated');
             }}
             onEmergency={() => {}}
-
-            onFetchCheckpoint={() => {
-              if (!location || !generatedRoute) return;
-
-              const routeInstance = new Route(generatedRoute.id, generatedRoute.start, generatedRoute.distance);
-              routeInstance.checkpoints = generatedRoute.checkpoints.map(cp => 
-                new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
-              );
-
-              const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
-              
-              if (completed && routeInstance.isFinished()) {
-                // Alla checkpoints avklarade
-                navigation.navigate('CheckpointTaken', {
-                  routeName: activeRouteName,
-                  currentCheckpoint: activeStats.checkpointTotal,
-                  totalCheckpoints: activeStats.checkpointTotal,
-                  elapsedMin: activeStats.timeMin,
-                  distanceKm: '1,9',
-                  paceMinPerKm: '10:5',
-                });
-              } else if (completed) {
-                // Checkpoint avklarad, fler kvar
-                navigation.navigate('CheckpointTaken', {
-                  routeName: activeRouteName,
-                  currentCheckpoint: activeStats.checkpointDone + 1,
-                  totalCheckpoints: activeStats.checkpointTotal,
-                  elapsedMin: activeStats.timeMin,
-                  distanceKm: '1,9',
-                  paceMinPerKm: '10:5',
-                });
-              } else {
-                console.log('Du är inte inom checkpointens radie');
-              }
-            }}
+            onFetchCheckpoint={handleFetchCheckpoint}
+            canFetchCheckpoint={canFetchCheckpoint}
           />
         ) : null}
       </Animated.View>
@@ -617,6 +651,38 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         activeTab="CreateRoute"
         fromOrigin={from}
       />
+
+      <Modal
+        visible={outOfRangeVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOutOfRangeVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setOutOfRangeVisible(false)}
+        >
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Ionicons
+              name="lock-closed"
+              size={28}
+              color="#3E7A44"
+              style={styles.modalIcon}
+            />
+            <Text style={styles.modalTitle}>För långt från checkpoint</Text>
+            <Text style={styles.modalBody}>
+              Ta dig närmare nästa checkpoint för att kunna hämta den. Du måste
+              vara inom {FETCH_RADIUS_M} meter.
+            </Text>
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => setOutOfRangeVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Okej</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -667,6 +733,13 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#222',
     marginTop: 3,
+  },
+  sheetHandleHint: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
   activeHudPill: {
     position: 'absolute',
@@ -726,7 +799,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 14,
     right: 14,
-    bottom: 123,
+    bottom: 145,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -753,6 +826,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
+  activeHudFetchButtonDisabled: {
+    backgroundColor: '#a8aeb5',
+  },
+  activeHudFetchIcon: {
+    marginRight: 6,
+  },
   activeHudFetchText: {
     color: '#fff',
     fontSize: 13,
@@ -764,5 +843,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     marginTop: -1,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 22,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  modalIcon: {
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2933',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontSize: 14,
+    color: '#4a5763',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 18,
+  },
+  modalButton: {
+    height: 40,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    backgroundColor: '#3E7A44',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
