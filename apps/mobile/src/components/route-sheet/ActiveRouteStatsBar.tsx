@@ -36,7 +36,7 @@ export function ActiveRouteStatsBar({ stats, variant = 'sheet' }: Props) {
       <View style={styles.divider} />
       <View style={styles.item}>
         <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
-          Distans
+          Till nästa
         </Text>
         <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
           {stats.distanceToNextM} m
