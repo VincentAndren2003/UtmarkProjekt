@@ -55,8 +55,16 @@ function triangleCoordinates(
   // Equilateral triangle: tip points toward next checkpoint,
   // other two corners are 120° and 240° away from tip direction
   const tip = offsetCoordinate(center, sizeMeter, pointingBearingDeg);
-  const left = offsetCoordinate(center, sizeMeter, (pointingBearingDeg + 120) % 360);
-  const right = offsetCoordinate(center, sizeMeter, (pointingBearingDeg + 240) % 360);
+  const left = offsetCoordinate(
+    center,
+    sizeMeter,
+    (pointingBearingDeg + 120) % 360
+  );
+  const right = offsetCoordinate(
+    center,
+    sizeMeter,
+    (pointingBearingDeg + 240) % 360
+  );
   return [tip, left, right];
 }
 
@@ -66,9 +74,17 @@ export function GeneratedRouteLayer({ route }: Props) {
   const startBearing =
     checkpoints.length > 0 ? bearing(start, checkpoints[0].coordinate) : 0;
 
-  const triangleCoords = triangleCoordinates(start, TRIANGLE_SIZE_METERS, startBearing);
+  const triangleCoords = triangleCoordinates(
+    start,
+    TRIANGLE_SIZE_METERS,
+    startBearing
+  );
 
-  const triangleTip = offsetCoordinate(start, TRIANGLE_SIZE_METERS, startBearing);
+  const triangleTip = offsetCoordinate(
+    start,
+    TRIANGLE_SIZE_METERS,
+    startBearing
+  );
 
   const polylineCoords = [
     triangleTip,
@@ -127,8 +143,8 @@ export function GeneratedRouteLayer({ route }: Props) {
               anchor={{ x: 0, y: 0.8 }}
               zIndex={4}
             >
-              <View style={{padding: 4 }}>
-              <Text style={styles.label}>{number}</Text>
+              <View style={{ padding: 4 }}>
+                <Text style={styles.label}>{number}</Text>
               </View>
             </Marker>
           </React.Fragment>

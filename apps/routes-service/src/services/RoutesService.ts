@@ -37,7 +37,10 @@ export class RoutesService {
     if (!env.PROFILE_SERVICE_TOKEN) {
       throw httpError(500, 'PROFILE_SERVICE_TOKEN is not configured');
     }
-    const url = new URL('/internal/social/are-friends', env.PROFILE_SERVICE_URL);
+    const url = new URL(
+      '/internal/social/are-friends',
+      env.PROFILE_SERVICE_URL
+    );
     url.searchParams.set('userA', a);
     url.searchParams.set('userB', b);
     const res = await fetch(url, {

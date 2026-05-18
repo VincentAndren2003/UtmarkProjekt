@@ -8,7 +8,7 @@ export class Route {
     latitude: number;
     longitude: number;
   };
-  end: {    
+  end: {
     latitude: number;
     longitude: number;
   };
@@ -48,7 +48,7 @@ export class Route {
 
       const progress = i / numCeckpoints;
 
-      const isNearEnd = i >numCeckpoints - 2;
+      const isNearEnd = i > numCeckpoints - 2;
       do {
         const variedDistance =
           attempts < 30
@@ -57,7 +57,7 @@ export class Route {
         if (isNearEnd) {
           const bearingToEnd = this.bearingBetween(currentPos, this.end);
           const maxNoise = i === numCeckpoints ? 22 : 45;
-          const noise = (Math.random() * maxNoise * 2  - maxNoise);
+          const noise = Math.random() * maxNoise * 2 - maxNoise;
           bearing = (bearingToEnd + noise + 360) % 360;
         } else {
           bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
@@ -144,12 +144,13 @@ export class Route {
     return new Checkpoint(id, coordinate, false, radius);
   }
 
-    private randomOffset(
+  private randomOffset(
     origin: { latitude: number; longitude: number },
     distanceKm: number,
     bearing: number
   ): { latitude: number; longitude: number } {
-    return this.calculateCheckpoint('temp', origin, distanceKm, bearing, 0).coordinate;
+    return this.calculateCheckpoint('temp', origin, distanceKm, bearing, 0)
+      .coordinate;
   }
 
   private bearingBetween(
