@@ -51,7 +51,6 @@ export function ProfileScreen({ navigation, route }: Props) {
   // mot backend ersätts denna med en URL från servern.
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
-  // Placeholder tills vi har en vänner-funktion i backend.
   const [friendsCount, setFriendsCount] = useState(0);
 
   // TODO: Hämta från backend när utmaningar finns. Sätt till [] för att
@@ -140,10 +139,14 @@ export function ProfileScreen({ navigation, route }: Props) {
               <Text style={styles.username}>@{profile.username}</Text>
             ) : null}
 
-            <View style={styles.friendsBlock}>
+            <Pressable
+              style={styles.friendsBlock}
+              accessibilityLabel="Visa vänner"
+              onPress={() => navigation.navigate('Friends')}
+            >
               <Text style={styles.friendsCount}>{friendsCount}</Text>
               <Text style={styles.friendsLabel}>Vänner</Text>
-            </View>
+            </Pressable>
 
             <View style={styles.badgesSection}>
               <View style={styles.badgesHeader}>

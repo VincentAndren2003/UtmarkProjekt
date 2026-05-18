@@ -137,6 +137,8 @@ export async function getFriends(
               '$requester',
             ],
           },
+          // updatedAt sätts när status blir accepted — används som "vänner sedan".
+          friendsSince: '$updatedAt',
         },
       },
       {
@@ -148,7 +150,13 @@ export async function getFriends(
         },
       },
       { $unwind: '$profile' },
-      { $replaceRoot: { newRoot: '$profile' } },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$profile', { friendsSince: '$friendsSince' }],
+          },
+        },
+      },
     ]);
 
     res.status(200).json(friends);
