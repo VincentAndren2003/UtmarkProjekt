@@ -33,6 +33,49 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 const FETCH_RADIUS_M = 50;
 const PREVIEW_GENERATED_SHEET = false;
 
+// Beräknar luftlinjeavstånd i meter mellan två GPS-koordinater (Haversine-formeln).
+function haversineMeters(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number }
+): number {
+  const R = 6371000;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLng = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+// Summerar sträckan mellan alla GPS-punkter i en löprunda (punkt för punkt).
+function sumTrackDistanceM(points: { lat: number; long: number }[]): number {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    total += haversineMeters(
+      { latitude: points[i - 1].lat, longitude: points[i - 1].long },
+      { latitude: points[i].lat, longitude: points[i].long }
+    );
+  }
+  return total;
+}
+
+// Formaterar tempo som min:sek per km, t.ex. "9:33/km". Returnerar "—" om för lite data.
+function formatPace(elapsedSeconds: number, distanceMeters: number): string {
+  if (distanceMeters < 10 || elapsedSeconds < 1) return '—';
+  const km = distanceMeters / 1000;
+  const minPerKm = elapsedSeconds / 60 / km;
+  const mins = Math.floor(minPerKm);
+  const secs = Math.round((minPerKm - mins) * 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}/km`;
+}
+
+// Formaterar meter till kilometer med svensk decimal, t.ex. 1920 m → "1,9".
+function formatDistanceKm(distanceMeters: number): string {
+  return (distanceMeters / 1000).toFixed(1).replace('.', ',');
+}
+
 const PREVIEW_ROUTE: RouteResponse = {
   id: 'preview-route',
   start: { latitude: 59.334591, longitude: 18.06324 },
@@ -89,11 +132,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const from = route.params?.from;
   const activeRouteParam = route.params?.activeRoute;
   const { location } = useUserLocation();
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
   const [sliderWidth, setSliderWidth] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [showActiveHud, setShowActiveHud] = useState(false);
   const [sheetMode, setSheetMode] = useState<
     'request' | 'generated' | 'active'
@@ -104,6 +145,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [greetingFirstName, setGreetingFirstName] = useState<string | null>(
     null
   );
+  const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [trackDistanceM, setTrackDistanceM] = useState(0);
 
   const {
     isTracking,
@@ -150,13 +194,38 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     distanceToNextCheckpointM !== null &&
     distanceToNextCheckpointM <= FETCH_RADIUS_M;
 
-  const activeStats = {
-    timeMin: 9,
-    checkpointDone: 0,
-    checkpointTotal: generatedRoute?.checkpoints.length ?? 0,
-    distanceToNextM: 300,
-    paceMinPerKm: '9:33/km',
+  const activeStats = useMemo(
+    () => ({
+      timeMin: Math.floor(elapsedSeconds / 60),
+      checkpointDone:
+        generatedRoute?.checkpoints.filter((cp) => cp.completed).length ?? 0,
+      checkpointTotal: generatedRoute?.checkpoints.length ?? 0,
+      distanceToNextM: Math.round(distanceToNextCheckpointM ?? 0),
+      paceMinPerKm: formatPace(elapsedSeconds, trackDistanceM),
+    }),
+    [elapsedSeconds, generatedRoute, distanceToNextCheckpointM, trackDistanceM]
+  );
+
+  const beginActiveRun = () => {
+    setRunStartedAt((prev) => prev ?? Date.now());
+    setElapsedSeconds(0);
+    setTrackDistanceM(0);
   };
+
+  const resetActiveRun = () => {
+    setRunStartedAt(null);
+    setElapsedSeconds(0);
+    setTrackDistanceM(0);
+  };
+
+  useEffect(() => {
+    if (sheetMode !== 'active' || runStartedAt == null) return;
+    const id = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - runStartedAt) / 1000));
+      setTrackDistanceM(sumTrackDistanceM(getResults().movement));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [sheetMode, runStartedAt, getResults]);
   const activeRouteName =
     (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ??
     'Genererad rutt';
@@ -178,17 +247,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     if (!activeRouteParam) return;
     setGeneratedRoute(activeRouteParam);
     setSheetMode('active');
+    beginActiveRun();
   }, [activeRouteParam]);
-
-  const filterChips = [
-    'Vid vatten',
-    'Plant',
-    'Kuperat',
-    'Barnvagn',
-    'Klippor',
-    'Skog',
-    'Stad',
-  ];
 
   const animateSheetTo = (toValue: number) => {
     Animated.spring(sheetTranslateY, {
@@ -197,7 +257,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       tension: 80,
       friction: 14,
     }).start();
-    setIsExpanded(toValue === minTranslate);
   };
 
   useEffect(() => {
@@ -207,7 +266,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         Math.min(maxTranslate, currentValue)
       );
       sheetTranslateY.setValue(clamped);
-      setIsExpanded(clamped === minTranslate);
     });
   }, [minTranslate, maxTranslate, sheetTranslateY]);
 
@@ -215,11 +273,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     if (sheetMode === 'request') {
       sheetTranslateY.stopAnimation();
       sheetTranslateY.setValue(REQUEST_COLLAPSED_TRANSLATE);
-      setIsExpanded(false);
     } else if (sheetMode === 'generated') {
       sheetTranslateY.stopAnimation();
       sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
-      setIsExpanded(true);
     }
   }, [
     sheetMode,
@@ -239,26 +295,13 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     return () => sheetTranslateY.removeListener(id);
   }, [sheetMode, maxTranslate, sheetTranslateY]);
 
-  const toggleFilter = (chip: string) => {
-    setActiveFilters((prev) => {
-      const next = new Set(prev);
-      if (next.has(chip)) {
-        next.delete(chip);
-      } else {
-        next.add(chip);
-      }
-      return next;
-    });
-  };
-
   const handleGenerateRoute = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
     try {
       const response = await generateRoute(
         location ?? { latitude: 59.334591, longitude: 18.06324 },
-        distanceKm,
-        { filters: Array.from(activeFilters) }
+        distanceKm
       );
       setGeneratedRoute(response);
       setSheetMode('generated');
@@ -289,20 +332,38 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       return;
     }
 
-    const nextCheckpoint = routeInstance.isFinished()
-      ? activeStats.checkpointTotal
-      : activeStats.checkpointDone + 1;
+    const updatedCheckpoints = routeInstance.checkpoints.map((cp) => ({
+      id: cp.id,
+      coordinate: { ...cp.coordinate },
+      completed: cp.completed,
+      radius: cp.radius,
+    }));
 
-    const cp = routeInstance.checkpoints[nextCheckpoint];
-    recordVisit(cp.id, cp.coordinate.latitude, cp.coordinate.longitude);
+    setGeneratedRoute({
+      ...generatedRoute,
+      checkpoints: updatedCheckpoints,
+    });
+
+    const checkpointDone = updatedCheckpoints.filter(
+      (cp) => cp.completed
+    ).length;
+    const justCompleted = updatedCheckpoints[checkpointDone - 1];
+    recordVisit(
+      justCompleted.id,
+      justCompleted.coordinate.latitude,
+      justCompleted.coordinate.longitude
+    );
+
+    const elapsedMin = Math.floor(elapsedSeconds / 60);
+    const pace = formatPace(elapsedSeconds, trackDistanceM);
 
     navigation.navigate('CheckpointTaken', {
       routeName: activeRouteName,
-      currentCheckpoint: nextCheckpoint,
-      totalCheckpoints: activeStats.checkpointTotal,
-      elapsedMin: activeStats.timeMin,
-      distanceKm: '1,9',
-      paceMinPerKm: '10:5',
+      currentCheckpoint: checkpointDone,
+      totalCheckpoints: updatedCheckpoints.length,
+      elapsedMin,
+      distanceKm: formatDistanceKm(trackDistanceM),
+      paceMinPerKm: pace,
     });
   };
 
@@ -568,7 +629,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               style={styles.activeHudEmergencyButton}
               onPress={() => {}}
             >
-              <Text style={styles.activeHudEmergencyText}>Nödknapp</Text>
+              <Text style={styles.activeHudEmergencyText}>Visa position</Text>
             </Pressable>
           </View>
         </>
@@ -607,14 +668,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <RouteRequestSheet
             greetingFirstName={greetingFirstName}
             distanceKm={distanceKm}
-            activeFilters={activeFilters}
-            filterChips={filterChips}
-            isExpanded={isExpanded}
             isGenerating={isGenerating}
             sliderX={sliderX}
             sliderPanHandlers={sliderPanResponder.panHandlers}
             onSliderLayout={handleSliderLayout}
-            onToggleFilter={toggleFilter}
             onGenerate={handleGenerateRoute}
           />
         ) : sheetMode === 'generated' && generatedRoute ? (
@@ -622,9 +679,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
             onStartOrienteering={() => {
-              navigation.navigate('RouteStarted', { route: generatedRoute });
-              console.log('started tracking run');
+              beginActiveRun();
               startTracking(generatedRoute.id);
+              navigation.navigate('RouteStarted', { route: generatedRoute });
             }}
             onBackToRequest={() => {
               setSheetMode('request');
@@ -637,6 +694,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             onAbort={() => {
               console.log(getResults());
               stopTracking();
+              resetActiveRun();
               setSheetMode('generated');
             }}
             onEmergency={() => {}}
@@ -805,7 +863,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   activeHudEmergencyButton: {
-    backgroundColor: '#c0392b',
+    backgroundColor: '#7aa681',
     borderRadius: 18,
     height: 36,
     paddingHorizontal: 20,

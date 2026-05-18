@@ -20,7 +20,7 @@ export class Checkpoint {
   }
 
   distanceTo(userLocation: { latitude: number; longitude: number }): number {
-    const R = 63712000; // radie jorden i M
+    const R = 6371000; // jordens radie i meter
     const lat1 = this.coordinate.latitude * (Math.PI / 180); //  Haversine formulan
     const lat2 = userLocation.latitude * (Math.PI / 180);
     const dLat =
