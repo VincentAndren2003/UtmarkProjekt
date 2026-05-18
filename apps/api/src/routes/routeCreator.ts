@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { route } from '../routes/route';
+import { Route } from '../models/Route';
 
 const router = Router();
 
@@ -10,7 +10,7 @@ router.post('/generate-route', (req, res) => {
     const normalizedFilters = Array.isArray(filters)
       ? filters.filter((filter): filter is string => typeof filter === 'string')
       : [];
-    const newRoute = new route(id, start, normalizedDistance);
+    const newRoute = new Route(id, start, normalizedDistance);
     const checkpoints = newRoute.setCheckpoints();
 
     res.status(200).json({

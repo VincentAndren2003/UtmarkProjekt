@@ -8,17 +8,23 @@ export class Route {
     latitude: number;
     longitude: number;
   };
+  end: {    
+    latitude: number;
+    longitude: number;
+  };
   distance: number; // km t.ex 2, 5, 10
   checkpoints: Checkpoint[] = [];
 
   constructor(
     id: string,
     start: { latitude: number; longitude: number },
-    distance: number
+    distance: number,
+    end?: { latitude: number; longitude: number }
   ) {
     this.id = id;
     this.start = start;
     this.distance = distance;
+    this.end = end ?? this.randomOffset(start, 0.3, Math.random() * 360);
   }
 
   setCheckpoints(
@@ -40,14 +46,23 @@ export class Route {
       let attempts = 0;
       const maxAttempts = 50;
 
+      const progress = i / numCeckpoints;
+
+      const isNearEnd = i >numCeckpoints - 2;
       do {
         const variedDistance =
           attempts < 30
             ? distancePerCheckpoint
             : distancePerCheckpoint * (0.5 + Math.random());
-        bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
-        //bearing += (Math.random()* 40 - 20) // Om snirklar åt samma håll
-
+        if (isNearEnd) {
+          const bearingToEnd = this.bearingBetween(currentPos, this.end);
+          const maxNoise = i === numCeckpoints ? 22 : 45;
+          const noise = (Math.random() * maxNoise * 2  - maxNoise);
+          bearing = (bearingToEnd + noise + 360) % 360;
+        } else {
+          bearing = Math.random() * 360; // Rikting på nästa checkpoint, helt slumpad
+          //bearing += (Math.random()* 40 - 20) // Om snirklar åt samma håll
+        }
         newCheckPoint = this.calculateCheckpoint(
           `checkpoint-${i}`,
           currentPos,
@@ -127,6 +142,30 @@ export class Route {
     };
 
     return new Checkpoint(id, coordinate, false, radius);
+  }
+
+    private randomOffset(
+    origin: { latitude: number; longitude: number },
+    distanceKm: number,
+    bearing: number
+  ): { latitude: number; longitude: number } {
+    return this.calculateCheckpoint('temp', origin, distanceKm, bearing, 0).coordinate;
+  }
+
+  private bearingBetween(
+    from: { latitude: number; longitude: number },
+    to: { latitude: number; longitude: number }
+  ): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const toDeg = (rad: number) => (rad * 180) / Math.PI;
+    const dLon = toRad(to.longitude - from.longitude);
+    const lat1 = toRad(from.latitude);
+    const lat2 = toRad(to.latitude);
+    const x = Math.sin(dLon) * Math.cos(lat2);
+    const y =
+      Math.cos(lat1) * Math.sin(lat2) -
+      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    return (toDeg(Math.atan2(x, y)) + 360) % 360;
   }
 
   private pointInBoundingBox(

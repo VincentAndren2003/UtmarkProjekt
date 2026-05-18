@@ -6,7 +6,7 @@ const greenAreaService = new GreenAreaService();
 
 export const generateRouteController = async (req: Request, res: Response) => {
   try {
-    const { id, start, distance } = req.body;
+    const { id, start, distance, end } = req.body;
 
     const greenAreas = await greenAreaService.fetchGreenAreas(
       start.latitude,
@@ -14,7 +14,7 @@ export const generateRouteController = async (req: Request, res: Response) => {
       distance * 1000
     );
 
-    const newRoute = new Route(id, start, distance);
+    const newRoute = new Route(id, start, distance, end);
     const checkpoints = newRoute.setCheckpoints(
       undefined,
       undefined,
@@ -25,6 +25,7 @@ export const generateRouteController = async (req: Request, res: Response) => {
     res.status(200).json({
       id: newRoute.id,
       start: newRoute.start,
+      end: newRoute.end,
       distance: newRoute.distance,
       checkpoints: checkpoints,
     });
