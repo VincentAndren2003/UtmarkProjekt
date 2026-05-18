@@ -1,39 +1,24 @@
-import {
-  Animated,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PanResponderInstance } from 'react-native';
 
 type Props = {
   /** First word of profile `fullName`; generic line if null. */
   greetingFirstName: string | null;
   distanceKm: number;
-  activeFilters: Set<string>;
-  filterChips: string[];
-  isExpanded: boolean;
   isGenerating: boolean;
   sliderX: Animated.Value;
   sliderPanHandlers: PanResponderInstance['panHandlers'];
   onSliderLayout: (width: number) => void;
-  onToggleFilter: (chip: string) => void;
   onGenerate: () => void;
 };
 
 export function RouteRequestSheet({
   greetingFirstName,
   distanceKm,
-  activeFilters,
-  filterChips,
-  isExpanded,
   isGenerating,
   sliderX,
   sliderPanHandlers,
   onSliderLayout,
-  onToggleFilter,
   onGenerate,
 }: Props) {
   return (
@@ -59,52 +44,6 @@ export function RouteRequestSheet({
         />
       </View>
       <Text style={styles.sliderValue}>{distanceKm} km</Text>
-
-      <Text style={styles.sheetTitle}>Filter</Text>
-      {isExpanded ? (
-        <View style={styles.chipWrap}>
-          {filterChips.map((chip) => {
-            const isActive = activeFilters.has(chip);
-            return (
-              <Pressable
-                key={chip}
-                style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => onToggleFilter(chip)}
-              >
-                <Text
-                  style={[styles.chipText, isActive && styles.chipTextActive]}
-                >
-                  {chip}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipScroll}
-          contentContainerStyle={styles.chipRowScrollable}
-        >
-          {filterChips.map((chip) => {
-            const isActive = activeFilters.has(chip);
-            return (
-              <Pressable
-                key={chip}
-                style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => onToggleFilter(chip)}
-              >
-                <Text
-                  style={[styles.chipText, isActive && styles.chipTextActive]}
-                >
-                  {chip}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      )}
 
       <Pressable
         style={[
@@ -172,51 +111,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 28,
     marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
-    textAlign: 'center',
-    marginBottom: 14,
-  },
-  chipRowScrollable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingRight: 18,
-    paddingVertical: 2,
-  },
-  chipScroll: {
-    maxHeight: 56,
-    marginBottom: 14,
-  },
-  chipWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 14,
-  },
-  chip: {
-    alignSelf: 'center',
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: '#1f2933',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#ffffff',
-  },
-  chipActive: {
-    backgroundColor: '#2f7a3f',
-    borderColor: '#2f7a3f',
-  },
-  chipText: {
-    color: '#111',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  chipTextActive: {
-    color: '#fff',
   },
   generateButton: {
     height: 56,

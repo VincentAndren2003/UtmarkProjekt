@@ -75,7 +75,7 @@ export function RouteActiveSheet({
           <Text style={styles.abortText}>Avbryt rutt</Text>
         </Pressable>
         <Pressable style={styles.emergencyButton} onPress={onEmergency}>
-          <Text style={styles.emergencyText}>Nödknapp</Text>
+          <Text style={styles.emergencyText}>Visa position</Text>
         </Pressable>
       </View>
     </>
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#c0392b',
+    backgroundColor: '#7aa681',
     justifyContent: 'center',
     alignItems: 'center',
   },
