@@ -11,11 +11,11 @@ import { getFriendCount } from '../controllers/friendsController';
 
 const router = Router();
 
-router.get('/count', authMiddleware, getFriendCount);
-router.get('/pending', authMiddleware, getPendingRequests);
-router.post('/request/:friendId', authMiddleware, sendFriendRequest);
-router.post('/accept/:requesterId', authMiddleware, acceptFriendRequest);
-router.delete('/:friendId', authMiddleware, removeFriend);
-router.get('/', authMiddleware, getFriends);
+router.get('/count', authMiddleware, getFriendCount); // Använd GET request för att få hur många vänner en profil har
+router.get('/pending', authMiddleware, getPendingRequests); // Använd GET request för att få väntande vänföfrågningar
+router.post('/request/:friendId', authMiddleware, sendFriendRequest); // Använd POST för att skicka vänförfrågan
+router.post('/accept/:requesterId', authMiddleware, acceptFriendRequest); // Använd POST för att acceptera vänförfrågan
+router.delete('/:friendId', authMiddleware, removeFriend); // Använd POST för att neka vänförfrågan
+router.get('/', authMiddleware, getFriends); // Använd GET för att få fram vilka andra profiler som är vän med den inloggade profilen
 
 export default router;
