@@ -57,120 +57,122 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
           <View style={styles.gradientGlow} />
         </View>
         <View style={styles.content}>
-        <View style={styles.checkWrap}>
-          <View style={styles.checkInner}>
-            <Text style={styles.checkMark}>✓</Text>
+          <View style={styles.checkWrap}>
+            <View style={styles.checkInner}>
+              <Text style={styles.checkMark}>✓</Text>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.title}>Checkpoint {currentCheckpoint} tagen!</Text>
-        <Text style={styles.subtitle}>
-          {isRouteComplete
-            ? 'Bra jobbat, Du har tagit alla checkpoints!'
-            : 'Fortsätt mot nästa kontroll!'}
-        </Text>
+          <Text style={styles.title}>
+            Checkpoint {currentCheckpoint} tagen!
+          </Text>
+          <Text style={styles.subtitle}>
+            {isRouteComplete
+              ? 'Bra jobbat, Du har tagit alla checkpoints!'
+              : 'Fortsätt mot nästa kontroll!'}
+          </Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.progressTitle}>Framsteg</Text>
-        <FlatList
-          ref={progressRef}
-          data={progressData}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.progressListContent}
-          getItemLayout={(_, index) => ({
-            length: PROGRESS_SEGMENT_WIDTH,
-            offset: PROGRESS_SEGMENT_WIDTH * index,
-            index,
-          })}
-          onScrollToIndexFailed={() => {}}
-          renderItem={({ item, index }) => {
-            const isDone = item.number < currentCheckpoint;
-            const isCurrent = item.number === currentCheckpoint;
-            const isLast = index === progressData.length - 1;
+          <Text style={styles.progressTitle}>Framsteg</Text>
+          <FlatList
+            ref={progressRef}
+            data={progressData}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.progressListContent}
+            getItemLayout={(_, index) => ({
+              length: PROGRESS_SEGMENT_WIDTH,
+              offset: PROGRESS_SEGMENT_WIDTH * index,
+              index,
+            })}
+            onScrollToIndexFailed={() => {}}
+            renderItem={({ item, index }) => {
+              const isDone = item.number < currentCheckpoint;
+              const isCurrent = item.number === currentCheckpoint;
+              const isLast = index === progressData.length - 1;
 
-            return (
-              <View style={styles.progressItem}>
-                <View style={styles.progressTopRow}>
-                  <View
-                    style={[
-                      styles.progressDot,
-                      isDone && styles.progressDotDone,
-                      isCurrent && styles.progressDotCurrent,
-                    ]}
-                  />
-                  {!isLast && (
+              return (
+                <View style={styles.progressItem}>
+                  <View style={styles.progressTopRow}>
                     <View
                       style={[
-                        styles.progressLine,
-                        isDone && styles.progressLineDone,
+                        styles.progressDot,
+                        isDone && styles.progressDotDone,
+                        isCurrent && styles.progressDotCurrent,
                       ]}
                     />
-                  )}
+                    {!isLast && (
+                      <View
+                        style={[
+                          styles.progressLine,
+                          isDone && styles.progressLineDone,
+                        ]}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.progressNumber,
+                      isCurrent && styles.progressNumberCurrent,
+                    ]}
+                  >
+                    {item.number}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.progressNumber,
-                    isCurrent && styles.progressNumberCurrent,
-                  ]}
-                >
-                  {item.number}
-                </Text>
-              </View>
-            );
-          }}
-        />
+              );
+            }}
+          />
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Tid</Text>
-            <Text style={styles.statValue}>{elapsedMin}</Text>
-            <Text style={styles.statUnit}>min</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Tid</Text>
+              <Text style={styles.statValue}>{elapsedMin}</Text>
+              <Text style={styles.statUnit}>min</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Distans</Text>
+              <Text style={styles.statValue}>{distanceKm}</Text>
+              <Text style={styles.statUnit}>km</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Snitt</Text>
+              <Text style={styles.statValue}>{paceMinPerKm}</Text>
+              <Text style={styles.statUnit}>/km</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Distans</Text>
-            <Text style={styles.statValue}>{distanceKm}</Text>
-            <Text style={styles.statUnit}>km</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Snitt</Text>
-            <Text style={styles.statValue}>{paceMinPerKm}</Text>
-            <Text style={styles.statUnit}>/km</Text>
-          </View>
-        </View>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.nextTitle}>
-          {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
-        </Text>
-        {!isRouteComplete && (
-          <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
-        )}
-        <Text style={styles.leftText}>
-          {checkpointsLeft} checkpoints kvar till mål
-        </Text>
+          <Text style={styles.nextTitle}>
+            {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
+          </Text>
+          {!isRouteComplete && (
+            <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+          )}
+          <Text style={styles.leftText}>
+            {checkpointsLeft} checkpoints kvar till mål
+          </Text>
 
-        <Pressable
-          style={styles.cta}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-              return;
-            }
-            navigation.navigate('CreateRoute');
-          }}
-        >
-          <Text style={styles.ctaText}>Fortsätt rutt →</Text>
-        </Pressable>
+          <Pressable
+            style={styles.cta}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+                return;
+              }
+              navigation.navigate('CreateRoute');
+            }}
+          >
+            <Text style={styles.ctaText}>Fortsätt rutt →</Text>
+          </Pressable>
 
-        <Text style={styles.routeName}>{routeName}</Text>
+          <Text style={styles.routeName}>{routeName}</Text>
         </View>
       </View>
     </View>

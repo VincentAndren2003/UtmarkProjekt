@@ -162,9 +162,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   );
   const [startPoint, setStartPoint] = useState<Coordinate | null>(null);
   const [endPoint, setEndPoint] = useState<Coordinate | null>(null);
-  const [mapInitialRegion, setMapInitialRegion] = useState<Region | null>(
-    null
-  );
+  const [mapInitialRegion, setMapInitialRegion] = useState<Region | null>(null);
   const mapRef = useRef<MapView>(null);
   const mapCenterRef = useRef<Coordinate>({
     latitude: 59.334591,
@@ -313,8 +311,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     }
   }, [sheetMode, GENERATED_EXPANDED_TRANSLATE, sheetTranslateY]);
 
-  const isPlacementSheet =
-    placementMode !== null && sheetMode === 'request';
+  const isPlacementSheet = placementMode !== null && sheetMode === 'request';
   const sheetHeight = isPlacementSheet
     ? PLACEMENT_COLLAPSED_HEIGHT
     : sheetMode === 'request'
@@ -418,7 +415,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     );
   };
 
-  const beginPlacement = (mode: 'start' | 'end', existing: Coordinate | null) => {
+  const beginPlacement = (
+    mode: 'start' | 'end',
+    existing: Coordinate | null
+  ) => {
     if (existing) {
       setDraftPlacementPin(existing);
       mapCenterRef.current = existing;
@@ -464,8 +464,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     if (isGenerating || placementMode) return;
     setIsGenerating(true);
     try {
-      const start =
-        startPoint ??
+      const start = startPoint ??
         location ?? { latitude: 59.334591, longitude: 18.06324 };
       const response = await generateRoute(
         start,

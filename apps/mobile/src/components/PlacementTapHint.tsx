@@ -18,10 +18,7 @@ export function PlacementTapHint({ label, bottomInset, variant }: Props) {
   const color = PIN_COLORS[variant];
 
   return (
-    <View
-      style={[styles.wrap, { bottom: bottomInset }]}
-      pointerEvents="none"
-    >
+    <View style={[styles.wrap, { bottom: bottomInset }]} pointerEvents="none">
       <View style={styles.tooltip}>
         <Text style={styles.tooltipText}>{label}</Text>
       </View>
