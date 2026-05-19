@@ -1056,10 +1056,25 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             route={generatedRoute}
             terrain={activeStats}
             onAbort={() => {
-              console.log(getResults());
-              stopTracking();
-              resetActiveRun();
-              setSheetMode('generated');
+              if (!generatedRoute) return;
+              const checkpointDone = generatedRoute.checkpoints.filter(
+                (cp) => cp.completed
+              ).length;
+              const summary = buildRunSummary(
+                checkpointDone,
+                generatedRoute.checkpoints.length,
+                generatedRoute
+              );
+              navigation.navigate('CancelRoute', {
+                routeName: summary.routeName,
+                totalCheckpoints: summary.totalCheckpoints,
+                checkpointsCompleted: summary.checkpointsCompleted,
+                elapsedMin: summary.elapsedMin,
+                distanceKm: summary.distanceKm,
+                paceMinPerKm: summary.paceMinPerKm,
+                plannedDistanceKm: summary.plannedDistanceKm,
+                from: summary.from,
+              });
             }}
             onEmergency={() => {}}
             onFetchCheckpoint={handleFetchCheckpoint}
