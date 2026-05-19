@@ -100,7 +100,7 @@ export function createApp() {
       next(err);
     }
   });
- 
+
   app.post('/api/route-records', authMiddleware, async (req, res, next) => {
     try {
       await proxyJson(res, `${env.ROUTES_SERVICE_URL}/routes`, {
@@ -152,20 +152,22 @@ export function createApp() {
     }
   });
 
-  app.patch('/api/runs/:id/complete', authMiddleware, async (req, res, next) => {
-    try {
-      const id = encodeURIComponent(String(req.params.id));
-      await proxyJson(res, `${env.ROUTES_SERVICE_URL}/runs/${id}/complete`, {
-        method: 'PATCH',
-        headers: { 'x-user-id': req.userId! },
-        body: req.body,
-      });
-    } catch (err) {
-      next(err);
+  app.patch(
+    '/api/runs/:id/complete',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        const id = encodeURIComponent(String(req.params.id));
+        await proxyJson(res, `${env.ROUTES_SERVICE_URL}/runs/${id}/complete`, {
+          method: 'PATCH',
+          headers: { 'x-user-id': req.userId! },
+          body: req.body,
+        });
+      } catch (err) {
+        next(err);
+      }
     }
-  });
-
-
+  );
 
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);

@@ -2,7 +2,6 @@ import * as SecureStore from 'expo-secure-store';
 import { API_URL } from '../config/env';
 import { Checkpoint, Coordinate, RouteResponse } from '../types/route';
 
-
 const TOKEN_KEY = 'auth_token';
 
 const tokenStorage = {
@@ -36,10 +35,8 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
 
-  
   const data = await res.json().catch(() => ({}));
 
-  
   if (!res.ok) {
     const message =
       (data && typeof data === 'object' && 'error' in data
@@ -99,7 +96,6 @@ export async function login(
 export async function signOut(): Promise<void> {
   await tokenStorage.clear();
 }
-
 
 // Profile functions (protected — auth: true sends the JWT)
 
@@ -259,14 +255,11 @@ export function completeRun(
   runId: string,
   body: CompleteRunInput = {}
 ): Promise<RunRecord> {
-  return request<RunRecord>(
-    `/api/runs/${encodeURIComponent(runId)}/complete`,
-    {
-      method: 'PATCH',
-      auth: true,
-      body,
-    }
-  );
+  return request<RunRecord>(`/api/runs/${encodeURIComponent(runId)}/complete`, {
+    method: 'PATCH',
+    auth: true,
+    body,
+  });
 }
 
 export function getMyRuns(status?: RunRecord['status']): Promise<RunRecord[]> {

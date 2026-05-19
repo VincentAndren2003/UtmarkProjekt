@@ -13,6 +13,9 @@ const LIST_FRAME = 80;
 const LIST_PLACEHOLDER = 64;
 const PROFILE_FRAME = 80;
 const PROFILE_PLACEHOLDER = 64;
+// Cirkelns grå — syns tillsammans med lockedVeil nedan.
+const BADGE_LOCKED_SURFACE = '#ebecee';
+const BADGE_LOCKED_VEIL = 'rgba(36, 40, 44, 0.20)';
 
 export function BadgeThumbnail({ unlocked, image, variant }: Props) {
   const isList = variant === 'list';
@@ -27,7 +30,7 @@ export function BadgeThumbnail({ unlocked, image, variant }: Props) {
           { width: size, height: size, borderRadius: size / 2 },
         ]}
       >
-        <Ionicons name="lock-closed" size={isList ? 28 : 28} color="#9aa1a8" />
+        <Ionicons name="lock-closed" size={28} color="rgba(255,255,255,0.92)" />
       </View>
     );
   }
@@ -43,15 +46,22 @@ export function BadgeThumbnail({ unlocked, image, variant }: Props) {
   }
 
   const frame = isList ? LIST_FRAME : PROFILE_FRAME;
+  const radius = frame / 2;
+
   return (
     <View
       style={[
         styles.lockedWrap,
         isList ? styles.lockedWrapList : styles.lockedWrapProfile,
-        { width: frame, height: frame },
+        { width: frame, height: frame, borderRadius: radius },
       ]}
     >
-      <View style={[styles.lockedImageStack, { width: frame, height: frame }]}>
+      <View
+        style={[
+          styles.lockedImageStack,
+          { width: frame, height: frame, borderRadius: radius },
+        ]}
+      >
         <Image
           source={image}
           style={[
@@ -65,7 +75,10 @@ export function BadgeThumbnail({ unlocked, image, variant }: Props) {
           resizeMode="contain"
         />
       </View>
-      <View style={styles.lockedVeil} pointerEvents="none" />
+      <View
+        style={[styles.lockedVeil, { borderRadius: radius }]}
+        pointerEvents="none"
+      />
       <View style={styles.lockIconWrap} pointerEvents="none">
         <Ionicons
           name="lock-closed"
@@ -79,7 +92,7 @@ export function BadgeThumbnail({ unlocked, image, variant }: Props) {
 
 const styles = StyleSheet.create({
   placeholder: {
-    backgroundColor: '#ececee',
+    backgroundColor: BADGE_LOCKED_SURFACE,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -121,14 +134,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#cfd4d9',
+    backgroundColor: BADGE_LOCKED_SURFACE,
   },
   lockedBadgeImage: {
     opacity: 0.42,
   },
   lockedVeil: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(36, 40, 44, 0.38)',
+    backgroundColor: BADGE_LOCKED_VEIL,
   },
   lockIconWrap: {
     ...StyleSheet.absoluteFillObject,

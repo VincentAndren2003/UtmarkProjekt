@@ -144,16 +144,10 @@ export function FriendRequestsScreen({ navigation }: Props) {
     );
   };
 
-  const listEmptyReceived = () => (
-    <Text style={styles.emptyText}>Du har inga nya vänförfrågningar.</Text>
-  );
-
   // TODO: Lista utgående förfrågningar när GET /api/friends/sent finns.
-  const sentPlaceholder = () => (
+  const emptyState = (message: string) => (
     <View style={styles.centered}>
-      <Text style={styles.emptyText}>
-        Inga skickade förfrågningar att visa.
-      </Text>
+      <Text style={styles.emptyText}>{message}</Text>
     </View>
   );
 
@@ -231,14 +225,15 @@ export function FriendRequestsScreen({ navigation }: Props) {
           </Pressable>
         </View>
       ) : activeTab === 'sent' ? (
-        sentPlaceholder()
+        emptyState('Inga skickade förfrågningar att visa.')
+      ) : received.length === 0 ? (
+        emptyState('Du har inga nya vänförfrågningar.')
       ) : (
         <FlatList
           data={received}
           keyExtractor={(item) => item.userId}
           renderItem={renderReceivedCard}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={listEmptyReceived}
           showsVerticalScrollIndicator={false}
         />
       )}
