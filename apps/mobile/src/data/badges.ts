@@ -19,25 +19,18 @@ export type Badge = {
 
 export const BADGES: Badge[] = [
   {
+    id: 'forsta-rutten',
+    name: 'Första rutten',
+    description: 'Generera din första rutt.',
+    unlocked: false,
+    image: require('../../assets/Badges/skogsvandrare.png'),
+  },
+  {
     id: 'ny-utforskare',
     name: 'Ny utforskare',
     description: 'Avklara din första rutt.',
     unlocked: false,
     image: require('../../assets/Badges/ny-utforskare.png'),
-  },
-  {
-    id: 'skogsvandrare',
-    name: 'Skogsvandrare',
-    description: 'Avklara 10 rutter i skog och mark.',
-    unlocked: false,
-    image: require('../../assets/Badges/skogsvandrare.png'),
-  },
-  {
-    id: 'terrangmastare',
-    name: 'Terrängmästare',
-    description: 'Avklara 25 rutter i naturreservat.',
-    unlocked: false,
-    image: require('../../assets/Badges/terrangmastare.png'),
   },
   {
     id: 'morgonpigg',

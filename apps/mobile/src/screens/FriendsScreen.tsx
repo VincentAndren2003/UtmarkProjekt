@@ -256,7 +256,9 @@ export function FriendsScreen({ navigation }: Props) {
             accessibilityLabel="Lägg till vän"
             hitSlop={8}
           >
-            <Ionicons name="add" size={28} color="#1a1a1a" />
+            <View style={styles.headerIconBox}>
+              <Ionicons name="add-circle-outline" size={26} color="#1a1a1a" />
+            </View>
             <Text style={styles.headerShortcutLabel}>Lägg till</Text>
           </Pressable>
 
@@ -266,7 +268,9 @@ export function FriendsScreen({ navigation }: Props) {
             accessibilityLabel="Förfrågningar"
             hitSlop={8}
           >
-            <Ionicons name="person-add-outline" size={26} color="#1a1a1a" />
+            <View style={styles.headerIconBox}>
+              <Ionicons name="person-add-outline" size={26} color="#1a1a1a" />
+            </View>
             <Text style={styles.headerShortcutLabel}>Förfrågningar</Text>
           </Pressable>
         </View>
@@ -437,19 +441,27 @@ const styles = StyleSheet.create({
   topBarActions: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 4,
+    gap: 0,
   },
   headerShortcut: {
     alignItems: 'center',
-    paddingHorizontal: 6,
-    minWidth: 64,
+    width: 84,
+    paddingTop: 2,
+  },
+  headerIconBox: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerShortcutLabel: {
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 11,
     fontWeight: '500',
     color: '#1a1a1a',
     textAlign: 'center',
+    minHeight: 28,
+    lineHeight: 14,
   },
   modalOverlay: {
     flex: 1,

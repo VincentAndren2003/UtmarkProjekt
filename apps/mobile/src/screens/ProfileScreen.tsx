@@ -130,7 +130,7 @@ export function ProfileScreen({ navigation, route }: Props) {
                 </View>
               )}
               <View style={styles.editBadge}>
-                <Ionicons name="camera" size={16} color="#fff" />
+                <Ionicons name="camera" size={18} color="#8b939c" />
               </View>
             </Pressable>
 
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     marginBottom: 20,
+    overflow: 'visible',
   },
   avatarImage: {
     width: 160,
@@ -292,16 +293,17 @@ const styles = StyleSheet.create({
   },
   editBadge: {
     position: 'absolute',
-    right: 6,
-    bottom: 6,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2b2f33',
+    right: 8,
+    bottom: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f2f4',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
+    overflow: 'hidden',
   },
   name: {
     fontSize: 22,
