@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Animated,
   Modal,
@@ -16,22 +17,33 @@ import { BottomNav } from '../components/BottomNav';
 import { ActiveRouteStatsBar } from '../components/route-sheet/ActiveRouteStatsBar';
 import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
 import { RouteGeneratedSheet } from '../components/route-sheet/RouteGeneratedSheet';
-import { RouteRequestSheet } from '../components/route-sheet/RouteRequestSheet';
+import { EndpointPinMarker } from '../components/EndpointPinMarker';
+import { PlacementTapHint } from '../components/PlacementTapHint';
+import {
+  PlacementMode,
+  RouteRequestSheet,
+} from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
 import { generateRoute, getMyProfile } from '../lib/api';
-import { RouteResponse } from '../types/route';
+import { Coordinate, RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
 
 import { useTracking } from '../hooks/useTracking';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
-import MapView, { UrlTile, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, {
+  Marker,
+  Region,
+  UrlTile,
+  PROVIDER_GOOGLE,
+} from 'react-native-maps';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
 const FETCH_RADIUS_M = 50;
 const PREVIEW_GENERATED_SHEET = false;
+const REQUEST_SHEET_BOTTOM_OFFSET = 86;
 
 // Beräknar luftlinjeavstånd i meter mellan två GPS-koordinater (Haversine-formeln).
 function haversineMeters(
@@ -103,25 +115,24 @@ const PREVIEW_ROUTE: RouteResponse = {
 };
 
 export function CreateRouteScreen({ navigation, route }: Props) {
+  const insets = useSafeAreaInsets();
   const MIN_DISTANCE = 1;
   const MAX_DISTANCE = 20;
   const THUMB_SIZE = 20;
   const LINE_INSET = 10;
   const EXPANDED_HEIGHT = 560;
   const GENERATED_EXPANDED_HEIGHT = 516;
-  const REQUEST_COLLAPSED_HEIGHT = 384;
+  const REQUEST_SHEET_HEIGHT = 410;
+  const PLACEMENT_COLLAPSED_HEIGHT = 184;
+  const BOTTOM_NAV_HEIGHT = 72;
   const GENERATED_COLLAPSED_HEIGHT = 384;
   const ACTIVE_EXPANDED_HEIGHT = 384;
   const ACTIVE_COLLAPSED_HEIGHT = 66;
-  const REQUEST_COLLAPSED_TRANSLATE =
-    EXPANDED_HEIGHT - REQUEST_COLLAPSED_HEIGHT;
   const GENERATED_EXPANDED_TRANSLATE =
     EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
   const sheetTranslateY = useRef(
     new Animated.Value(
-      PREVIEW_GENERATED_SHEET
-        ? GENERATED_EXPANDED_TRANSLATE
-        : REQUEST_COLLAPSED_TRANSLATE
+      PREVIEW_GENERATED_SHEET ? GENERATED_EXPANDED_TRANSLATE : 0
     )
   ).current;
   const sliderX = useRef(new Animated.Value(0)).current;
@@ -145,6 +156,26 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [greetingFirstName, setGreetingFirstName] = useState<string | null>(
     null
   );
+  const [placementMode, setPlacementMode] = useState<PlacementMode>(null);
+  const [draftPlacementPin, setDraftPlacementPin] = useState<Coordinate | null>(
+    null
+  );
+  const [startPoint, setStartPoint] = useState<Coordinate | null>(null);
+  const [endPoint, setEndPoint] = useState<Coordinate | null>(null);
+  const [mapInitialRegion, setMapInitialRegion] = useState<Region | null>(
+    null
+  );
+  const mapRef = useRef<MapView>(null);
+  const mapCenterRef = useRef<Coordinate>({
+    latitude: 59.334591,
+    longitude: 18.06324,
+  });
+  const mapDeltaRef = useRef({
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+  const userLocationCenteredRef = useRef(false);
+  const pendingUserCenterRef = useRef<Coordinate | null>(null);
   const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [trackDistanceM, setTrackDistanceM] = useState(0);
@@ -236,12 +267,15 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ? EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT
         : 0;
   const collapsedHeight =
-    sheetMode === 'active'
-      ? ACTIVE_COLLAPSED_HEIGHT
-      : sheetMode === 'generated'
-        ? GENERATED_COLLAPSED_HEIGHT
-        : REQUEST_COLLAPSED_HEIGHT;
+    placementMode && sheetMode === 'request'
+      ? PLACEMENT_COLLAPSED_HEIGHT
+      : sheetMode === 'active'
+        ? ACTIVE_COLLAPSED_HEIGHT
+        : sheetMode === 'generated'
+          ? GENERATED_COLLAPSED_HEIGHT
+          : REQUEST_SHEET_HEIGHT;
   const maxTranslate = EXPANDED_HEIGHT - collapsedHeight;
+  const isFixedHeightSheet = sheetMode === 'request';
 
   useEffect(() => {
     if (!activeRouteParam) return;
@@ -272,17 +306,56 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (sheetMode === 'request') {
       sheetTranslateY.stopAnimation();
-      sheetTranslateY.setValue(REQUEST_COLLAPSED_TRANSLATE);
+      sheetTranslateY.setValue(0);
     } else if (sheetMode === 'generated') {
       sheetTranslateY.stopAnimation();
       sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
     }
-  }, [
-    sheetMode,
-    GENERATED_EXPANDED_TRANSLATE,
-    REQUEST_COLLAPSED_TRANSLATE,
-    sheetTranslateY,
-  ]);
+  }, [sheetMode, GENERATED_EXPANDED_TRANSLATE, sheetTranslateY]);
+
+  const isPlacementSheet =
+    placementMode !== null && sheetMode === 'request';
+  const sheetHeight = isPlacementSheet
+    ? PLACEMENT_COLLAPSED_HEIGHT
+    : sheetMode === 'request'
+      ? REQUEST_SHEET_HEIGHT
+      : EXPANDED_HEIGHT;
+
+  const mapBottomPadding = useMemo(() => {
+    if (isPlacementSheet) {
+      return PLACEMENT_COLLAPSED_HEIGHT + REQUEST_SHEET_BOTTOM_OFFSET;
+    }
+    if (sheetMode === 'request') {
+      return REQUEST_SHEET_HEIGHT + REQUEST_SHEET_BOTTOM_OFFSET;
+    }
+    if (sheetMode === 'generated') {
+      return GENERATED_COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT;
+    }
+    return ACTIVE_COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT;
+  }, [isPlacementSheet, sheetMode]);
+
+  const mapPadding = useMemo(
+    () => ({
+      top: insets.top,
+      right: 0,
+      bottom: mapBottomPadding,
+      left: 0,
+    }),
+    [insets.top, mapBottomPadding]
+  );
+
+  useEffect(() => {
+    if (!location || placementMode || !mapRef.current) return;
+    mapRef.current.animateToRegion(
+      {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: mapDeltaRef.current.latitudeDelta,
+        longitudeDelta: mapDeltaRef.current.longitudeDelta,
+      },
+      250
+    );
+  }, [mapBottomPadding, placementMode]);
 
   useEffect(() => {
     if (sheetMode !== 'active') {
@@ -295,13 +368,109 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     return () => sheetTranslateY.removeListener(id);
   }, [sheetMode, maxTranslate, sheetTranslateY]);
 
+  const centerMapOnUser = (coord: Coordinate) => {
+    if (userLocationCenteredRef.current || placementMode) return;
+    const region: Region = {
+      latitude: coord.latitude,
+      longitude: coord.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
+    mapCenterRef.current = coord;
+    mapDeltaRef.current = {
+      latitudeDelta: region.latitudeDelta,
+      longitudeDelta: region.longitudeDelta,
+    };
+    setMapInitialRegion(region);
+    if (!mapRef.current) {
+      pendingUserCenterRef.current = coord;
+      return;
+    }
+    mapRef.current.animateToRegion(region, 400);
+    userLocationCenteredRef.current = true;
+    pendingUserCenterRef.current = null;
+  };
+
+  useEffect(() => {
+    if (!location) return;
+    centerMapOnUser(location);
+  }, [location, placementMode]);
+
+  const handleMapReady = () => {
+    const pending = pendingUserCenterRef.current;
+    if (pending && !userLocationCenteredRef.current && !placementMode) {
+      centerMapOnUser(pending);
+      return;
+    }
+    if (location && !userLocationCenteredRef.current && !placementMode) {
+      centerMapOnUser(location);
+    }
+  };
+
+  const animateMapTo = (coord: Coordinate) => {
+    mapRef.current?.animateToRegion(
+      {
+        ...coord,
+        latitudeDelta: mapDeltaRef.current.latitudeDelta,
+        longitudeDelta: mapDeltaRef.current.longitudeDelta,
+      },
+      0
+    );
+  };
+
+  const beginPlacement = (mode: 'start' | 'end', existing: Coordinate | null) => {
+    if (existing) {
+      setDraftPlacementPin(existing);
+      mapCenterRef.current = existing;
+      animateMapTo(existing);
+    } else {
+      setDraftPlacementPin(null);
+    }
+    setPlacementMode(mode);
+  };
+
+  const handleSelectStart = () => {
+    beginPlacement('start', startPoint);
+  };
+
+  const handleSelectEnd = () => {
+    beginPlacement('end', endPoint);
+  };
+
+  const handleMapPress = (coord: Coordinate) => {
+    if (!placementMode) return;
+    setDraftPlacementPin(coord);
+    mapCenterRef.current = coord;
+  };
+
+  const handleConfirmPlacement = () => {
+    if (!draftPlacementPin) return;
+    const coord = draftPlacementPin;
+    if (placementMode === 'start') {
+      setStartPoint(coord);
+    } else if (placementMode === 'end') {
+      setEndPoint(coord);
+    }
+    setDraftPlacementPin(null);
+    setPlacementMode(null);
+  };
+
+  const handleCancelPlacement = () => {
+    setDraftPlacementPin(null);
+    setPlacementMode(null);
+  };
+
   const handleGenerateRoute = async () => {
-    if (isGenerating) return;
+    if (isGenerating || placementMode) return;
     setIsGenerating(true);
     try {
+      const start =
+        startPoint ??
+        location ?? { latitude: 59.334591, longitude: 18.06324 };
       const response = await generateRoute(
-        location ?? { latitude: 59.334591, longitude: 18.06324 },
-        distanceKm
+        start,
+        distanceKm,
+        endPoint ?? undefined
       );
       setGeneratedRoute(response);
       setSheetMode('generated');
@@ -370,8 +539,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
+        onStartShouldSetPanResponder: () => sheetMode !== 'request',
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          sheetMode !== 'request' && Math.abs(gesture.dy) > 4,
         onPanResponderMove: (_, gesture) => {
           const next = Math.max(
             minTranslate,
@@ -394,7 +564,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           }
         },
       }),
-    [minTranslate, maxTranslate, sheetTranslateY]
+    [minTranslate, maxTranslate, sheetMode, sheetTranslateY]
   );
 
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
@@ -555,28 +725,87 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     },
   ];
 
-  const initialRegion = location
-    ? { ...location, latitudeDelta: 0.05, longitudeDelta: 0.05 }
-    : {
-        latitude: 59.334591,
-        longitude: 18.06324,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-      };
+  const placementTapHint =
+    placementMode === 'start'
+      ? 'Tryck på kartan för att placera startposition'
+      : 'Tryck på kartan för att placera slutposition';
+  const placementMarkerLabel =
+    placementMode === 'start'
+      ? 'Startposition — tryck på kartan för att flytta'
+      : 'Slutposition — tryck på kartan för att flytta';
 
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
       <View style={styles.mapBackdrop}>
         <MapView
+          ref={mapRef}
           style={StyleSheet.absoluteFill}
           provider={PROVIDER_GOOGLE}
           customMapStyle={mapStyle}
           showsBuildings={false}
           showsCompass={false}
-          region={initialRegion}
+          showsUserLocation
+          mapPadding={mapPadding}
+          onMapReady={handleMapReady}
+          onPress={(event) => handleMapPress(event.nativeEvent.coordinate)}
+          initialRegion={
+            mapInitialRegion ?? {
+              latitude: 59.334591,
+              longitude: 18.06324,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }
+          }
+          onRegionChangeComplete={(region) => {
+            mapDeltaRef.current = {
+              latitudeDelta: region.latitudeDelta,
+              longitudeDelta: region.longitudeDelta,
+            };
+            if (!placementMode) {
+              mapCenterRef.current = {
+                latitude: region.latitude,
+                longitude: region.longitude,
+              };
+            }
+          }}
         >
           {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
+
+          {!generatedRoute && startPoint && placementMode !== 'start' ? (
+            <Marker
+              coordinate={startPoint}
+              anchor={{ x: 0.5, y: 1 }}
+              zIndex={10}
+              tappable={false}
+            >
+              <EndpointPinMarker variant="start" />
+            </Marker>
+          ) : null}
+          {!generatedRoute && endPoint && placementMode !== 'end' ? (
+            <Marker
+              coordinate={endPoint}
+              anchor={{ x: 0.5, y: 1 }}
+              zIndex={10}
+              tappable={false}
+            >
+              <EndpointPinMarker variant="end" />
+            </Marker>
+          ) : null}
+
+          {placementMode && draftPlacementPin ? (
+            <Marker
+              coordinate={draftPlacementPin}
+              anchor={{ x: 0.5, y: 1 }}
+              zIndex={11}
+              tappable={false}
+            >
+              <EndpointPinMarker
+                variant={placementMode}
+                label={placementMarkerLabel}
+              />
+            </Marker>
+          ) : null}
 
           <UrlTile
             urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
@@ -587,6 +816,13 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             zIndex={1}
           />
         </MapView>
+        {placementMode && !draftPlacementPin ? (
+          <PlacementTapHint
+            label={placementTapHint}
+            variant={placementMode}
+            bottomInset={mapBottomPadding}
+          />
+        ) : null}
       </View>
 
       <View style={styles.content} />
@@ -638,15 +874,29 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       <Animated.View
         style={[
           styles.filterSheet,
+          isFixedHeightSheet && styles.filterSheetFixed,
+          isPlacementSheet && styles.filterSheetPlacement,
           {
-            height: EXPANDED_HEIGHT,
-            transform: [{ translateY: sheetTranslateY }],
+            height: sheetHeight,
+            transform: [
+              {
+                translateY: isFixedHeightSheet ? 0 : sheetTranslateY,
+              },
+            ],
           },
         ]}
       >
-        <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
+        <View
+          {...(isFixedHeightSheet ? {} : panResponder.panHandlers)}
+          style={[
+            styles.sheetHandleArea,
+            isFixedHeightSheet && styles.sheetHandleAreaCompact,
+          ]}
+        >
           <View style={styles.sheetHandle} />
-          <View style={styles.sheetHandleSecondary} />
+          {!isFixedHeightSheet ? (
+            <View style={styles.sheetHandleSecondary} />
+          ) : null}
           {sheetMode === 'active' && (
             <Animated.Text
               style={[
@@ -673,6 +923,14 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             sliderPanHandlers={sliderPanResponder.panHandlers}
             onSliderLayout={handleSliderLayout}
             onGenerate={handleGenerateRoute}
+            placementMode={placementMode}
+            startPlaced={startPoint !== null}
+            endPlaced={endPoint !== null}
+            onSelectStart={handleSelectStart}
+            onSelectEnd={handleSelectEnd}
+            onConfirmPlacement={handleConfirmPlacement}
+            onCancelPlacement={handleCancelPlacement}
+            placementPinReady={draftPlacementPin !== null}
           />
         ) : sheetMode === 'generated' && generatedRoute ? (
           <RouteGeneratedSheet
@@ -775,9 +1033,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     elevation: 6,
   },
+  filterSheetFixed: {
+    bottom: REQUEST_SHEET_BOTTOM_OFFSET,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  filterSheetPlacement: {
+    paddingTop: 8,
+  },
   sheetHandleArea: {
     alignItems: 'center',
     paddingBottom: 10,
+  },
+  sheetHandleAreaCompact: {
+    paddingBottom: 6,
   },
   sheetHandle: {
     width: 22,

@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 import { RouteResponse } from '../types/route';
 
@@ -21,7 +22,13 @@ export function RouteStartedScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.root}>
-      <View style={styles.content}>
+      <StatusBar style="dark" />
+      <View style={styles.centerWrap}>
+        <View style={styles.glowLayer} pointerEvents="none">
+          <View style={styles.gradientGlowOuter} />
+          <View style={styles.gradientGlow} />
+        </View>
+        <View style={styles.content}>
         <Text style={styles.title}>Rutten har startat!</Text>
         <Text style={styles.subtitle}>
           {routeName} · {generatedRoute.distance} km ·{' '}
@@ -59,6 +66,7 @@ export function RouteStartedScreen({ navigation, route }: Props) {
         >
           <Text style={styles.primaryButtonText}>Öppna kartvy →</Text>
         </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -67,35 +75,69 @@ export function RouteStartedScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#172016',
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  centerWrap: {
+    width: '100%',
+    paddingHorizontal: 18,
+    position: 'relative',
+  },
+  glowLayer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
     justifyContent: 'center',
   },
+  gradientGlow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: '#d8eddc',
+    opacity: 0.55,
+  },
+  gradientGlowOuter: {
+    position: 'absolute',
+    width: 480,
+    height: 480,
+    borderRadius: 240,
+    backgroundColor: '#eef6f0',
+    opacity: 0.7,
+  },
   content: {
-    paddingHorizontal: 18,
+    zIndex: 1,
   },
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#111111',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8fb693',
+    color: '#3d6b47',
     textAlign: 'center',
     marginBottom: 18,
     fontWeight: '600',
   },
   statsCard: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2ebe4',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 14,
+    shadowColor: '#2f7a3f',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   statItem: {
     flex: 1,
@@ -104,23 +146,23 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#7aa681',
+    color: '#5f7a66',
     marginBottom: 4,
     fontWeight: '700',
   },
   statValue: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#1a1a1a',
     fontWeight: '800',
   },
   statDivider: {
     width: 1,
     height: 36,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: '#e0e8e2',
   },
   hint: {
     textAlign: 'center',
-    color: '#d8e6da',
+    color: '#5c6860',
     fontSize: 13,
     marginBottom: 12,
     fontWeight: '600',
