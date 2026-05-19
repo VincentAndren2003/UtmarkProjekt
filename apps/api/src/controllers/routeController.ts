@@ -7,17 +7,17 @@ const greenAreaService = new GreenAreaService();
 
 export const generateRouteController = async (req: Request, res: Response) => {
   try {
-    const { id, start, distance, filters } = req.body;
+    const { id, start, distance, filters, end } = req.body;
 
     const normalizedDistance = normalizeDistance(distance);
-    const normalizedFilters = normalizeFilters(filters);
+    const normalizedFilters = normalizeFilters(filters); // Vad är detta? Vad gör det?
     const greenAreas = await greenAreaService.fetchGreenAreas(
       start.latitude,
       start.longitude,
       normalizedDistance * 1000
     );
 
-    const newRoute = new Route(id, start, normalizedDistance);
+    const newRoute = new Route(id, start, normalizedDistance, end);
     const checkpoints = newRoute.setCheckpoints(
       undefined,
       undefined,
@@ -28,6 +28,7 @@ export const generateRouteController = async (req: Request, res: Response) => {
     res.status(200).json({
       id: newRoute.id,
       start: newRoute.start,
+      end: newRoute.end,
       distance: newRoute.distance,
       filters: normalizedFilters,
       checkpoints: checkpoints,

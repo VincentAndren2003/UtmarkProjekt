@@ -138,15 +138,17 @@ export function GeneratedRouteLayer({ route }: Props) {
               />
             )}
             {/* Nummer-label */}
-            <Marker
-              coordinate={checkpoint.coordinate}
-              anchor={{ x: 0, y: 0.8 }}
-              zIndex={4}
-            >
-              <View style={{ padding: 4 }}>
-                <Text style={styles.label}>{number}</Text>
-              </View>
-            </Marker>
+            {!isFinish && (
+              <Marker
+                coordinate={checkpoint.coordinate}
+                anchor={{ x: 0, y: 0.8 }}
+                zIndex={4}
+              >
+                <View style={{ padding: 4 }}>
+                  <Text style={styles.label}>{number}</Text>
+                </View>
+              </Marker>
+            )}
           </React.Fragment>
         );
       })}
