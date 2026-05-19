@@ -58,11 +58,7 @@ export function RouteStartedScreen({ navigation, route }: Props) {
 
           <Pressable
             style={styles.primaryButton}
-            onPress={() =>
-              navigation.navigate('CreateRoute', {
-                activeRoute: generatedRoute,
-              } as never)
-            }
+            onPress={() => navigation.goBack()}
           >
             <Text style={styles.primaryButtonText}>Öppna kartvy →</Text>
           </Pressable>

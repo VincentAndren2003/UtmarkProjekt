@@ -24,7 +24,13 @@ import {
   RouteRequestSheet,
 } from '../components/route-sheet/RouteRequestSheet';
 import { useUserLocation } from '../hooks/userLocation';
-import { generateRoute, getMyProfile } from '../lib/api';
+import {
+  completeRun,
+  generateRoute,
+  getMyProfile,
+  savePersistedRoute,
+  startRun,
+} from '../lib/api';
 import { Coordinate, RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
@@ -142,6 +148,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const frameRef = useRef<number | null>(null);
   const from = route.params?.from;
   const activeRouteParam = route.params?.activeRoute;
+  const activeRunIdParam = route.params?.runId;
+  const activeSavedRouteIdParam = route.params?.savedRouteId;
   const { location } = useUserLocation();
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -177,6 +185,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [trackDistanceM, setTrackDistanceM] = useState(0);
+  const [runId, setRunId] = useState<string | null>(activeRunIdParam ?? null);
+  const [savedRouteId, setSavedRouteId] = useState<string | null>(
+    activeSavedRouteIdParam ?? null
+  );
+  const [isStartingRun, setIsStartingRun] = useState(false);
 
   const {
     isTracking,
@@ -280,7 +293,26 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     setGeneratedRoute(activeRouteParam);
     setSheetMode('active');
     beginActiveRun();
-  }, [activeRouteParam]);
+    if (activeRunIdParam) setRunId(activeRunIdParam);
+    if (activeSavedRouteIdParam) setSavedRouteId(activeSavedRouteIdParam);
+  }, [activeRouteParam, activeRunIdParam, activeSavedRouteIdParam]);
+
+  useEffect(() => {
+    if (!route.params?.runFinished) return;
+    stopTracking();
+    resetActiveRun();
+    setGeneratedRoute(null);
+    setSheetMode('request');
+    setRunId(null);
+    setSavedRouteId(null);
+    setShowActiveHud(false);
+    navigation.setParams({
+      runFinished: undefined,
+      activeRoute: undefined,
+      runId: undefined,
+      savedRouteId: undefined,
+    });
+  }, [route.params?.runFinished, navigation, stopTracking]);
 
   const animateSheetTo = (toValue: number) => {
     Animated.spring(sheetTranslateY, {
@@ -473,6 +505,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       );
       setGeneratedRoute(response);
       setSheetMode('generated');
+      setRunId(null);
+      setSavedRouteId(null);
     } catch (error) {
       console.error('Kunde inte generera rutt:', error);
     } finally {
@@ -480,7 +514,25 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleFetchCheckpoint = () => {
+  const buildRunSummary = (
+    checkpointDone: number,
+    totalCheckpoints: number,
+    routeSnapshot: RouteResponse
+  ) => ({
+    routeName: activeRouteName,
+    totalCheckpoints,
+    checkpointsCompleted: checkpointDone,
+    elapsedMin: Math.floor(elapsedSeconds / 60),
+    distanceKm: formatDistanceKm(trackDistanceM),
+    paceMinPerKm: formatPace(elapsedSeconds, trackDistanceM),
+    plannedDistanceKm: routeSnapshot.distance,
+    runId: runId ?? undefined,
+    savedRouteId: savedRouteId ?? undefined,
+    routeSnapshot,
+    from,
+  });
+
+  const handleFetchCheckpoint = async () => {
     if (!location || !generatedRoute) return;
     if (!canFetchCheckpoint) return;
 
@@ -507,10 +559,12 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       radius: cp.radius,
     }));
 
-    setGeneratedRoute({
+    const routeSnapshot: RouteResponse = {
       ...generatedRoute,
       checkpoints: updatedCheckpoints,
-    });
+    };
+
+    setGeneratedRoute(routeSnapshot);
 
     const checkpointDone = updatedCheckpoints.filter(
       (cp) => cp.completed
@@ -522,17 +576,74 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       justCompleted.coordinate.longitude
     );
 
-    const elapsedMin = Math.floor(elapsedSeconds / 60);
-    const pace = formatPace(elapsedSeconds, trackDistanceM);
+    const isLastCheckpoint = checkpointDone >= updatedCheckpoints.length;
+    const summary = buildRunSummary(
+      checkpointDone,
+      updatedCheckpoints.length,
+      routeSnapshot
+    );
+
+    if (isLastCheckpoint) {
+      stopTracking();
+      if (runId) {
+        try {
+          await completeRun(runId, {
+            durationSeconds: elapsedSeconds,
+            checkpointsCompleted: checkpointDone,
+            distanceMeters: Math.round(trackDistanceM),
+          });
+        } catch (err) {
+          console.warn('Kunde inte avsluta körning på servern:', err);
+        }
+      }
+      resetActiveRun();
+      navigation.navigate('RouteCompleted', summary);
+      return;
+    }
 
     navigation.navigate('CheckpointTaken', {
-      routeName: activeRouteName,
+      routeName: summary.routeName,
       currentCheckpoint: checkpointDone,
-      totalCheckpoints: updatedCheckpoints.length,
-      elapsedMin,
-      distanceKm: formatDistanceKm(trackDistanceM),
-      paceMinPerKm: pace,
+      totalCheckpoints: summary.totalCheckpoints,
+      elapsedMin: summary.elapsedMin,
+      distanceKm: summary.distanceKm,
+      paceMinPerKm: summary.paceMinPerKm,
     });
+  };
+
+  const handleStartOrienteering = async () => {
+    if (!generatedRoute || isStartingRun) return;
+    setIsStartingRun(true);
+    try {
+      let persistedRouteId = savedRouteId;
+      if (!persistedRouteId) {
+        try {
+          const saved = await savePersistedRoute(generatedRoute);
+          persistedRouteId = saved._id;
+          setSavedRouteId(saved._id);
+        } catch (err) {
+          console.warn('Kunde inte spara rutt — kör lokalt utan runId:', err);
+        }
+      }
+
+      if (persistedRouteId) {
+        try {
+          const run = await startRun(persistedRouteId);
+          setRunId(run._id);
+        } catch (err) {
+          console.warn('Kunde inte starta körning på servern:', err);
+        }
+      }
+
+      setSheetMode('active');
+      beginActiveRun();
+      startTracking(generatedRoute.id);
+      navigation.navigate('RouteStarted', {
+        route: generatedRoute,
+      });
+    } finally {
+      setIsStartingRun(false);
+    }
   };
 
   const panResponder = useMemo(
@@ -935,11 +1046,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <RouteGeneratedSheet
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
-            onStartOrienteering={() => {
-              beginActiveRun();
-              startTracking(generatedRoute.id);
-              navigation.navigate('RouteStarted', { route: generatedRoute });
-            }}
+            onStartOrienteering={handleStartOrienteering}
             onBackToRequest={() => {
               setSheetMode('request');
             }}

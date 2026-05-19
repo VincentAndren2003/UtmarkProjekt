@@ -9,12 +9,15 @@ type BottomNavProps = {
   navigation: NativeStackNavigationProp<RootStackParamList>;
   activeTab: TabKey;
   fromOrigin?: 'Login' | 'CreateAccount';
+  /** Override Hem — t.ex. nollställ karta efter avslutad rutt. */
+  onHomePress?: () => void;
 };
 
 export function BottomNav({
   navigation,
   activeTab,
   fromOrigin,
+  onHomePress,
 }: BottomNavProps) {
   return (
     <View style={styles.wrapper}>
@@ -22,9 +25,13 @@ export function BottomNav({
       <View style={styles.row}>
         <Pressable
           style={styles.item}
-          onPress={() =>
-            navigation.navigate('CreateRoute', { from: fromOrigin })
-          }
+          onPress={() => {
+            if (onHomePress) {
+              onHomePress();
+              return;
+            }
+            navigation.navigate('CreateRoute', { from: fromOrigin });
+          }}
         >
           <Ionicons
             name={activeTab === 'CreateRoute' ? 'home' : 'home-outline'}

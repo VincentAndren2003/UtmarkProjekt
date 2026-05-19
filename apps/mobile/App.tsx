@@ -15,6 +15,7 @@ import { FriendsScreen } from './src/screens/FriendsScreen';
 import { FriendRequestsScreen } from './src/screens/FriendRequestsScreen';
 import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
 import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
+import { RouteCompletedScreen } from './src/screens/RouteCompletedScreen';
 import { RouteResponse } from './src/types/route';
 
 export type RootStackParamList = {
@@ -30,6 +31,8 @@ export type RootStackParamList = {
         activeRoute?: RouteResponse;
         runId?: string;
         savedRouteId?: string;
+        /** Nollställ kartvy efter avslutad rutt. */
+        runFinished?: boolean;
       }
     | undefined;
   RouteStarted: { route: RouteResponse };
@@ -40,6 +43,19 @@ export type RootStackParamList = {
     elapsedMin: number;
     distanceKm: string;
     paceMinPerKm: string;
+  };
+  RouteCompleted: {
+    routeName: string;
+    totalCheckpoints: number;
+    checkpointsCompleted: number;
+    elapsedMin: number;
+    distanceKm: string;
+    paceMinPerKm: string;
+    plannedDistanceKm: number;
+    runId?: string;
+    savedRouteId?: string;
+    routeSnapshot: RouteResponse;
+    from?: 'Login' | 'CreateAccount';
   };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
   Profile: { from?: 'Login' | 'CreateAccount' } | undefined;
@@ -105,6 +121,15 @@ export default function App() {
         <Stack.Screen
           name="CheckpointTaken"
           component={CheckpointTakenScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="RouteCompleted"
+          component={RouteCompletedScreen}
           options={{
             headerShown: false,
             animation: 'fade',
