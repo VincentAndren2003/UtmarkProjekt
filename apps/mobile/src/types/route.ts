@@ -10,6 +10,7 @@ export type Checkpoint = {
 export type RouteResponse = {
   id: string;
   start: Coordinate;
+  end: Coordinate;
   distance: number;
   checkpoints: Checkpoint[];
 };
