@@ -168,6 +168,31 @@ export async function generateRoute(
   });
 }
 
+// -----------------------------------------------------------------------------
+// 6. Friends (protected — kräver inloggning)
+// -----------------------------------------------------------------------------
+
+// Profil för en vän, plus när vänskapen accepterades (från GET /api/friends).
+export type Friend = Profile & {
+  friendsSince?: string;
+};
+
+// Hämtar alla accepterade vänner för den inloggade användaren.
+// Backend: GET /api/friends — returnerar profilfält + friendsSince (ISO-datum).
+export function getFriends(): Promise<Friend[]> {
+  return request<Friend[]>('/api/friends', { auth: true });
+}
+
+// Antal accepterade vänner (används på profilskärmen).
 export function getFriendCount(): Promise<{ count: number }> {
   return request<{ count: number }>('/api/friends/count', { auth: true });
+}
+
+// Tar bort en vän eller avbryter en väntande förfrågan.
+// Backend: DELETE /api/friends/:friendId
+export function removeFriend(friendId: string): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/friends/${friendId}`, {
+    method: 'DELETE',
+    auth: true,
+  });
 }
