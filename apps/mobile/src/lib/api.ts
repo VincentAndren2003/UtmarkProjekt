@@ -190,6 +190,23 @@ export function getFriendCount(): Promise<{ count: number }> {
   return request<{ count: number }>('/api/friends/count', { auth: true });
 }
 
+// Inkommande vänförfrågningar (profiler som skickat förfrågan till dig).
+// Backend: GET /api/friends/pending
+export function getPendingFriendRequests(): Promise<Friend[]> {
+  return request<Friend[]>('/api/friends/pending', { auth: true });
+}
+
+// Accepterar en inkommande förfrågan.
+// Backend: POST /api/friends/accept/:requesterId
+export function acceptFriendRequest(
+  requesterId: string
+): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/friends/accept/${requesterId}`, {
+    method: 'POST',
+    auth: true,
+  });
+}
+
 // Tar bort en vän eller avbryter en väntande förfrågan.
 // Backend: DELETE /api/friends/:friendId
 export function removeFriend(friendId: string): Promise<{ message: string }> {
@@ -198,3 +215,23 @@ export function removeFriend(friendId: string): Promise<{ message: string }> {
     auth: true,
   });
 }
+
+// Personsök — mobilen är redo; backend-teamet ska implementera endpointen.
+// Förväntat: GET /api/profile/search?q= (minst 2 tecken, returnerar Profile[]).
+export function searchProfiles(query: string): Promise<Profile[]> {
+  const q = encodeURIComponent(query.trim());
+  return request<Profile[]>(`/api/profile/search?q=${q}`, { auth: true });
+}
+
+// Skickar vänförfrågan till en användare.
+// Backend: POST /api/friends/request/:friendId
+export function sendFriendRequest(
+  friendId: string
+): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/friends/request/${friendId}`, {
+    method: 'POST',
+    auth: true,
+  });
+}
+
+// TODO: GET skickade vänförfrågningar när backend har endpoint.
