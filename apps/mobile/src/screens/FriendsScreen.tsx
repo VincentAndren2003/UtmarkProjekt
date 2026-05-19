@@ -3,16 +3,27 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { Friend, getFriends, removeFriend } from '../lib/api';
+import {
+  Friend,
+  getFriends,
+  Profile,
+  removeFriend,
+  searchProfiles,
+  sendFriendRequest,
+} from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Friends'>;
 
@@ -44,25 +55,32 @@ function formatFriendsSinceLabel(isoDate: string | undefined): string {
   return `Vänner sedan ${since.getFullYear()}`;
 }
 
-// Filtrerar listan lokalt på namn/användarnamn tills backend-sök finns.
-function filterFriendsByQuery(friends: Friend[], query: string): Friend[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return friends;
-
-  return friends.filter(
-    (friend) =>
-      friend.fullName.toLowerCase().includes(q) ||
-      friend.username.toLowerCase().includes(q)
-  );
+function profileDisplayName(profile: Profile): string {
+  if (profile.fullName?.trim()) return profile.fullName.trim();
+  return profile.username ? `@${profile.username}` : 'Användare';
 }
 
 export function FriendsScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addSearchQuery, setAddSearchQuery] = useState('');
+  const [addSearchResults, setAddSearchResults] = useState<Profile[]>([]);
+  const [addSearchLoading, setAddSearchLoading] = useState(false);
+  const [addSearchNotice, setAddSearchNotice] = useState<string | null>(null);
+  const [sentRequestIds, setSentRequestIds] = useState<Set<string>>(
+    () => new Set()
+  );
+  const [addingId, setAddingId] = useState<string | null>(null);
   // Ökas vid "Försök igen" så useEffect hämtar vänlistan på nytt.
   const [reloadNonce, setReloadNonce] = useState(0);
+
+  const friendIds = useMemo(
+    () => new Set(friends.map((f) => f.userId)),
+    [friends]
+  );
 
   // Hämtar vänlistan från backend (vid mount och vid reloadNonce).
   // setState körs bara efter await — undviker react-hooks/set-state-in-effect.
@@ -96,10 +114,69 @@ export function FriendsScreen({ navigation }: Props) {
     setReloadNonce((n) => n + 1);
   };
 
-  const visibleFriends = useMemo(
-    () => filterFriendsByQuery(friends, searchQuery),
-    [friends, searchQuery]
-  );
+  const trimmedAddSearch = addSearchQuery.trim();
+  const addSearchTooShort = trimmedAddSearch.length < 2;
+
+  // Sök nya personer i popup (debounce). setState bara i timeout/async.
+  useEffect(() => {
+    if (!addModalVisible || addSearchTooShort) return;
+
+    let active = true;
+
+    const timer = setTimeout(async () => {
+      if (!active) return;
+      setAddSearchLoading(true);
+      setAddSearchNotice(null);
+      try {
+        const results = await searchProfiles(trimmedAddSearch);
+        if (!active) return;
+        setAddSearchResults(results.filter((p) => !friendIds.has(p.userId)));
+        setAddSearchNotice(null);
+      } catch {
+        if (!active) return;
+        setAddSearchResults([]);
+        setAddSearchNotice(
+          'Personsök väntar på backend (GET /api/profile/search?q=).'
+        );
+      } finally {
+        if (active) setAddSearchLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [addModalVisible, addSearchTooShort, trimmedAddSearch, friendIds]);
+
+  const openAddModal = () => {
+    setAddSearchQuery('');
+    setAddSearchResults([]);
+    setAddSearchNotice(null);
+    setAddModalVisible(true);
+  };
+
+  const closeAddModal = () => {
+    setAddModalVisible(false);
+    setAddSearchQuery('');
+    setAddSearchResults([]);
+    setAddSearchNotice(null);
+  };
+
+  const onSendFriendRequest = async (profile: Profile) => {
+    setAddingId(profile.userId);
+    try {
+      await sendFriendRequest(profile.userId);
+      setSentRequestIds((prev) => new Set(prev).add(profile.userId));
+    } catch (err) {
+      Alert.alert(
+        'Kunde inte skicka',
+        err instanceof Error ? err.message : 'Försök igen senare.'
+      );
+    } finally {
+      setAddingId(null);
+    }
+  };
 
   // Tre-prick-menyn: ta bort vän (fungerar mot befintligt DELETE-endpoint).
   const onFriendMenuPress = (friend: Friend) => {
@@ -171,26 +248,28 @@ export function FriendsScreen({ navigation }: Props) {
         >
           <Ionicons name="chevron-back" size={26} color="#1a1a1a" />
         </Pressable>
-      </View>
 
-      <View style={styles.searchWrap}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#9ca3af"
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Sök efter personer i Utmark"
-          placeholderTextColor="#9ca3af"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          // TODO: Ersätt lokal filtrering med backend-sök (nya användare att lägga till som vän).
-          returnKeyType="search"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.topBarActions}>
+          <Pressable
+            style={styles.headerShortcut}
+            onPress={openAddModal}
+            accessibilityLabel="Lägg till vän"
+            hitSlop={8}
+          >
+            <Ionicons name="add" size={28} color="#1a1a1a" />
+            <Text style={styles.headerShortcutLabel}>Lägg till</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.headerShortcut}
+            onPress={() => navigation.navigate('FriendRequests')}
+            accessibilityLabel="Förfrågningar"
+            hitSlop={8}
+          >
+            <Ionicons name="person-add-outline" size={26} color="#1a1a1a" />
+            <Text style={styles.headerShortcutLabel}>Förfrågningar</Text>
+          </Pressable>
+        </View>
       </View>
 
       <Text style={styles.sectionTitle}>Vänner</Text>
@@ -206,23 +285,132 @@ export function FriendsScreen({ navigation }: Props) {
             <Text style={styles.retryText}>Försök igen</Text>
           </Pressable>
         </View>
-      ) : visibleFriends.length === 0 ? (
+      ) : friends.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>
-            {searchQuery.trim()
-              ? 'Inga vänner matchar sökningen.'
-              : 'Du har inga vänner ännu.'}
-          </Text>
+          <Text style={styles.emptyText}>Du har inga vänner ännu.</Text>
         </View>
       ) : (
         <FlatList
-          data={visibleFriends}
+          data={friends}
           keyExtractor={(item) => item.userId}
           renderItem={renderFriendRow}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <Modal
+        visible={addModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={closeAddModal}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={closeAddModal}
+            accessibilityLabel="Stäng"
+          />
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={[
+              styles.modalKeyboardAvoid,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+            ]}
+            keyboardVerticalOffset={0}
+          >
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Lägg till vän</Text>
+                <Pressable
+                  onPress={closeAddModal}
+                  hitSlop={8}
+                  accessibilityLabel="Stäng"
+                >
+                  <Ionicons name="close" size={26} color="#1a1a1a" />
+                </Pressable>
+              </View>
+
+              <View style={styles.modalSearchWrap}>
+                <Ionicons name="search" size={20} color="#9ca3af" />
+                <TextInput
+                  style={styles.modalSearchInput}
+                  placeholder="Sök efter personer i Utmark"
+                  placeholderTextColor="#9ca3af"
+                  value={addSearchQuery}
+                  onChangeText={setAddSearchQuery}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.modalBody}>
+                {addSearchTooShort ? (
+                  <Text style={styles.modalHint}>
+                    Skriv minst 2 tecken för att söka.
+                  </Text>
+                ) : addSearchLoading ? (
+                  <ActivityIndicator color="#3E7A44" />
+                ) : addSearchNotice ? (
+                  <Text style={styles.modalHint}>{addSearchNotice}</Text>
+                ) : addSearchResults.length === 0 ? (
+                  <Text style={styles.modalHint}>Inga personer hittades.</Text>
+                ) : (
+                  <FlatList
+                    data={addSearchResults}
+                    keyExtractor={(item) => item.userId}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    style={styles.modalList}
+                    contentContainerStyle={styles.modalListContent}
+                    renderItem={({ item }) => {
+                      const sent = sentRequestIds.has(item.userId);
+                      const busy = addingId === item.userId;
+
+                      return (
+                        <View style={styles.modalResultRow}>
+                          <View style={styles.avatar}>
+                            <Ionicons name="person" size={28} color="#b8bec5" />
+                          </View>
+                          <View style={styles.friendTextBlock}>
+                            <Text style={styles.friendName} numberOfLines={1}>
+                              {profileDisplayName(item)}
+                            </Text>
+                            {item.username ? (
+                              <Text style={styles.friendMeta} numberOfLines={1}>
+                                @{item.username}
+                              </Text>
+                            ) : null}
+                          </View>
+                          <Pressable
+                            style={[
+                              styles.addFriendButton,
+                              sent && styles.addFriendButtonSent,
+                            ]}
+                            disabled={sent || busy}
+                            onPress={() => onSendFriendRequest(item)}
+                          >
+                            <Text
+                              style={[
+                                styles.addFriendButtonText,
+                                sent && styles.addFriendButtonTextSent,
+                              ]}
+                            >
+                              {sent ? 'Skickad' : 'Lägg till'}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      );
+                    }}
+                  />
+                )}
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -233,6 +421,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingTop: 56,
     paddingBottom: 8,
@@ -243,32 +434,122 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchWrap: {
+  topBarActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  headerShortcut: {
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    minWidth: 64,
+  },
+  headerShortcutLabel: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#1a1a1a',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalKeyboardAvoid: {
+    width: '100%',
+    maxHeight: '92%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
+  },
+  modalSheet: {
+    width: '100%',
+    flexGrow: 1,
+  },
+  modalBody: {
+    flexGrow: 1,
+    minHeight: 140,
+    maxHeight: 360,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  modalSearchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
     paddingHorizontal: 14,
     height: 48,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    backgroundColor: '#fff',
+    gap: 8,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
+  modalSearchInput: {
     flex: 1,
     fontSize: 16,
     color: '#1a1a1a',
     paddingVertical: 0,
+  },
+  modalHint: {
+    fontSize: 15,
+    color: '#6b7280',
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  modalList: {
+    flex: 1,
+  },
+  modalListContent: {
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+  modalResultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  addFriendButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#3E7A44',
+  },
+  addFriendButtonSent: {
+    backgroundColor: '#eef2f6',
+  },
+  addFriendButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  addFriendButtonTextSent: {
+    color: '#6b7280',
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
     color: '#1a1a1a',
     marginHorizontal: 20,
+    marginTop: 8,
     marginBottom: 12,
   },
   listContent: {
