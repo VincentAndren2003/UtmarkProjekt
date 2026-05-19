@@ -1,7 +1,15 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, afterEach } from 'vitest';
 import { normalizeDistance, normalizeFilters } from '../utils/routeUtils';
 
 describe('normalizeDistance', () => {
+  afterEach((context) => {
+    if (context.task.result?.state === 'pass') {
+      console.log(`PASSED: ${context.task.name}`);
+    } else {
+      console.log(`FAILED: ${context.task.name}`);
+    }
+  });
+
   test('ska returnera 1 om värdet är under minimum', () => {
     expect(normalizeDistance(0)).toBe(1);
     expect(normalizeDistance(-5)).toBe(1);
@@ -26,6 +34,14 @@ describe('normalizeDistance', () => {
 });
 
 describe('normalizeFilters', () => {
+  afterEach((context) => {
+    if (context.task.result?.state === 'pass') {
+      console.log(`PASSED: ${context.task.name}`);
+    } else {
+      console.log(`FAILED: ${context.task.name}`);
+    }
+  });
+
   test('ska returnera bara strängar', () => {
     expect(normalizeFilters(['park', 'water'])).toEqual(['park', 'water']);
     expect(normalizeFilters([1, 'park', null, 'water'])).toEqual([

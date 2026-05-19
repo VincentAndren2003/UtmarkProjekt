@@ -25,7 +25,12 @@ export type RootStackParamList = {
   Map: undefined;
   ProfileUpsert: undefined;
   CreateRoute:
-    | { from?: 'Login' | 'CreateAccount'; activeRoute?: RouteResponse }
+    | {
+        from?: 'Login' | 'CreateAccount';
+        activeRoute?: RouteResponse;
+        runId?: string;
+        savedRouteId?: string;
+      }
     | undefined;
   RouteStarted: { route: RouteResponse };
   CheckpointTaken: {

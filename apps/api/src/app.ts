@@ -101,6 +101,74 @@ export function createApp() {
     }
   });
 
+  app.post('/api/route-records', authMiddleware, async (req, res, next) => {
+    try {
+      await proxyJson(res, `${env.ROUTES_SERVICE_URL}/routes`, {
+        method: 'POST',
+        headers: { 'x-user-id': req.userId! },
+        body: req.body,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/api/route-records/:id', authMiddleware, async (req, res, next) => {
+    try {
+      const id = encodeURIComponent(String(req.params.id));
+      await proxyJson(res, `${env.ROUTES_SERVICE_URL}/routes/${id}`, {
+        method: 'GET',
+        headers: { 'x-user-id': req.userId! },
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.post('/api/runs', authMiddleware, async (req, res, next) => {
+    try {
+      await proxyJson(res, `${env.ROUTES_SERVICE_URL}/runs`, {
+        method: 'POST',
+        headers: { 'x-user-id': req.userId! },
+        body: req.body,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/api/runs/me', authMiddleware, async (req, res, next) => {
+    try {
+      const qs =
+        typeof req.query.status === 'string'
+          ? `?status=${encodeURIComponent(req.query.status)}`
+          : '';
+      await proxyJson(res, `${env.ROUTES_SERVICE_URL}/runs/me${qs}`, {
+        method: 'GET',
+        headers: { 'x-user-id': req.userId! },
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.patch(
+    '/api/runs/:id/complete',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        const id = encodeURIComponent(String(req.params.id));
+        await proxyJson(res, `${env.ROUTES_SERVICE_URL}/runs/${id}/complete`, {
+          method: 'PATCH',
+          headers: { 'x-user-id': req.userId! },
+          body: req.body,
+        });
+      } catch (err) {
+        next(err);
+      }
+    }
+  );
+
   // Green areas (public — anyone can view).
   app.get('/api/green-areas', listGreenAreas);
 
