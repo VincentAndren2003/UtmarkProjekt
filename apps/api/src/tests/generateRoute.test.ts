@@ -4,7 +4,7 @@ import express from 'express';
 import routeRouter from '../routes/routeRouter';
 import { Route } from '../models/Route';
 import { GreenAreaService } from '../services/GreenAreaService';
-import { describe, test, expect, vi, beforeEach, MockInstance } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach, MockInstance } from 'vitest';
 
 vi.mock('../models/Route');
 vi.mock('../services/GreenAreaService');
@@ -20,6 +20,16 @@ describe('POST /generate-route', () => {
       fetchGreenAreas: vi.fn().mockResolvedValue([]),
     }));
   });
+
+  afterEach((context) => {  // ← Lägg till detta
+    if (context.task.result?.state === 'pass') {
+      console.log(`PASSED: ${context.task.name}`);
+    } else {
+      console.log(`FAILED: ${context.task.name}`);
+    }
+  });
+
+  
 
   test('ska returnera 200 med korrekt data', async () => {
     (Route as unknown as MockInstance).mockImplementation(() => ({
