@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckpointTaken'>;
@@ -49,121 +50,130 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.root}>
-      <View style={styles.content}>
-        <View style={styles.checkWrap}>
-          <View style={styles.checkInner}>
-            <Text style={styles.checkMark}>✓</Text>
-          </View>
+      <StatusBar style="dark" />
+      <View style={styles.centerWrap}>
+        <View style={styles.glowLayer} pointerEvents="none">
+          <View style={styles.gradientGlowOuter} />
+          <View style={styles.gradientGlow} />
         </View>
+        <View style={styles.content}>
+          <View style={styles.checkWrap}>
+            <View style={styles.checkInner}>
+              <Text style={styles.checkMark}>✓</Text>
+            </View>
+          </View>
 
-        <Text style={styles.title}>Checkpoint {currentCheckpoint} tagen!</Text>
-        <Text style={styles.subtitle}>
-          {isRouteComplete
-            ? 'Bra jobbat, Du har tagit alla checkpoints!'
-            : 'Fortsätt mot nästa kontroll!'}
-        </Text>
+          <Text style={styles.title}>
+            Checkpoint {currentCheckpoint} tagen!
+          </Text>
+          <Text style={styles.subtitle}>
+            {isRouteComplete
+              ? 'Bra jobbat, Du har tagit alla checkpoints!'
+              : 'Fortsätt mot nästa kontroll!'}
+          </Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.progressTitle}>Framsteg</Text>
-        <FlatList
-          ref={progressRef}
-          data={progressData}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.progressListContent}
-          getItemLayout={(_, index) => ({
-            length: PROGRESS_SEGMENT_WIDTH,
-            offset: PROGRESS_SEGMENT_WIDTH * index,
-            index,
-          })}
-          onScrollToIndexFailed={() => {}}
-          renderItem={({ item, index }) => {
-            const isDone = item.number < currentCheckpoint;
-            const isCurrent = item.number === currentCheckpoint;
-            const isLast = index === progressData.length - 1;
+          <Text style={styles.progressTitle}>Framsteg</Text>
+          <FlatList
+            ref={progressRef}
+            data={progressData}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.progressListContent}
+            getItemLayout={(_, index) => ({
+              length: PROGRESS_SEGMENT_WIDTH,
+              offset: PROGRESS_SEGMENT_WIDTH * index,
+              index,
+            })}
+            onScrollToIndexFailed={() => {}}
+            renderItem={({ item, index }) => {
+              const isDone = item.number < currentCheckpoint;
+              const isCurrent = item.number === currentCheckpoint;
+              const isLast = index === progressData.length - 1;
 
-            return (
-              <View style={styles.progressItem}>
-                <View style={styles.progressTopRow}>
-                  <View
-                    style={[
-                      styles.progressDot,
-                      isDone && styles.progressDotDone,
-                      isCurrent && styles.progressDotCurrent,
-                    ]}
-                  />
-                  {!isLast && (
+              return (
+                <View style={styles.progressItem}>
+                  <View style={styles.progressTopRow}>
                     <View
                       style={[
-                        styles.progressLine,
-                        isDone && styles.progressLineDone,
+                        styles.progressDot,
+                        isDone && styles.progressDotDone,
+                        isCurrent && styles.progressDotCurrent,
                       ]}
                     />
-                  )}
+                    {!isLast && (
+                      <View
+                        style={[
+                          styles.progressLine,
+                          isDone && styles.progressLineDone,
+                        ]}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.progressNumber,
+                      isCurrent && styles.progressNumberCurrent,
+                    ]}
+                  >
+                    {item.number}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.progressNumber,
-                    isCurrent && styles.progressNumberCurrent,
-                  ]}
-                >
-                  {item.number}
-                </Text>
-              </View>
-            );
-          }}
-        />
+              );
+            }}
+          />
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Tid</Text>
-            <Text style={styles.statValue}>{elapsedMin}</Text>
-            <Text style={styles.statUnit}>min</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Tid</Text>
+              <Text style={styles.statValue}>{elapsedMin}</Text>
+              <Text style={styles.statUnit}>min</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Distans</Text>
+              <Text style={styles.statValue}>{distanceKm}</Text>
+              <Text style={styles.statUnit}>km</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Snitt</Text>
+              <Text style={styles.statValue}>{paceMinPerKm}</Text>
+              <Text style={styles.statUnit}>/km</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Distans</Text>
-            <Text style={styles.statValue}>{distanceKm}</Text>
-            <Text style={styles.statUnit}>km</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Snitt</Text>
-            <Text style={styles.statValue}>{paceMinPerKm}</Text>
-            <Text style={styles.statUnit}>/km</Text>
-          </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.nextTitle}>
+            {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
+          </Text>
+          {!isRouteComplete && (
+            <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+          )}
+          <Text style={styles.leftText}>
+            {checkpointsLeft} checkpoints kvar till mål
+          </Text>
+
+          <Pressable
+            style={styles.cta}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+                return;
+              }
+              navigation.navigate('CreateRoute');
+            }}
+          >
+            <Text style={styles.ctaText}>Fortsätt rutt →</Text>
+          </Pressable>
+
+          <Text style={styles.routeName}>{routeName}</Text>
         </View>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.nextTitle}>
-          {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
-        </Text>
-        {!isRouteComplete && (
-          <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
-        )}
-        <Text style={styles.leftText}>
-          {checkpointsLeft} checkpoints kvar till mål
-        </Text>
-
-        <Pressable
-          style={styles.cta}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-              return;
-            }
-            navigation.navigate('CreateRoute');
-          }}
-        >
-          <Text style={styles.ctaText}>Fortsätt rutt →</Text>
-        </Pressable>
-
-        <Text style={styles.routeName}>{routeName}</Text>
       </View>
     </View>
   );
@@ -172,13 +182,38 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#102115',
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  centerWrap: {
+    width: '100%',
     paddingHorizontal: 24,
+    position: 'relative',
+  },
+  glowLayer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gradientGlow: {
+    position: 'absolute',
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: '#d8eddc',
+    opacity: 0.55,
+  },
+  gradientGlowOuter: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    borderRadius: 250,
+    backgroundColor: '#eef6f0',
+    opacity: 0.7,
   },
   content: {
-    backgroundColor: 'transparent',
-    borderRadius: 18,
+    zIndex: 1,
     paddingHorizontal: 18,
     paddingVertical: 20,
   },
@@ -187,7 +222,7 @@ const styles = StyleSheet.create({
     height: 92,
     borderRadius: 46,
     borderWidth: 2,
-    borderColor: 'rgba(79, 178, 121, 0.58)',
+    borderColor: 'rgba(47, 122, 63, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -197,25 +232,25 @@ const styles = StyleSheet.create({
     width: 66,
     height: 66,
     borderRadius: 33,
-    backgroundColor: '#2f7048',
+    backgroundColor: '#2f7a3f',
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkMark: {
-    color: '#f2fff6',
+    color: '#ffffff',
     fontSize: 42,
     fontWeight: '400',
     marginTop: -2,
   },
   title: {
-    color: '#f3fff6',
+    color: '#111111',
     fontSize: 24,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    color: '#8fbe99',
+    color: '#3d6b47',
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',
@@ -223,11 +258,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(140, 177, 148, 0.28)',
+    backgroundColor: '#e0e8e2',
     marginVertical: 14,
   },
   progressTitle: {
-    color: '#95bca0',
+    color: '#5f7a66',
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '500',
@@ -252,34 +287,36 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#4d5a50',
+    borderColor: '#c5d4c8',
     backgroundColor: 'transparent',
   },
   progressDotDone: {
-    borderColor: '#6ea97b',
+    borderColor: '#2f7a3f',
+    backgroundColor: '#e8f3ea',
   },
   progressDotCurrent: {
-    borderColor: '#e051de',
+    borderColor: '#c94bc4',
+    backgroundColor: '#fae8f9',
   },
   progressLine: {
     flex: 1,
     height: 2,
     alignSelf: 'center',
     minWidth: 0,
-    backgroundColor: '#4d5a50',
+    backgroundColor: '#d0ddd4',
   },
   progressLineDone: {
     backgroundColor: '#6ea97b',
   },
   progressNumber: {
-    color: '#6f8c75',
+    color: '#7a8f80',
     fontSize: 12,
     fontWeight: '600',
     width: 20,
     textAlign: 'center',
   },
   progressNumberCurrent: {
-    color: '#d65ad5',
+    color: '#b83eb3',
   },
   statsRow: {
     flexDirection: 'row',
@@ -294,34 +331,34 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 68,
-    backgroundColor: 'rgba(140, 177, 148, 0.3)',
+    backgroundColor: '#e0e8e2',
   },
   statLabel: {
-    color: '#8fbe99',
+    color: '#5f7a66',
     fontSize: 14,
     marginBottom: 2,
     fontWeight: '500',
   },
   statValue: {
-    color: '#f1fff5',
+    color: '#1a1a1a',
     fontSize: 30,
     fontWeight: '800',
     lineHeight: 46,
   },
   statUnit: {
-    color: '#8fbe99',
+    color: '#5f7a66',
     fontSize: 16,
     fontWeight: '500',
   },
   nextTitle: {
-    color: '#95bca0',
+    color: '#5f7a66',
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '500',
     marginTop: 34,
   },
   nextDistance: {
-    color: '#f2fff5',
+    color: '#111111',
     textAlign: 'center',
     fontSize: 30,
     fontWeight: '800',
@@ -329,7 +366,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   leftText: {
-    color: '#95bca0',
+    color: '#5f7a66',
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '500',
@@ -339,17 +376,17 @@ const styles = StyleSheet.create({
   cta: {
     height: 60,
     borderRadius: 22,
-    backgroundColor: '#3c8a49',
+    backgroundColor: '#2f7a3f',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
-    color: '#f3fff6',
+    color: '#ffffff',
     fontSize: 22,
     fontWeight: '800',
   },
   routeName: {
-    color: '#6f8c75',
+    color: '#8a9a8e',
     textAlign: 'center',
     marginTop: 14,
     fontSize: 12,

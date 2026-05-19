@@ -11,6 +11,8 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { ChallengesScreen } from './src/screens/ChallengesScreen';
 import { BadgesScreen } from './src/screens/BadgesScreen';
+import { FriendsScreen } from './src/screens/FriendsScreen';
+import { FriendRequestsScreen } from './src/screens/FriendRequestsScreen';
 import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
 import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
 import { RouteResponse } from './src/types/route';
@@ -39,6 +41,8 @@ export type RootStackParamList = {
   History: undefined;
   Challenges: undefined;
   Badges: undefined;
+  Friends: undefined;
+  FriendRequests: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -141,6 +145,24 @@ export default function App() {
         <Stack.Screen
           name="Badges"
           component={BadgesScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="Friends"
+          component={FriendsScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="FriendRequests"
+          component={FriendRequestsScreen}
           options={{
             headerShown: false,
             animation: 'fade',

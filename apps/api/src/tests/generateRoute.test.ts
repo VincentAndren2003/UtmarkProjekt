@@ -49,7 +49,7 @@ describe('POST /generate-route', () => {
       .send({ id: 1, start: 'Stockholm', distance: 10 });
 
     expect(res.status).toBe(500);
-    expect(res.body.message).toBe('Rutt kunnde inte genegeras');
+    expect(res.body.message).toBe('Rutt kunde inte genereras');
   });
 
   test('ska clampas distance till 30 om för högt värde skickas', async () => {
