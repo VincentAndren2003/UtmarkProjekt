@@ -16,6 +16,7 @@ import { FriendRequestsScreen } from './src/screens/FriendRequestsScreen';
 import { RouteStartedScreen } from './src/screens/RouteStartedScreen';
 import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
 import { RouteCompletedScreen } from './src/screens/RouteCompletedScreen';
+import { CancelRouteScreen } from './src/screens/CancelRouteScreen';
 import { RouteResponse } from './src/types/route';
 
 export type RootStackParamList = {
@@ -55,6 +56,16 @@ export type RootStackParamList = {
     runId?: string;
     savedRouteId?: string;
     routeSnapshot: RouteResponse;
+    from?: 'Login' | 'CreateAccount';
+  };
+  CancelRoute: {
+    routeName: string;
+    totalCheckpoints: number;
+    checkpointsCompleted: number;
+    elapsedMin: number;
+    distanceKm: string;
+    paceMinPerKm: string;
+    plannedDistanceKm: number;
     from?: 'Login' | 'CreateAccount';
   };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
@@ -130,6 +141,15 @@ export default function App() {
         <Stack.Screen
           name="RouteCompleted"
           component={RouteCompletedScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="CancelRoute"
+          component={CancelRouteScreen}
           options={{
             headerShown: false,
             animation: 'fade',
