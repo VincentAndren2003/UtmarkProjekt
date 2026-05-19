@@ -1,19 +1,23 @@
 import { Router } from 'express';
-import { route } from '../routes/route';
+import { Route } from '../models/Route';
 
 const router = Router();
 
 router.post('/generate-route', (req, res) => {
   try {
-    const { id, start, distance } = req.body;
+    const { id, start, distance, filters = [] } = req.body;
     const normalizedDistance = Math.max(1, Math.min(30, Number(distance) || 1));
-    const newRoute = new route(id, start, normalizedDistance);
+    const normalizedFilters = Array.isArray(filters)
+      ? filters.filter((filter): filter is string => typeof filter === 'string')
+      : [];
+    const newRoute = new Route(id, start, normalizedDistance);
     const checkpoints = newRoute.setCheckpoints();
 
     res.status(200).json({
       id: newRoute.id,
       start: newRoute.start,
       distance: newRoute.distance,
+      filters: normalizedFilters,
       checkpoints: checkpoints,
     });
   } catch {

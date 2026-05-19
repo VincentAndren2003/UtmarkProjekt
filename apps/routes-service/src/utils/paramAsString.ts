@@ -4,7 +4,11 @@ export function paramAsString(
 ): string | undefined {
   if (value === undefined) return undefined;
   if (typeof value === 'string') return value;
-  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+  if (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    typeof value[0] === 'string'
+  ) {
     return value[0];
   }
   return undefined;
