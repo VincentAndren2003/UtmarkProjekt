@@ -223,3 +223,39 @@ export async function getPendingRequests(
     next(err);
   }
 }
+
+export async function searchUsers(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { query } = req.query as { query: string };
+
+    if (!query || query.trim().length < 2) {
+      res.status(400).json({ error: 'Sökfrågan måste vara minst 2 tecken' });
+      return;
+    }
+
+    const db = mongoose.connection.db;
+
+    if (!db) {
+      res.status(500).json({ error: 'Ingen databasanslutning' });
+      return;
+    }
+
+    const profiles = await db.collection('profiles').find({
+      username: { $regex: query, $options: 'i' },
+      userId: { $ne: new mongoose.Types.ObjectId(req.userId) } // exkludera sig själv
+    }).toArray();
+
+    res.status(200).json(profiles);
+  } catch (err) {
+    next(err);
+  }
+}
