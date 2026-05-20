@@ -45,6 +45,7 @@ class LocationService {
 
   public clear(): void {
     this.locationTimeStamps = [];
+    this.checkpointTimeStamps = [];
     if (this.subsciption) {
       this.subsciption.remove();
       this.subsciption = null;

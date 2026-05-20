@@ -13,6 +13,37 @@ function httpError(status: number, message: string): Error {
 const RUN_STATUSES = ['in_progress', 'completed', 'abandoned'] as const;
 export type RunStatus = (typeof RUN_STATUSES)[number];
 
+const FINISH_STATUSES = ['completed', 'abandoned'] as const;
+type FinishRunStatus = (typeof FINISH_STATUSES)[number];
+
+const MAX_TRACK_POINTS = 10_000;
+
+type TrackPointInput = {
+  lat: number;
+  long: number;
+  timeStamp: number;
+};
+
+function parseFinishStatus(raw: string | undefined): FinishRunStatus {
+  if (raw === undefined || raw === 'completed') return 'completed';
+  if (raw === 'abandoned') return 'abandoned';
+  throw httpError(400, 'Ogiltig status för avslut');
+}
+
+function normalizeTrackPoints(
+  raw: TrackPointInput[] | undefined
+): TrackPointInput[] {
+  if (!raw?.length) return [];
+  if (raw.length > MAX_TRACK_POINTS) {
+    throw httpError(400, `Max ${MAX_TRACK_POINTS} trackPoints tillåtna`);
+  }
+  return raw.map((p) => ({
+    lat: p.lat,
+    long: p.long,
+    timeStamp: p.timeStamp,
+  }));
+}
+
 function parseRunStatus(raw: string | undefined): RunStatus | undefined {
   if (raw === undefined || raw === '') return undefined;
   if ((RUN_STATUSES as readonly string[]).includes(raw)) {
@@ -97,6 +128,8 @@ export class RoutesService {
       durationSeconds?: number;
       checkpointsCompleted?: number;
       distanceMeters?: number;
+      trackPoints?: TrackPointInput[];
+      status?: string;
     }
   ) {
     const uid = new mongoose.Types.ObjectId(userId);
@@ -106,11 +139,12 @@ export class RoutesService {
     if (run.status !== 'in_progress') {
       throw httpError(409, 'Run kan inte avslutas');
     }
-    run.status = 'completed';
+    run.status = parseFinishStatus(body.status);
     run.finishedAt = new Date();
     run.durationSeconds = body.durationSeconds;
     run.checkpointsCompleted = body.checkpointsCompleted;
     run.distanceMeters = body.distanceMeters;
+    run.set('trackPoints', normalizeTrackPoints(body.trackPoints));
     await run.save();
     return run;
   }

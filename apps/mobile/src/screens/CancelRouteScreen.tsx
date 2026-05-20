@@ -1,9 +1,13 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
+import { completeRun } from '../lib/api';
+import { useTracking } from '../hooks/useTracking';
+import { simplifyTrackPoints } from '../utils/trackUtils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CancelRoute'>;
 
@@ -17,10 +21,37 @@ export function CancelRouteScreen({ navigation, route }: Props) {
     paceMinPerKm,
     plannedDistanceKm,
     from,
+    runId,
+    elapsedSeconds = 0,
+    distanceMeters = 0,
   } = route.params;
 
-  const confirmCancel = () => {
-    navigation.navigate('CreateRoute', { from, runFinished: true });
+  const { stopTracking, getResults } = useTracking();
+  const [cancelling, setCancelling] = useState(false);
+
+  const confirmCancel = async () => {
+    if (cancelling) return;
+    setCancelling(true);
+    try {
+      const { movement } = getResults();
+      if (runId) {
+        try {
+          await completeRun(runId, {
+            durationSeconds: elapsedSeconds,
+            checkpointsCompleted: checkpointsCompleted,
+            distanceMeters: distanceMeters,
+            trackPoints: simplifyTrackPoints(movement),
+            status: 'abandoned',
+          });
+        } catch (err) {
+          console.warn('Kunde inte avsluta avbruten körning på servern:', err);
+        }
+      }
+    } finally {
+      stopTracking();
+      setCancelling(false);
+      navigation.navigate('CreateRoute', { from, runFinished: true });
+    }
   };
 
   return (
@@ -146,8 +177,16 @@ export function CancelRouteScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        <Pressable style={styles.confirmButton} onPress={confirmCancel}>
-          <Text style={styles.confirmButtonText}>Bekräfta och avbryt</Text>
+        <Pressable
+          style={[styles.confirmButton, cancelling && styles.confirmDisabled]}
+          onPress={confirmCancel}
+          disabled={cancelling}
+        >
+          {cancelling ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.confirmButtonText}>Bekräfta och avbryt</Text>
+          )}
         </Pressable>
 
         <Pressable
@@ -317,6 +356,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+  },
+  confirmDisabled: {
+    opacity: 0.7,
   },
   confirmButtonText: {
     color: '#23313a',
