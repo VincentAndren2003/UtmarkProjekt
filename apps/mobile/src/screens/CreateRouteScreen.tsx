@@ -30,6 +30,11 @@ import {
   getMyProfile,
   savePersistedRoute,
   startRun,
+  getMyStats,
+  completeRunStats,
+  incrementSharedStats,
+  incrementRecievedStats,
+  incrementGeneratedStats
 } from '../lib/api';
 import { Coordinate, RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
@@ -512,6 +517,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     } finally {
       setIsGenerating(false);
     }
+    try {
+      await incrementGeneratedStats();
+    } catch (err) {
+      console.warn('Kunde inte spara statistik på servern:', err);
+    }
   };
 
   const buildRunSummary = (
@@ -596,6 +606,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           console.warn('Kunde inte avsluta körning på servern:', err);
         }
       }
+
+      try {
+        await completeRunStats({
+          generatedRouteDistanceMeters: generatedRoute.distance,
+          actualRunDistanceMeters: Math.round(trackDistanceM),
+          checkpointsTakenCount: checkpointDone,
+        });
+      } catch (err) {
+        console.warn('Kunde inte spara statistik på servern:', err);
+      }
+
       resetActiveRun();
       navigation.navigate('RouteCompleted', summary);
       return;
@@ -973,7 +994,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             </Pressable>
             <Pressable
               style={styles.activeHudEmergencyButton}
-              onPress={() => {}}
+              onPress={() => { }}
             >
               <Text style={styles.activeHudEmergencyText}>Visa position</Text>
             </Pressable>
@@ -1076,7 +1097,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 from: summary.from,
               });
             }}
-            onEmergency={() => {}}
+            onEmergency={() => { }}
             onFetchCheckpoint={handleFetchCheckpoint}
             canFetchCheckpoint={canFetchCheckpoint}
           />
@@ -1099,7 +1120,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           style={styles.modalBackdrop}
           onPress={() => setOutOfRangeVisible(false)}
         >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
+          <Pressable style={styles.modalCard} onPress={() => { }}>
             <Ionicons
               name="lock-closed"
               size={28}
