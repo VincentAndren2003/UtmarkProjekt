@@ -192,6 +192,16 @@ export function sendFriendRequest(
   });
 }
 
+// Sök användare att skicka vänförfrågan till.
+export function searchUsers(query: string): Promise<Profile[]> {
+  return request<Profile[]>(
+    `/api/friends/search?query=${encodeURIComponent(query)}`,
+    {
+      auth: true,
+    }
+  );
+}
+
 // Persisted routes + runs (gateway -> routes-service)
 
 export type SavedRouteRecord = {
