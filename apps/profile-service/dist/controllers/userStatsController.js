@@ -108,6 +108,7 @@ async function incrementRoutesReceived(req, res, next) {
  */
 async function incrementRoutesGenerated(req, res, next) {
     try {
+        console.log(`[MICROSERVICE] Reached incrementRoutesGenerated for user: ${req.userId}`);
         const userObjectId = new mongoose_1.Types.ObjectId(req.userId);
         let stats = await UserStats_1.UserStats.findOne({ userId: userObjectId });
         if (!stats)
