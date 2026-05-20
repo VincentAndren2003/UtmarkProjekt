@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const env_1 = require("./config/env");
 const authController_1 = require("./controllers/authController");
 const errorHandler_1 = require("./middleware/errorHandler");
+const friendsRouter_1 = __importDefault(require("./routes/friendsRouter"));
 function createApp() {
     const app = (0, express_1.default)();
     app.use((0, cors_1.default)({ origin: env_1.env.CORS_ORIGIN }));
@@ -19,6 +20,7 @@ function createApp() {
     // Public auth endpoints (gateway forwards /api/auth/* here)
     app.post('/auth/signup', authController_1.signup);
     app.post('/auth/login', authController_1.login);
+    app.use('/api/friends', friendsRouter_1.default);
     app.use(errorHandler_1.errorHandler);
     return app;
 }

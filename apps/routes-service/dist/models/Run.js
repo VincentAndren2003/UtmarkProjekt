@@ -35,6 +35,11 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Run = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const trackPointSchema = new mongoose_1.Schema({
+    lat: { type: Number, required: true },
+    long: { type: Number, required: true },
+    timeStamp: { type: Number, required: true },
+}, { _id: false });
 const runSchema = new mongoose_1.Schema({
     route: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -58,6 +63,7 @@ const runSchema = new mongoose_1.Schema({
     durationSeconds: { type: Number },
     checkpointsCompleted: { type: Number },
     distanceMeters: { type: Number },
+    trackPoints: { type: [trackPointSchema], default: [] },
 }, { timestamps: true });
 runSchema.index({ userId: 1, createdAt: -1 });
 exports.Run = mongoose_1.default.model('Run', runSchema);

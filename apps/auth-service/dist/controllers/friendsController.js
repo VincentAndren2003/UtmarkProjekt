@@ -201,10 +201,13 @@ async function searchUsers(req, res, next) {
             res.status(500).json({ error: 'Ingen databasanslutning' });
             return;
         }
-        const profiles = await db.collection('profiles').find({
+        const profiles = await db
+            .collection('profiles')
+            .find({
             username: { $regex: query, $options: 'i' },
-            userId: { $ne: new mongoose_1.default.Types.ObjectId(req.userId) } // exkludera sig själv
-        }).toArray();
+            userId: { $ne: new mongoose_1.default.Types.ObjectId(req.userId) }, // exkludera sig själv
+        })
+            .toArray();
         res.status(200).json(profiles);
     }
     catch (err) {
