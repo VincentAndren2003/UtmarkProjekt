@@ -8,7 +8,7 @@ exports.incrementRoutesGenerated = incrementRoutesGenerated;
 const mongoose_1 = require("mongoose");
 const UserStats_1 = require("../models/UserStats");
 /**
- * GET /profile/stats/me
+ * GET /stats/me
  */
 async function getMyStats(req, res, next) {
     try {
@@ -24,7 +24,7 @@ async function getMyStats(req, res, next) {
     }
 }
 /**
- * POST /profile/stats/complete-run
+ * POST /stats/complete-run
  */
 async function completeRun(req, res, next) {
     try {
@@ -70,7 +70,7 @@ async function completeRun(req, res, next) {
     }
 }
 /**
- * POST /profile/stats/increment-shared
+ * POST /stats/increment-shared
  */
 async function incrementRoutesShared(req, res, next) {
     try {
@@ -87,7 +87,7 @@ async function incrementRoutesShared(req, res, next) {
     }
 }
 /**
- * POST /profile/stats/increment-recieved
+ * POST /stats/increment-recieved
  */
 async function incrementRoutesReceived(req, res, next) {
     try {
@@ -104,7 +104,7 @@ async function incrementRoutesReceived(req, res, next) {
     }
 }
 /**
- * POST /profile/stats/increment-generated
+ * POST /stats/increment-generated
  */
 async function incrementRoutesGenerated(req, res, next) {
     try {

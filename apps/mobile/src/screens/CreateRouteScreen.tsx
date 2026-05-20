@@ -521,7 +521,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     try {
       await incrementGeneratedStats();
     } catch (err) {
-      console.warn('Kunde inte spara statistik på servern:', err);
+      console.warn('Kunde inte spara inkrementera antal körningar på servern:', err);
     }
   };
 

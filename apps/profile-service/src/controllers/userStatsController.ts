@@ -9,7 +9,7 @@ interface CompleteRunBody {
 }
 
 /**
- * GET /profile/stats/me
+ * GET /stats/me
  */
 export async function getMyStats(
   req: Request,
@@ -31,7 +31,7 @@ export async function getMyStats(
 }
 
 /**
- * POST /profile/stats/complete-run
+ * POST /stats/complete-run
  */
 export async function completeRun(
   req: Request,
@@ -97,7 +97,7 @@ export async function completeRun(
 }
 
 /**
- * POST /profile/stats/increment-shared
+ * POST /stats/increment-shared
  */
 export async function incrementRoutesShared(
   req: Request,
@@ -120,7 +120,7 @@ export async function incrementRoutesShared(
 }
 
 /**
- * POST /profile/stats/increment-recieved
+ * POST /stats/increment-recieved
  */
 export async function incrementRoutesReceived(
   req: Request,
@@ -143,7 +143,7 @@ export async function incrementRoutesReceived(
 }
 
 /**
- * POST /profile/stats/increment-generated
+ * POST /stats/increment-generated
  */
 export async function incrementRoutesGenerated(
   req: Request,

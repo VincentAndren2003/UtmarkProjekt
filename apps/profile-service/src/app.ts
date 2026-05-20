@@ -24,11 +24,11 @@ export function createApp() {
   app.get('/profile/me', gatewayAuthMiddleware, getMyProfile);
   app.put('/profile/me', gatewayAuthMiddleware, upsertMyProfile);
 
-  app.get('/profile/stats/me', gatewayAuthMiddleware, getMyStats);
-  app.put('/profile/stats/complete-run', gatewayAuthMiddleware, completeRun);
-  app.put('/profile/stats/increment-shared', gatewayAuthMiddleware, incrementRoutesShared);
-  app.put('/profile/stats/increment-recieved', gatewayAuthMiddleware, incrementRoutesReceived);
-  app.put('/profile/stats/increment-generated', gatewayAuthMiddleware, incrementRoutesGenerated);
+  app.get('/stats/me', gatewayAuthMiddleware, getMyStats);
+  app.put('/stats/complete-run', gatewayAuthMiddleware, completeRun);
+  app.put('/stats/increment-shared', gatewayAuthMiddleware, incrementRoutesShared);
+  app.put('/stats/increment-recieved', gatewayAuthMiddleware, incrementRoutesReceived);
+  app.put('/stats/increment-generated', gatewayAuthMiddleware, incrementRoutesGenerated);
 
   app.use(errorHandler);
   return app;
