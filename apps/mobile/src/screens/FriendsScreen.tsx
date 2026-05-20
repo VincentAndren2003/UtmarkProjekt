@@ -21,7 +21,7 @@ import {
   getFriends,
   Profile,
   removeFriend,
-  searchProfiles,
+  searchUsers,
   sendFriendRequest,
 } from '../lib/api';
 
@@ -128,15 +128,19 @@ export function FriendsScreen({ navigation }: Props) {
       setAddSearchLoading(true);
       setAddSearchNotice(null);
       try {
-        const results = await searchProfiles(trimmedAddSearch);
+        const results = await searchUsers(trimmedAddSearch);
         if (!active) return;
         setAddSearchResults(results.filter((p) => !friendIds.has(p.userId)));
         setAddSearchNotice(null);
-      } catch {
+      } catch (err) {
         if (!active) return;
         setAddSearchResults([]);
+        const message =
+          err instanceof Error ? err.message : 'Kunde inte söka.';
         setAddSearchNotice(
-          'Personsök väntar på backend (GET /api/profile/search?q=).'
+          message === 'HTTP 401'
+            ? 'Du måste vara inloggad för att söka.'
+            : message
         );
       } finally {
         if (active) setAddSearchLoading(false);

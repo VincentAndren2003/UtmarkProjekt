@@ -14,6 +14,8 @@ import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { savePersistedRoute } from '../lib/api';
+import { addFavoriteRoute } from '../services/favoritesStorage';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteCompleted'>;
 
 export function RouteCompletedScreen({ navigation, route }: Props) {
@@ -38,8 +40,12 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     setSavingFavorite(true);
     try {
       const saved = await savePersistedRoute(routeSnapshot);
+      await addFavoriteRoute(saved, routeName.trim() || 'Min rutt');
       setSavedRouteId(saved._id);
-      Alert.alert('Sparad', 'Rutten finns nu under Favoriter.');
+      Alert.alert(
+        'Sparad',
+        'Rutten finns nu under Favoriter. Du kan döpa om den där.'
+      );
     } catch (err) {
       Alert.alert(
         'Kunde inte spara',
