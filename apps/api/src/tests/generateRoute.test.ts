@@ -1,4 +1,3 @@
-// tests/generateRoute.test.ts
 import request from 'supertest';
 import express from 'express';
 import routeRouter from '../routes/routeRouter';
