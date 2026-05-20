@@ -41,6 +41,7 @@ import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
 
 import { useTracking } from '../hooks/useTracking';
+import { simplifyTrackPoints } from '../utils/trackUtils';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, {
@@ -594,19 +595,21 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     );
 
     if (isLastCheckpoint) {
-      stopTracking();
+      const { movement } = getResults();
       if (runId) {
         try {
           await completeRun(runId, {
             durationSeconds: elapsedSeconds,
             checkpointsCompleted: checkpointDone,
             distanceMeters: Math.round(trackDistanceM),
+            trackPoints: simplifyTrackPoints(movement),
+            status: 'completed',
           });
         } catch (err) {
           console.warn('Kunde inte avsluta körning på servern:', err);
         }
       }
-
+      
       try {
         await completeRunStats({
           generatedRouteDistanceMeters: generatedRoute.distance,
@@ -616,7 +619,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       } catch (err) {
         console.warn('Kunde inte spara statistik på servern:', err);
       }
-
+      
+      stopTracking();
       resetActiveRun();
       navigation.navigate('RouteCompleted', summary);
       return;
@@ -1095,6 +1099,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 paceMinPerKm: summary.paceMinPerKm,
                 plannedDistanceKm: summary.plannedDistanceKm,
                 from: summary.from,
+                runId: runId ?? undefined,
+                elapsedSeconds,
+                distanceMeters: Math.round(trackDistanceM),
               });
             }}
             onEmergency={() => { }}
