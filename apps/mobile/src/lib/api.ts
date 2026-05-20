@@ -285,3 +285,58 @@ export function getMyRuns(status?: RunRecord['status']): Promise<RunRecord[]> {
   const qs = status ? `?status=${encodeURIComponent(status)}` : '';
   return request<RunRecord[]>(`/api/runs/me${qs}`, { auth: true });
 }
+
+export type UserStats = {
+  _id: string;
+  userId: string;
+  routesGeneratedCount: number;
+  routesSharedCount: number;
+  routesRecievedCount: number;
+  completedRunsCount: number;
+  maxRunDistanceCompleted: number;
+  totalDistanceMeters: number;
+  dayStreakOfCompletedRuns: number;
+  lastRunCompletedAt: string | null;
+  totalCheckpointsTaken: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CompleteRunStatsInput = {
+  generatedRouteDistanceMeters: number;
+  actualRunDistanceMeters: number;
+  checkpointsTakenCount: number;
+};
+
+export function getMyStats(): Promise<UserStats> {
+  return request<UserStats>('/api/stats/me', { auth: true });
+}
+
+export function completeRunStats(body: CompleteRunStatsInput): Promise<UserStats> {
+  return request<UserStats>('/api/stats/complete-run', {
+    method: 'POST',
+    auth: true,
+    body,
+  });
+}
+
+export function incrementSharedStats(): Promise<UserStats> {
+  return request<UserStats>('/api/stats/increment-shared', {
+    method: 'POST',
+    auth: true,
+  });
+}
+
+export function incrementRecievedStats(): Promise<UserStats> {
+  return request<UserStats>('/api/stats/increment-recieved', {
+    method: 'POST',
+    auth: true,
+  });
+}
+
+export function incrementGeneratedStats(): Promise<UserStats> {
+  return request<UserStats>('/api/stats/increment-generated', {
+    method: 'POST',
+    auth: true,
+  });
+}
