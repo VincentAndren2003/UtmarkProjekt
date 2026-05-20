@@ -214,6 +214,12 @@ export type SavedRouteRecord = {
   updatedAt?: string;
 };
 
+export type TrackPoint = {
+  lat: number;
+  long: number;
+  timeStamp: number;
+};
+
 export type RunRecord = {
   _id: string;
   route: string | SavedRouteRecord;
@@ -223,6 +229,7 @@ export type RunRecord = {
   durationSeconds?: number;
   checkpointsCompleted?: number;
   distanceMeters?: number;
+  trackPoints?: TrackPoint[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -231,6 +238,8 @@ export type CompleteRunInput = {
   durationSeconds?: number;
   checkpointsCompleted?: number;
   distanceMeters?: number;
+  trackPoints?: TrackPoint[];
+  status?: 'completed' | 'abandoned';
 };
 
 /** Persist generated route. Requires login. */

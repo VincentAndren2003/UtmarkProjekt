@@ -1,5 +1,14 @@
 import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
+const trackPointSchema = new Schema(
+  {
+    lat: { type: Number, required: true },
+    long: { type: Number, required: true },
+    timeStamp: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const runSchema = new Schema(
   {
     route: {
@@ -24,6 +33,7 @@ const runSchema = new Schema(
     durationSeconds: { type: Number },
     checkpointsCompleted: { type: Number },
     distanceMeters: { type: Number },
+    trackPoints: { type: [trackPointSchema], default: [] },
   },
   { timestamps: true }
 );

@@ -9,6 +9,7 @@ import { CreateRouteScreen } from './src/screens/CreateRouteScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
+import { RunDetailScreen } from './src/screens/RunDetailScreen';
 import { ChallengesScreen } from './src/screens/ChallengesScreen';
 import { BadgesScreen } from './src/screens/BadgesScreen';
 import { FriendsScreen } from './src/screens/FriendsScreen';
@@ -18,6 +19,7 @@ import { CheckpointTakenScreen } from './src/screens/CheckpointTakenScreen';
 import { RouteCompletedScreen } from './src/screens/RouteCompletedScreen';
 import { CancelRouteScreen } from './src/screens/CancelRouteScreen';
 import { RouteResponse } from './src/types/route';
+import { RunRecord } from './src/lib/api';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -67,10 +69,14 @@ export type RootStackParamList = {
     paceMinPerKm: string;
     plannedDistanceKm: number;
     from?: 'Login' | 'CreateAccount';
+    runId?: string;
+    elapsedSeconds?: number;
+    distanceMeters?: number;
   };
+  History: undefined;
+  RunDetail: { run: RunRecord };
   Favorites: { from?: 'Login' | 'CreateAccount' } | undefined;
   Profile: { from?: 'Login' | 'CreateAccount' } | undefined;
-  History: undefined;
   Challenges: undefined;
   Badges: undefined;
   Friends: undefined;
@@ -177,6 +183,15 @@ export default function App() {
         <Stack.Screen
           name="History"
           component={HistoryScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 140,
+          }}
+        />
+        <Stack.Screen
+          name="RunDetail"
+          component={RunDetailScreen}
           options={{
             headerShown: false,
             animation: 'fade',
