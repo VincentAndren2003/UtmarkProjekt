@@ -151,8 +151,6 @@ export async function incrementRoutesGenerated(
   next: NextFunction
 ): Promise<void> {
   try {
-    console.log(`[MICROSERVICE] Reached incrementRoutesGenerated for user: ${req.userId}`);
-
     const userObjectId = new Types.ObjectId(req.userId);
 
     let stats = await UserStats.findOne({ userId: userObjectId });

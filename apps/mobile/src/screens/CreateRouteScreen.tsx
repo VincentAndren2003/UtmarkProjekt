@@ -513,15 +513,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSheetMode('generated');
       setRunId(null);
       setSavedRouteId(null);
+
+      try {
+        await incrementGeneratedStats();
+      } catch (err) {
+        console.warn('Kunde inte inkrementera antal körningar på servern:', err);
+      }
+
     } catch (error) {
       console.error('Kunde inte generera rutt:', error);
     } finally {
       setIsGenerating(false);
-    }
-    try {
-      await incrementGeneratedStats();
-    } catch (err) {
-      console.warn('Kunde inte spara inkrementera antal körningar på servern:', err);
     }
   };
 
@@ -609,7 +611,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           console.warn('Kunde inte avsluta körning på servern:', err);
         }
       }
-      
+
       try {
         await completeRunStats({
           generatedRouteDistanceMeters: generatedRoute.distance,
@@ -619,7 +621,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       } catch (err) {
         console.warn('Kunde inte spara statistik på servern:', err);
       }
-      
+
       stopTracking();
       resetActiveRun();
       navigation.navigate('RouteCompleted', summary);
