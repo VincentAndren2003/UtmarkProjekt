@@ -25,10 +25,10 @@ export function createApp() {
   app.put('/profile/me', gatewayAuthMiddleware, upsertMyProfile);
 
   app.get('/stats/me', gatewayAuthMiddleware, getMyStats);
-  app.put('/stats/complete-run', gatewayAuthMiddleware, completeRun);
-  app.put('/stats/increment-shared', gatewayAuthMiddleware, incrementRoutesShared);
-  app.put('/stats/increment-recieved', gatewayAuthMiddleware, incrementRoutesReceived);
-  app.put('/stats/increment-generated', gatewayAuthMiddleware, incrementRoutesGenerated);
+  app.post('/stats/complete-run', gatewayAuthMiddleware, completeRun);
+  app.post('/stats/increment-shared', gatewayAuthMiddleware, incrementRoutesShared);
+  app.post('/stats/increment-recieved', gatewayAuthMiddleware, incrementRoutesReceived);
+  app.post('/stats/increment-generated', gatewayAuthMiddleware, incrementRoutesGenerated);
 
   app.use(errorHandler);
   return app;

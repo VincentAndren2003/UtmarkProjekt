@@ -21,10 +21,10 @@ function createApp() {
     app.get('/profile/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.getMyProfile);
     app.put('/profile/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.upsertMyProfile);
     app.get('/stats/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.getMyStats);
-    app.put('/stats/complete-run', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.completeRun);
-    app.put('/stats/increment-shared', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesShared);
-    app.put('/stats/increment-recieved', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesReceived);
-    app.put('/stats/increment-generated', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesGenerated);
+    app.post('/stats/complete-run', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.completeRun);
+    app.post('/stats/increment-shared', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesShared);
+    app.post('/stats/increment-recieved', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesReceived);
+    app.post('/stats/increment-generated', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesGenerated);
     app.use(errorHandler_1.errorHandler);
     return app;
 }
