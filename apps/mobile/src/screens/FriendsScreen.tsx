@@ -135,8 +135,7 @@ export function FriendsScreen({ navigation }: Props) {
       } catch (err) {
         if (!active) return;
         setAddSearchResults([]);
-        const message =
-          err instanceof Error ? err.message : 'Kunde inte söka.';
+        const message = err instanceof Error ? err.message : 'Kunde inte söka.';
         setAddSearchNotice(
           message === 'HTTP 401'
             ? 'Du måste vara inloggad för att söka.'

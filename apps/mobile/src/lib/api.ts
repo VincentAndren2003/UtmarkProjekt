@@ -312,7 +312,9 @@ export function getMyStats(): Promise<UserStats> {
   return request<UserStats>('/api/stats/me', { auth: true });
 }
 
-export function completeRunStats(body: CompleteRunStatsInput): Promise<UserStats> {
+export function completeRunStats(
+  body: CompleteRunStatsInput
+): Promise<UserStats> {
   return request<UserStats>('/api/stats/complete-run', {
     method: 'POST',
     auth: true,

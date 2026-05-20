@@ -101,7 +101,7 @@ export function createApp() {
   });
 
   /*
-   * USER STATS 
+   * USER STATS
    */
 
   // Fetches stats
@@ -117,56 +117,84 @@ export function createApp() {
   });
 
   // increment-shared
-  app.post('/api/stats/increment-shared', authMiddleware, async (req, res, next) => {
-    try {
-      await proxyJson(res, `${env.PROFILE_SERVICE_URL}/stats/increment-shared`, {
-        method: 'POST',
-        headers: { 'x-user-id': req.userId! },
-        body: req.body,
-      });
-    } catch (err) {
-      next(err);
+  app.post(
+    '/api/stats/increment-shared',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        await proxyJson(
+          res,
+          `${env.PROFILE_SERVICE_URL}/stats/increment-shared`,
+          {
+            method: 'POST',
+            headers: { 'x-user-id': req.userId! },
+            body: req.body,
+          }
+        );
+      } catch (err) {
+        next(err);
+      }
     }
-  });
+  );
 
   // increment-recieved
-  app.post('/api/stats/increment-recieved', authMiddleware, async (req, res, next) => {
-    try {
-      await proxyJson(res, `${env.PROFILE_SERVICE_URL}/stats/increment-recieved`, {
-        method: 'POST',
-        headers: { 'x-user-id': req.userId! },
-        body: req.body,
-      });
-    } catch (err) {
-      next(err);
+  app.post(
+    '/api/stats/increment-recieved',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        await proxyJson(
+          res,
+          `${env.PROFILE_SERVICE_URL}/stats/increment-recieved`,
+          {
+            method: 'POST',
+            headers: { 'x-user-id': req.userId! },
+            body: req.body,
+          }
+        );
+      } catch (err) {
+        next(err);
+      }
     }
-  });
+  );
 
   // increment-generated
-  app.post('/api/stats/increment-generated', authMiddleware, async (req, res, next) => {
-    try {      
-      await proxyJson(res, `${env.PROFILE_SERVICE_URL}/stats/increment-generated`, {
-        method: 'POST',
-        headers: { 'x-user-id': req.userId! },
-        body: req.body,
-      });
-    } catch (err) {
-      next(err);
+  app.post(
+    '/api/stats/increment-generated',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        await proxyJson(
+          res,
+          `${env.PROFILE_SERVICE_URL}/stats/increment-generated`,
+          {
+            method: 'POST',
+            headers: { 'x-user-id': req.userId! },
+            body: req.body,
+          }
+        );
+      } catch (err) {
+        next(err);
+      }
     }
-  });
+  );
 
   // complete-run
-  app.post('/api/stats/complete-run', authMiddleware, async (req, res, next) => {
-    try {
-      await proxyJson(res, `${env.PROFILE_SERVICE_URL}/stats/complete-run`, {
-        method: 'POST',
-        headers: { 'x-user-id': req.userId! },
-        body: req.body,
-      });
-    } catch (err) {
-      next(err);
+  app.post(
+    '/api/stats/complete-run',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        await proxyJson(res, `${env.PROFILE_SERVICE_URL}/stats/complete-run`, {
+          method: 'POST',
+          headers: { 'x-user-id': req.userId! },
+          body: req.body,
+        });
+      } catch (err) {
+        next(err);
+      }
     }
-  });
+  );
 
   app.post('/api/route-records', authMiddleware, async (req, res, next) => {
     try {

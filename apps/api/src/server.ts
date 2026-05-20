@@ -1,7 +1,6 @@
 import { createApp } from './app';
 import { env } from './config/env';
 
-
 async function bootstrap(): Promise<void> {
   const app = createApp();
   app.listen(env.PORT, () => {

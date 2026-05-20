@@ -9,7 +9,7 @@ import {
   completeRun,
   incrementRoutesGenerated,
   incrementRoutesReceived,
-  incrementRoutesShared
+  incrementRoutesShared,
 } from './controllers/userStatsController';
 
 export function createApp() {
@@ -26,9 +26,21 @@ export function createApp() {
 
   app.get('/stats/me', gatewayAuthMiddleware, getMyStats);
   app.post('/stats/complete-run', gatewayAuthMiddleware, completeRun);
-  app.post('/stats/increment-shared', gatewayAuthMiddleware, incrementRoutesShared);
-  app.post('/stats/increment-recieved', gatewayAuthMiddleware, incrementRoutesReceived);
-  app.post('/stats/increment-generated', gatewayAuthMiddleware, incrementRoutesGenerated);
+  app.post(
+    '/stats/increment-shared',
+    gatewayAuthMiddleware,
+    incrementRoutesShared
+  );
+  app.post(
+    '/stats/increment-recieved',
+    gatewayAuthMiddleware,
+    incrementRoutesReceived
+  );
+  app.post(
+    '/stats/increment-generated',
+    gatewayAuthMiddleware,
+    incrementRoutesGenerated
+  );
 
   app.use(errorHandler);
   return app;

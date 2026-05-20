@@ -82,9 +82,7 @@ export async function completeRun(
     stats.dayStreakOfCompletedRuns = currentStreak;
     stats.lastRunCompletedAt = new Date(); // set to current accurate time
 
-    if (
-      generatedRouteDistanceMeters > stats.maxRunDistanceCompleted
-    ) {
+    if (generatedRouteDistanceMeters > stats.maxRunDistanceCompleted) {
       stats.maxRunDistanceCompleted = generatedRouteDistanceMeters;
     }
 
