@@ -12,6 +12,7 @@ class Route {
     }
     setCheckpoints(numCeckpoints = Math.round(this.distance / 1.25), // Math.trunc(this.distance * 1.5)
     bearing = 0, checkpointRadius = 20, greenAreas) {
+        console.log('end:', this.end);
         this.checkpoints = [];
         const distancePerCheckpoint = this.distance / numCeckpoints;
         let currentPos = {
@@ -30,7 +31,7 @@ class Route {
                     : distancePerCheckpoint * (0.5 + Math.random());
                 if (isNearEnd) {
                     const bearingToEnd = this.bearingBetween(currentPos, this.end);
-                    const maxNoise = i === numCeckpoints ? 22 : 45;
+                    const maxNoise = i === numCeckpoints ? 10 : 22;
                     const noise = Math.random() * maxNoise * 2 - maxNoise;
                     bearing = (bearingToEnd + noise + 360) % 360;
                 }
