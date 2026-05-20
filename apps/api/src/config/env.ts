@@ -19,7 +19,4 @@ export const env = {
   ROUTES_SERVICE_URL: process.env.ROUTES_SERVICE_URL ?? 'http://127.0.0.1:3003',
   FRIENDS_SERVICE_URL:
     process.env.FRIENDS_SERVICE_URL ?? 'http://127.0.0.1:3004',
-
-  MONGODB_URI: required('MONGODB_URI'),
-  DB_NAME: process.env.DB_NAME ?? 'test',
 };
