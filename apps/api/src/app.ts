@@ -19,7 +19,6 @@ import { env } from './config/env';
 
 import { listGreenAreas } from './controllers/greenAreaController';
 import routeRouter from './routes/routeRouter';
-import friendsRouter from './routes/friendsRouter';
 
 async function proxyJson(
   res: express.Response,
@@ -179,7 +178,17 @@ export function createApp() {
   app.use('/tiles', express.static('/var/www/html/tiles'));
 
   // Friend requests and response
-  app.use('/api/friends', friendsRouter);
+  app.use('/api/friends', authMiddleware, async (req, res, next) => {
+  try {
+    await proxyJson(res, `${env.FRIENDS_SERVICE_URL}/api/friends${req.path}`, {
+      method: req.method,
+      headers: { 'x-user-id': req.userId! },
+      body: req.method !== 'GET' ? req.body : undefined,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to

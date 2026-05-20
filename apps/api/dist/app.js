@@ -21,7 +21,6 @@ const authMiddleware_1 = require("./middleware/authMiddleware");
 const env_1 = require("./config/env");
 const greenAreaController_1 = require("./controllers/greenAreaController");
 const routeRouter_1 = __importDefault(require("./routes/routeRouter"));
-const friendsRouter_1 = __importDefault(require("./routes/friendsRouter"));
 async function proxyJson(res, url, opts) {
     const upstream = await fetch(url, {
         method: opts.method,
@@ -162,7 +161,18 @@ function createApp() {
     //Map tiles
     app.use('/tiles', express_1.default.static('/var/www/html/tiles'));
     // Friend requests and response
-    app.use('/api/friends', friendsRouter_1.default);
+    app.use('/api/friends', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.FRIENDS_SERVICE_URL}/api/friends${req.path}`, {
+                method: req.method,
+                headers: { 'x-user-id': req.userId },
+                body: req.method !== 'GET' ? req.body : undefined,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
     // Error handler, Express identifies it by the 4 args
     // (err, req, res, next). Any error thrown in a controller and passed to
     // next(err) lands here and gets turned into a JSON response.
