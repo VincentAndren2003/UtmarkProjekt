@@ -179,16 +179,20 @@ export function createApp() {
 
   // Friend requests and response
   app.use('/api/friends', authMiddleware, async (req, res, next) => {
-  try {
-    await proxyJson(res, `${env.FRIENDS_SERVICE_URL}/api/friends${req.path}`, {
-      method: req.method,
-      headers: { 'x-user-id': req.userId! },
-      body: req.method !== 'GET' ? req.body : undefined,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+    try {
+      await proxyJson(
+        res,
+        `${env.FRIENDS_SERVICE_URL}/api/friends${req.path}`,
+        {
+          method: req.method,
+          headers: { 'x-user-id': req.userId! },
+          body: req.method !== 'GET' ? req.body : undefined,
+        }
+      );
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to

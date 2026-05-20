@@ -16,9 +16,7 @@ import { getMyRuns, RunRecord, SavedRouteRecord } from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'History'>;
 
-function isSavedRoute(
-  route: RunRecord['route']
-): route is SavedRouteRecord {
+function isSavedRoute(route: RunRecord['route']): route is SavedRouteRecord {
   return typeof route === 'object' && route !== null && '_id' in route;
 }
 
@@ -38,13 +36,7 @@ function formatDuration(seconds?: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function RunRow({
-  run,
-  onPress,
-}: {
-  run: RunRecord;
-  onPress: () => void;
-}) {
+function RunRow({ run, onPress }: { run: RunRecord; onPress: () => void }) {
   const savedRoute = isSavedRoute(run.route) ? run.route : null;
   const distanceKm = savedRoute?.distance ?? '—';
   const checkpoints = savedRoute?.checkpoints.length ?? '—';
@@ -64,7 +56,8 @@ function RunRow({
         <Text style={styles.statusBadge}>{statusLabel}</Text>
       </View>
       <Text style={styles.cardMeta}>
-        {checkpoints} checkpoints · {formatDate(run.finishedAt ?? run.startedAt)}
+        {checkpoints} checkpoints ·{' '}
+        {formatDate(run.finishedAt ?? run.startedAt)}
       </Text>
       <Text style={styles.cardMeta}>
         Tid {formatDuration(run.durationSeconds)} ·{' '}
@@ -149,9 +142,7 @@ export function HistoryScreen({ navigation }: Props) {
           renderItem={({ item }) => (
             <RunRow
               run={item}
-              onPress={() =>
-                navigation.navigate('RunDetail', { run: item })
-              }
+              onPress={() => navigation.navigate('RunDetail', { run: item })}
             />
           )}
         />

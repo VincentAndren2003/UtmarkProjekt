@@ -18,7 +18,7 @@ export function createApp() {
   app.post('/auth/signup', signup);
   app.post('/auth/login', login);
 
- app.use('/api/friends', friendsRouter);
+  app.use('/api/friends', friendsRouter);
 
   app.use(errorHandler);
   return app;

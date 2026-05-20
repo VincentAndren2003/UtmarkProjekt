@@ -13,7 +13,7 @@ export function createApp() {
     res.json({ status: 'ok', service: 'friend-service' });
   });
 
- app.use('/api/friends', friendsRouter);
+  app.use('/api/friends', friendsRouter);
 
   app.use(errorHandler);
   return app;
