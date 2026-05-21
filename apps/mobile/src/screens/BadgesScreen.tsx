@@ -1,14 +1,21 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
-import { getBadgesForUser } from '../data/badges';
+import { useUserBadges } from '../hooks/useUserBadges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Badges'>;
 
 export function BadgesScreen({ navigation }: Props) {
-  const badges = getBadgesForUser();
+  const { badges, loading } = useUserBadges();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -24,31 +31,37 @@ export function BadgesScreen({ navigation }: Props) {
         <View style={styles.backButton} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
-        {badges.map((badge) => (
-          <View key={badge.id} style={styles.row}>
-            <BadgeThumbnail
-              variant="list"
-              unlocked={badge.unlocked}
-              image={badge.image}
-            />
-            <View style={styles.textBlock}>
-              <Text style={styles.name} numberOfLines={1}>
-                {badge.name}
-              </Text>
-              <Text style={styles.description} numberOfLines={2}>
-                {badge.description}
-              </Text>
-              <Text style={styles.status}>
-                {badge.unlocked ? 'Upplåst' : 'Ej upplåst'}
-              </Text>
+      {loading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color="#2f7a3f" />
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        >
+          {badges.map((badge) => (
+            <View key={badge.id} style={styles.row}>
+              <BadgeThumbnail
+                variant="list"
+                unlocked={badge.unlocked}
+                image={badge.image}
+              />
+              <View style={styles.textBlock}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {badge.name}
+                </Text>
+                <Text style={styles.description} numberOfLines={2}>
+                  {badge.description}
+                </Text>
+                <Text style={styles.status}>
+                  {badge.unlocked ? 'Upplåst' : 'Ej upplåst'}
+                </Text>
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -76,6 +89,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   list: {
     paddingHorizontal: 20,

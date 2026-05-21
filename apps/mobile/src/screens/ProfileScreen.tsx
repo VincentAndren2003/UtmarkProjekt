@@ -15,8 +15,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
-import { getBadgesForUser } from '../data/badges';
 import { getMyProfile, getFriendCount, Profile } from '../lib/api';
+import { useUserBadges } from '../hooks/useUserBadges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
@@ -108,7 +108,7 @@ export function ProfileScreen({ navigation, route }: Props) {
     }
   };
 
-  const badges = getBadgesForUser();
+  const { badges } = useUserBadges();
 
   return (
     <View style={styles.container}>

@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { BadgeUnlockedModal } from '../components/BadgeUnlockedModal';
 import { BottomNav } from '../components/BottomNav';
 import { ActiveRouteStatsBar } from '../components/route-sheet/ActiveRouteStatsBar';
 import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
@@ -30,12 +31,15 @@ import {
   getMyProfile,
   savePersistedRoute,
   startRun,
-  getMyStats,
   completeRunStats,
-  incrementSharedStats,
-  incrementRecievedStats,
   incrementGeneratedStats,
 } from '../lib/api';
+import type { Badge } from '../data/badges';
+import { getBadgeById, getNewUnlockIds } from '../services/badgeUnlock';
+import {
+  getCelebratedBadgeIds,
+  markBadgeCelebrated,
+} from '../services/celebratedBadgesStorage';
 import { Coordinate, RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
@@ -224,6 +228,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   }, []);
 
   const [outOfRangeVisible, setOutOfRangeVisible] = useState(false);
+  const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
 
   const distanceToNextCheckpointM = useMemo(() => {
     if (!location || !generatedRoute) return null;
@@ -515,10 +520,20 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSavedRouteId(null);
 
       try {
-        await incrementGeneratedStats();
+        const stats = await incrementGeneratedStats();
+        const celebrated = await getCelebratedBadgeIds();
+        const newUnlockIds = getNewUnlockIds(stats, celebrated);
+        const firstNewId = newUnlockIds[0];
+        if (firstNewId) {
+          const badge = getBadgeById(firstNewId);
+          if (badge) {
+            setCelebrationBadge(badge);
+            await markBadgeCelebrated(firstNewId);
+          }
+        }
       } catch (err) {
         console.warn(
-          'Kunde inte inkrementera antal körningar på servern:',
+          'Kunde inte uppdatera statistik eller badges på servern:',
           err
         );
       }
@@ -1152,6 +1167,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <BadgeUnlockedModal
+        badge={celebrationBadge}
+        visible={celebrationBadge !== null}
+        onClose={() => setCelebrationBadge(null)}
+        onViewAll={() => {
+          setCelebrationBadge(null);
+          navigation.navigate('Badges');
+        }}
+      />
     </View>
   );
 }
