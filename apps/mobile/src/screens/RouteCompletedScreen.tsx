@@ -256,7 +256,6 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
         fromOrigin={from}
         onHomePress={finishAndGoHome}
       />
-
     </View>
   );
 }

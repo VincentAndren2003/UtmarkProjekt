@@ -1233,7 +1233,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           </Pressable>
         </Pressable>
       </Modal>
-
     </View>
   );
 }
