@@ -6,6 +6,8 @@ type Props = {
   onStartOrienteering?: () => void;
   onGenerateNew: () => void;
   onBackToRequest: () => void;
+  showUserPosition: boolean;
+  onToggleUserPosition: () => void;
 };
 
 export function RouteGeneratedSheet({
@@ -13,6 +15,8 @@ export function RouteGeneratedSheet({
   onStartOrienteering,
   onGenerateNew,
   onBackToRequest,
+  showUserPosition,
+  onToggleUserPosition,
 }: Props) {
   const routeName =
     (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
@@ -59,6 +63,15 @@ export function RouteGeneratedSheet({
           <Text style={styles.terrainValue}>Längs stig</Text>
         </View>
       </View>
+
+      <Pressable
+        style={styles.positionToggleButton}
+        onPress={onToggleUserPosition}
+      >
+        <Text style={styles.positionToggleText}>
+          {showUserPosition ? 'Dölj position' : 'Visa position'}
+        </Text>
+      </Pressable>
 
       <View style={styles.actionsRow}>
         <Pressable style={styles.primaryButton} onPress={onStartOrienteering}>
@@ -158,6 +171,19 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#e1e5ea',
     marginHorizontal: 10,
+  },
+  positionToggleButton: {
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#7aa681',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  positionToggleText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
   actionsRow: {
     gap: 12,

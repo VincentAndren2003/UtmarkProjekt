@@ -8,6 +8,7 @@ type Props = {
   terrain: ActiveRouteStats;
   onAbort: () => void;
   onEmergency: () => void;
+  showUserPosition: boolean;
   onFetchCheckpoint: () => void;
   canFetchCheckpoint?: boolean;
 };
@@ -17,6 +18,7 @@ export function RouteActiveSheet({
   terrain,
   onAbort,
   onEmergency,
+  showUserPosition,
   onFetchCheckpoint,
   canFetchCheckpoint = false,
 }: Props) {
@@ -75,7 +77,9 @@ export function RouteActiveSheet({
           <Text style={styles.abortText}>Avbryt rutt</Text>
         </Pressable>
         <Pressable style={styles.emergencyButton} onPress={onEmergency}>
-          <Text style={styles.emergencyText}>Visa position</Text>
+          <Text style={styles.emergencyText}>
+            {showUserPosition ? 'Dölj position' : 'Visa position'}
+          </Text>
         </Pressable>
       </View>
     </>

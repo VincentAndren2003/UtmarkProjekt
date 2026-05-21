@@ -229,6 +229,21 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   const [outOfRangeVisible, setOutOfRangeVisible] = useState(false);
   const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
+  const [showUserPosition, setShowUserPosition] = useState(
+    !PREVIEW_GENERATED_SHEET
+  );
+
+  const showsUserLocationOnMap = sheetMode === 'request' || showUserPosition;
+
+  const toggleUserPosition = () => {
+    setShowUserPosition((prev) => {
+      const next = !prev;
+      if (next && location) {
+        animateMapTo(location);
+      }
+      return next;
+    });
+  };
 
   const distanceToNextCheckpointM = useMemo(() => {
     if (!location || !generatedRoute) return null;
@@ -433,16 +448,25 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (!location) return;
-    centerMapOnUser(location);
-  }, [location, placementMode]);
+    if (sheetMode === 'request' || showUserPosition) {
+      centerMapOnUser(location);
+    }
+  }, [location, placementMode, sheetMode, showUserPosition]);
 
   const handleMapReady = () => {
     const pending = pendingUserCenterRef.current;
     if (pending && !userLocationCenteredRef.current && !placementMode) {
-      centerMapOnUser(pending);
+      if (sheetMode === 'request' || showUserPosition) {
+        centerMapOnUser(pending);
+      }
       return;
     }
-    if (location && !userLocationCenteredRef.current && !placementMode) {
+    if (
+      location &&
+      !userLocationCenteredRef.current &&
+      !placementMode &&
+      (sheetMode === 'request' || showUserPosition)
+    ) {
       centerMapOnUser(location);
     }
   };
@@ -516,6 +540,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       );
       setGeneratedRoute(response);
       setSheetMode('generated');
+      setShowUserPosition(false);
       setRunId(null);
       setSavedRouteId(null);
 
@@ -899,7 +924,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           customMapStyle={mapStyle}
           showsBuildings={false}
           showsCompass={false}
-          showsUserLocation
+          showsUserLocation={showsUserLocationOnMap}
           mapPadding={mapPadding}
           onMapReady={handleMapReady}
           onPress={(event) => handleMapPress(event.nativeEvent.coordinate)}
@@ -1017,9 +1042,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             </Pressable>
             <Pressable
               style={styles.activeHudEmergencyButton}
-              onPress={() => {}}
+              onPress={toggleUserPosition}
             >
-              <Text style={styles.activeHudEmergencyText}>Visa position</Text>
+              <Text style={styles.activeHudEmergencyText}>
+                {showUserPosition ? 'Dölj position' : 'Visa position'}
+              </Text>
             </Pressable>
           </View>
         </>
@@ -1091,8 +1118,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             route={generatedRoute}
             onGenerateNew={handleGenerateRoute}
             onStartOrienteering={handleStartOrienteering}
+            showUserPosition={showUserPosition}
+            onToggleUserPosition={toggleUserPosition}
             onBackToRequest={() => {
               setSheetMode('request');
+              setShowUserPosition(true);
             }}
           />
         ) : sheetMode === 'active' && generatedRoute ? (
@@ -1123,7 +1153,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 distanceMeters: Math.round(trackDistanceM),
               });
             }}
-            onEmergency={() => {}}
+            onEmergency={toggleUserPosition}
+            showUserPosition={showUserPosition}
             onFetchCheckpoint={handleFetchCheckpoint}
             canFetchCheckpoint={canFetchCheckpoint}
           />
