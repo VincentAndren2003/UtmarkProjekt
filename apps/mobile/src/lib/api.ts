@@ -78,6 +78,9 @@ export async function signup(
     body: { email, password },
   });
   await tokenStorage.set(result.token);
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   return result;
 }
 
@@ -90,10 +93,16 @@ export async function login(
     body: { email, password },
   });
   await tokenStorage.set(result.token);
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   return result;
 }
 
 export async function signOut(): Promise<void> {
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   await tokenStorage.clear();
 }
 

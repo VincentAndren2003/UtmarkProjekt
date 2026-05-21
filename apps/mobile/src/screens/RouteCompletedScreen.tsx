@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
+import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
 import { savePersistedRoute } from '../lib/api';
 import { addFavoriteRoute } from '../services/favoritesStorage';
@@ -30,10 +31,21 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     savedRouteId: initialSavedRouteId,
     routeSnapshot,
     from,
+    celebrationBadgeIds = [],
   } = route.params;
 
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
   const [savingFavorite, setSavingFavorite] = useState(false);
+  const { showBadgeCelebration } = useBadgeCelebration();
+
+  useEffect(() => {
+    if (celebrationBadgeIds.length === 0) return;
+    const timer = setTimeout(
+      () => showBadgeCelebration(celebrationBadgeIds),
+      400
+    );
+    return () => clearTimeout(timer);
+  }, [celebrationBadgeIds, showBadgeCelebration]);
 
   const handleSaveFavorite = async () => {
     if (savedRouteId || !routeSnapshot) return;
