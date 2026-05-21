@@ -16,7 +16,7 @@ export class Checkpoint {
     this.id = id;
     this.coordinate = coordinate;
     this.radius = radius;
-    this.completed = false;
+    this.completed = completed;
   }
 
   distanceTo(userLocation: { latitude: number; longitude: number }): number {
