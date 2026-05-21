@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -25,23 +25,20 @@ type Props = {
   onViewAll: () => void;
 };
 
-export function BadgeUnlockedModal({
+type ContentProps = {
+  badges: Badge[];
+  onClose: () => void;
+  onViewAll: () => void;
+};
+
+/** Remounted via key when badge set changes so pager index resets without an effect. */
+function BadgeUnlockedModalContent({
   badges,
-  visible,
   onClose,
   onViewAll,
-}: Props) {
-  const scrollRef = useRef<ScrollView>(null);
+}: ContentProps) {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageWidth, setPageWidth] = useState(0);
-
-  useEffect(() => {
-    if (!visible) return;
-    setPageIndex(0);
-    scrollRef.current?.scrollTo({ x: 0, animated: false });
-  }, [visible, badges]);
-
-  if (!visible || badges.length === 0) return null;
 
   const multiple = badges.length > 1;
   const title = multiple ? 'Badges upplåsta!' : 'Badge upplåst!';
@@ -57,6 +54,109 @@ export function BadgeUnlockedModal({
   const accentColor = confettiColors[0] ?? '#2f7a3f';
 
   return (
+    <Pressable style={styles.backdrop} onPress={onClose}>
+      <View style={styles.confettiLayer} pointerEvents="none">
+        <ConfettiCannon
+          key={`${activeBadge.id}-${pageIndex}`}
+          count={180}
+          origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT * 0.22 }}
+          fadeOut
+          autoStart
+          colors={confettiColors}
+          explosionSpeed={420}
+          fallSpeed={2800}
+        />
+      </View>
+
+      <Pressable style={styles.card} onPress={() => {}}>
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClose}
+          accessibilityLabel="Stäng"
+          hitSlop={8}
+        >
+          <Ionicons name="close" size={22} color="#6b7280" />
+        </Pressable>
+
+        <Text style={styles.title}>{title}</Text>
+
+        <View
+          style={styles.pagerSlot}
+          onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
+        >
+          {pageWidth > 0 ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={onScrollEnd}
+              style={{ width: pageWidth }}
+            >
+              {badges.map((badge) => (
+                <View
+                  key={badge.id}
+                  style={[styles.page, { width: pageWidth }]}
+                >
+                  <View style={styles.badgeFrame}>
+                    {badge.image ? (
+                      <Image
+                        source={badge.image}
+                        style={styles.badgeImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Ionicons name="ribbon" size={56} color="#2f7a3f" />
+                    )}
+                  </View>
+                  <Text style={styles.badgeName}>{badge.name}</Text>
+                  <Text style={styles.badgeDescription}>
+                    {badge.description}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          ) : null}
+        </View>
+
+        {multiple ? (
+          <View style={styles.dotsRow}>
+            {badges.map((badge, index) => (
+              <View
+                key={badge.id}
+                style={[
+                  styles.dot,
+                  index === pageIndex && [
+                    styles.dotActive,
+                    { backgroundColor: accentColor },
+                  ],
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.divider} />
+
+        <Pressable style={styles.ctaButton} onPress={onViewAll}>
+          <Text style={styles.ctaText}>Visa alla badges</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        </Pressable>
+      </Pressable>
+    </Pressable>
+  );
+}
+
+export function BadgeUnlockedModal({
+  badges,
+  visible,
+  onClose,
+  onViewAll,
+}: Props) {
+  if (!visible || badges.length === 0) return null;
+
+  const contentKey = badges.map((b) => b.id).join(',');
+
+  return (
     <Modal
       visible={visible}
       transparent
@@ -65,96 +165,12 @@ export function BadgeUnlockedModal({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <View style={styles.confettiLayer} pointerEvents="none">
-          <ConfettiCannon
-            key={`${activeBadge.id}-${pageIndex}`}
-            count={180}
-            origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT * 0.22 }}
-            fadeOut
-            autoStart
-            colors={confettiColors}
-            explosionSpeed={420}
-            fallSpeed={2800}
-          />
-        </View>
-
-        <Pressable style={styles.card} onPress={() => {}}>
-          <Pressable
-            style={styles.closeButton}
-            onPress={onClose}
-            accessibilityLabel="Stäng"
-            hitSlop={8}
-          >
-            <Ionicons name="close" size={22} color="#6b7280" />
-          </Pressable>
-
-          <Text style={styles.title}>{title}</Text>
-
-          <View
-            style={styles.pagerSlot}
-            onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
-          >
-            {pageWidth > 0 ? (
-              <ScrollView
-                ref={scrollRef}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={onScrollEnd}
-                style={{ width: pageWidth }}
-              >
-                {badges.map((badge) => (
-                  <View
-                    key={badge.id}
-                    style={[styles.page, { width: pageWidth }]}
-                  >
-                    <View style={styles.badgeFrame}>
-                      {badge.image ? (
-                        <Image
-                          source={badge.image}
-                          style={styles.badgeImage}
-                          resizeMode="contain"
-                        />
-                      ) : (
-                        <Ionicons name="ribbon" size={56} color="#2f7a3f" />
-                      )}
-                    </View>
-                    <Text style={styles.badgeName}>{badge.name}</Text>
-                    <Text style={styles.badgeDescription}>
-                      {badge.description}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            ) : null}
-          </View>
-
-          {multiple ? (
-            <View style={styles.dotsRow}>
-              {badges.map((badge, index) => (
-                <View
-                  key={badge.id}
-                  style={[
-                    styles.dot,
-                    index === pageIndex && [
-                      styles.dotActive,
-                      { backgroundColor: accentColor },
-                    ],
-                  ]}
-                />
-              ))}
-            </View>
-          ) : null}
-
-          <View style={styles.divider} />
-
-          <Pressable style={styles.ctaButton} onPress={onViewAll}>
-            <Text style={styles.ctaText}>Visa alla badges</Text>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
-          </Pressable>
-        </Pressable>
-      </Pressable>
+      <BadgeUnlockedModalContent
+        key={contentKey}
+        badges={badges}
+        onClose={onClose}
+        onViewAll={onViewAll}
+      />
     </Modal>
   );
 }
