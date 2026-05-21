@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { BadgeUnlockedModal } from '../components/BadgeUnlockedModal';
+import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
 import { ActiveRouteStatsBar } from '../components/route-sheet/ActiveRouteStatsBar';
 import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
@@ -32,14 +32,15 @@ import {
   savePersistedRoute,
   startRun,
   completeRunStats,
+  getMyStats,
   incrementGeneratedStats,
 } from '../lib/api';
-import type { Badge } from '../data/badges';
-import { getBadgeById, getNewUnlockIds } from '../services/badgeUnlock';
 import {
-  getCelebratedBadgeIds,
-  markBadgeCelebrated,
-} from '../services/celebratedBadgesStorage';
+  getNewUnlockIds,
+  getRouteGeneratedCelebrationBadgeIds,
+  getRunCompletionCelebrationBadgeIds,
+} from '../services/badgeUnlock';
+import { getCelebratedBadgeIds } from '../services/celebratedBadgesStorage';
 import { Coordinate, RouteResponse } from '../types/route';
 import { Route } from '../models/Route';
 import { Checkpoint } from '../models/Checkpoint';
@@ -228,7 +229,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   }, []);
 
   const [outOfRangeVisible, setOutOfRangeVisible] = useState(false);
-  const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
+  const { showBadgeCelebration } = useBadgeCelebration();
   const [showUserPosition, setShowUserPosition] = useState(
     !PREVIEW_GENERATED_SHEET
   );
@@ -545,16 +546,26 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSavedRouteId(null);
 
       try {
+        let previousRoutesGenerated = 0;
+        try {
+          const priorStats = await getMyStats();
+          previousRoutesGenerated = priorStats.routesGeneratedCount ?? 0;
+        } catch {
+          // Anta 0 om stats inte kan hämtas före increment.
+        }
+
         const stats = await incrementGeneratedStats();
         const celebrated = await getCelebratedBadgeIds();
-        const newUnlockIds = getNewUnlockIds(stats, celebrated);
-        const firstNewId = newUnlockIds[0];
-        if (firstNewId) {
-          const badge = getBadgeById(firstNewId);
-          if (badge) {
-            setCelebrationBadge(badge);
-            await markBadgeCelebrated(firstNewId);
-          }
+        let celebrationIds = getRouteGeneratedCelebrationBadgeIds(
+          stats,
+          celebrated,
+          previousRoutesGenerated
+        );
+        if (celebrationIds.length === 0) {
+          celebrationIds = getNewUnlockIds(stats, celebrated);
+        }
+        if (celebrationIds.length > 0) {
+          setTimeout(() => showBadgeCelebration(celebrationIds), 400);
         }
       } catch (err) {
         console.warn(
@@ -654,19 +665,43 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         }
       }
 
+      let celebrationBadgeIds: string[] = [];
       try {
-        await completeRunStats({
-          generatedRouteDistanceMeters: generatedRoute.distance,
+        let previousTotalMeters = 0;
+        let previousTotalCheckpoints = 0;
+        try {
+          const priorStats = await getMyStats();
+          previousTotalMeters = priorStats.totalDistanceMeters;
+          previousTotalCheckpoints = priorStats.totalCheckpointsTaken;
+        } catch {
+          // Om stats inte kan hämtas antar vi 0 — celebration kan missas en gång.
+        }
+
+        const stats = await completeRunStats({
+          generatedRouteDistanceMeters: Math.round(
+            generatedRoute.distance * 1000
+          ),
           actualRunDistanceMeters: Math.round(trackDistanceM),
           checkpointsTakenCount: checkpointDone,
         });
+        const celebrated = await getCelebratedBadgeIds();
+        celebrationBadgeIds = getRunCompletionCelebrationBadgeIds(
+          stats,
+          celebrated,
+          generatedRoute.distance,
+          previousTotalMeters,
+          previousTotalCheckpoints
+        );
       } catch (err) {
         console.warn('Kunde inte spara statistik på servern:', err);
       }
 
       stopTracking();
       resetActiveRun();
-      navigation.navigate('RouteCompleted', summary);
+      navigation.navigate('RouteCompleted', {
+        ...summary,
+        celebrationBadgeIds,
+      });
       return;
     }
 
@@ -1199,15 +1234,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         </Pressable>
       </Modal>
 
-      <BadgeUnlockedModal
-        badge={celebrationBadge}
-        visible={celebrationBadge !== null}
-        onClose={() => setCelebrationBadge(null)}
-        onViewAll={() => {
-          setCelebrationBadge(null);
-          navigation.navigate('Badges');
-        }}
-      />
     </View>
   );
 }

@@ -1,4 +1,8 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
+import { BadgeCelebrationProvider } from './src/context/BadgeCelebrationContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { CreateAccountScreen } from './src/screens/CreateAccountScreen';
@@ -59,6 +63,8 @@ export type RootStackParamList = {
     savedRouteId?: string;
     routeSnapshot: RouteResponse;
     from?: 'Login' | 'CreateAccount';
+    /** Badges to show unlock celebration for after completed run. */
+    celebrationBadgeIds?: string[];
   };
   CancelRoute: {
     routeName: string;
@@ -85,10 +91,20 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+export const navigationRef =
+  createNavigationContainerRef<RootStackParamList>();
+
 export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
-    <NavigationContainer>
+    <BadgeCelebrationProvider
+      onViewAllBadges={() => {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate('Badges');
+        }
+      }}
+    >
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
           name="Home"
@@ -236,6 +252,7 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </BadgeCelebrationProvider>
   );
   // NavigationContainer is the root component that wraps all the screens, so this is where we list all screens
 }
