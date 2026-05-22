@@ -58,7 +58,7 @@ import MapView, {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
-const FETCH_RADIUS_M = 50000;
+const FETCH_RADIUS_M = 1000000;
 const PREVIEW_GENERATED_SHEET = false;
 const REQUEST_SHEET_BOTTOM_OFFSET = 86;
 
