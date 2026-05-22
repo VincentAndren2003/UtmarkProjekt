@@ -259,9 +259,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     return checkpoint.distanceTo(location);
   }, [location, generatedRoute]);
 
-  const canFetchCheckpoint =
-    distanceToNextCheckpointM !== null &&
-    distanceToNextCheckpointM <= FETCH_RADIUS_M;
+  const canFetchCheckpoint = true;
+   // distanceToNextCheckpointM !== null &&
+   // distanceToNextCheckpointM <= FETCH_RADIUS_M;
 
   const activeStats = useMemo(
     () => ({
