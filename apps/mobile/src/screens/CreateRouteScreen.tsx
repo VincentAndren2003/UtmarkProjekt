@@ -1,5 +1,16 @@
 /* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import BottomSheet, {
+  BottomSheetHandle,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+} from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Animated,
@@ -137,21 +148,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const MAX_DISTANCE = 20;
   const THUMB_SIZE = 20;
   const LINE_INSET = 10;
-  const EXPANDED_HEIGHT = 560;
   const GENERATED_EXPANDED_HEIGHT = 516;
   const REQUEST_SHEET_HEIGHT = 410;
+  const REQUEST_COLLAPSED_HEIGHT = 128;
   const PLACEMENT_COLLAPSED_HEIGHT = 184;
   const BOTTOM_NAV_HEIGHT = 72;
-  const GENERATED_COLLAPSED_HEIGHT = 384;
+  const GENERATED_COLLAPSED_HEIGHT = 128;
   const ACTIVE_EXPANDED_HEIGHT = 384;
   const ACTIVE_COLLAPSED_HEIGHT = 66;
-  const GENERATED_EXPANDED_TRANSLATE =
-    EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT;
-  const sheetTranslateY = useRef(
-    new Animated.Value(
-      PREVIEW_GENERATED_SHEET ? GENERATED_EXPANDED_TRANSLATE : 0
-    )
-  ).current;
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
   const sliderX = useRef(new Animated.Value(0)).current;
   const sliderXRef = useRef(0);
   const sliderStartRef = useRef(0);
@@ -298,22 +304,34 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const activeRouteName =
     (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ??
     'Genererad rutt';
-  const minTranslate =
-    sheetMode === 'active'
-      ? EXPANDED_HEIGHT - ACTIVE_EXPANDED_HEIGHT
-      : sheetMode === 'generated'
-        ? EXPANDED_HEIGHT - GENERATED_EXPANDED_HEIGHT
-        : 0;
-  const collapsedHeight =
-    placementMode && sheetMode === 'request'
-      ? PLACEMENT_COLLAPSED_HEIGHT
-      : sheetMode === 'active'
-        ? ACTIVE_COLLAPSED_HEIGHT
-        : sheetMode === 'generated'
-          ? GENERATED_COLLAPSED_HEIGHT
-          : REQUEST_SHEET_HEIGHT;
-  const maxTranslate = EXPANDED_HEIGHT - collapsedHeight;
-  const isFixedHeightSheet = sheetMode === 'request';
+  const isPlacementSheet = placementMode !== null && sheetMode === 'request';
+  const canDragSheet = !isPlacementSheet;
+  const canDragSheetContent = canDragSheet && sheetMode !== 'request';
+
+  const snapPoints = useMemo(
+    () =>
+      isPlacementSheet
+        ? [PLACEMENT_COLLAPSED_HEIGHT]
+        : sheetMode === 'request'
+          ? [REQUEST_COLLAPSED_HEIGHT, REQUEST_SHEET_HEIGHT]
+          : sheetMode === 'generated'
+            ? [GENERATED_COLLAPSED_HEIGHT, GENERATED_EXPANDED_HEIGHT]
+            : [ACTIVE_COLLAPSED_HEIGHT, ACTIVE_EXPANDED_HEIGHT],
+    [sheetMode, isPlacementSheet]
+  );
+
+  const bottomSheetInset =
+    sheetMode === 'request' ? REQUEST_SHEET_BOTTOM_OFFSET : BOTTOM_NAV_HEIGHT;
+
+  const handleSheetChange = useCallback(
+    (index: number) => {
+      setSheetSnapIndex(index);
+      if (sheetMode === 'active') {
+        setShowActiveHud(index === 0);
+      }
+    },
+    [sheetMode]
+  );
 
   useEffect(() => {
     if (!activeRouteParam) return;
@@ -341,54 +359,43 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     });
   }, [route.params?.runFinished, navigation, stopTracking]);
 
-  const animateSheetTo = (toValue: number) => {
-    Animated.spring(sheetTranslateY, {
-      toValue,
-      useNativeDriver: true,
-      tension: 80,
-      friction: 14,
-    }).start();
-  };
-
   useEffect(() => {
-    sheetTranslateY.stopAnimation((currentValue) => {
-      const clamped = Math.max(
-        minTranslate,
-        Math.min(maxTranslate, currentValue)
-      );
-      sheetTranslateY.setValue(clamped);
-    });
-  }, [minTranslate, maxTranslate, sheetTranslateY]);
-
-  useEffect(() => {
-    if (sheetMode === 'request') {
-      sheetTranslateY.stopAnimation();
-      sheetTranslateY.setValue(0);
-    } else if (sheetMode === 'generated') {
-      sheetTranslateY.stopAnimation();
-      sheetTranslateY.setValue(GENERATED_EXPANDED_TRANSLATE);
+    const sheet = bottomSheetRef.current;
+    if (!sheet) return;
+    if (sheetMode === 'generated') {
+      sheet.snapToIndex(1);
+      setSheetSnapIndex(1);
+    } else if (sheetMode === 'active') {
+      sheet.snapToIndex(0);
+      setSheetSnapIndex(0);
+      setShowActiveHud(true);
+    } else if (sheetMode === 'request') {
+      sheet.snapToIndex(1);
+      setSheetSnapIndex(1);
+    } else {
+      sheet.snapToIndex(0);
+      setSheetSnapIndex(0);
     }
-  }, [sheetMode, GENERATED_EXPANDED_TRANSLATE, sheetTranslateY]);
-
-  const isPlacementSheet = placementMode !== null && sheetMode === 'request';
-  const sheetHeight = isPlacementSheet
-    ? PLACEMENT_COLLAPSED_HEIGHT
-    : sheetMode === 'request'
-      ? REQUEST_SHEET_HEIGHT
-      : EXPANDED_HEIGHT;
+  }, [sheetMode, isPlacementSheet]);
 
   const mapBottomPadding = useMemo(() => {
     if (isPlacementSheet) {
       return PLACEMENT_COLLAPSED_HEIGHT + REQUEST_SHEET_BOTTOM_OFFSET;
     }
     if (sheetMode === 'request') {
-      return REQUEST_SHEET_HEIGHT + REQUEST_SHEET_BOTTOM_OFFSET;
+      const sheetHeight =
+        sheetSnapIndex === 0 ? REQUEST_COLLAPSED_HEIGHT : REQUEST_SHEET_HEIGHT;
+      return sheetHeight + REQUEST_SHEET_BOTTOM_OFFSET;
     }
     if (sheetMode === 'generated') {
-      return GENERATED_COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT;
+      const sheetHeight =
+        sheetSnapIndex === 0
+          ? GENERATED_COLLAPSED_HEIGHT
+          : GENERATED_EXPANDED_HEIGHT;
+      return sheetHeight + BOTTOM_NAV_HEIGHT;
     }
     return ACTIVE_COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT;
-  }, [isPlacementSheet, sheetMode]);
+  }, [isPlacementSheet, sheetMode, sheetSnapIndex]);
 
   const mapPadding = useMemo(
     () => ({
@@ -416,13 +423,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (sheetMode !== 'active') {
       setShowActiveHud(false);
-      return;
     }
-    const id = sheetTranslateY.addListener(({ value }) => {
-      setShowActiveHud(value > maxTranslate - 6);
-    });
-    return () => sheetTranslateY.removeListener(id);
-  }, [sheetMode, maxTranslate, sheetTranslateY]);
+  }, [sheetMode]);
 
   const centerMapOnUser = (coord: Coordinate) => {
     if (userLocationCenteredRef.current || placementMode) return;
@@ -750,37 +752,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     }
   };
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => sheetMode !== 'request',
-        onMoveShouldSetPanResponder: (_, gesture) =>
-          sheetMode !== 'request' && Math.abs(gesture.dy) > 4,
-        onPanResponderMove: (_, gesture) => {
-          const next = Math.max(
-            minTranslate,
-            Math.min(maxTranslate, maxTranslate + gesture.dy)
-          );
-          sheetTranslateY.setValue(next);
-        },
-        onPanResponderRelease: (_, gesture) => {
-          if (gesture.dy < -20) {
-            animateSheetTo(minTranslate);
-          } else if (gesture.dy > 20) {
-            animateSheetTo(maxTranslate);
-          } else {
-            sheetTranslateY.stopAnimation((currentValue) => {
-              const midpoint = (minTranslate + maxTranslate) / 2;
-              animateSheetTo(
-                currentValue < midpoint ? minTranslate : maxTranslate
-              );
-            });
-          }
-        },
-      }),
-    [minTranslate, maxTranslate, sheetMode, sheetTranslateY]
-  );
-
   const sliderMinX = LINE_INSET - THUMB_SIZE / 2;
   const sliderMaxX = Math.max(
     sliderMinX,
@@ -948,6 +919,40 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       ? 'Startposition — tryck på kartan för att flytta'
       : 'Slutposition — tryck på kartan för att flytta';
 
+  const renderSheetHandle = useCallback(
+    (props: ComponentProps<typeof BottomSheetHandle>) => (
+      <BottomSheetHandle
+        {...props}
+        style={[
+          props.style,
+          styles.sheetHandleArea,
+          !canDragSheet && styles.sheetHandleAreaCompact,
+        ]}
+        indicatorStyle={styles.sheetHandleIndicatorHidden}
+      >
+        <View style={styles.sheetHandle} />
+        {canDragSheet ? <View style={styles.sheetHandleSecondary} /> : null}
+        {sheetMode === 'active' && sheetSnapIndex === 0 ? (
+          <Text style={styles.sheetHandleHint}>Dra upp för mer information</Text>
+        ) : null}
+        {sheetMode === 'request' && sheetSnapIndex === 0 ? (
+          <Text style={styles.sheetHandleHint}>
+            Dra upp för att välja ruttlängd
+          </Text>
+        ) : null}
+        {sheetMode === 'generated' && sheetSnapIndex === 0 ? (
+          <Text style={styles.sheetHandleHint}>
+            Dra upp för att se rutt och starta
+          </Text>
+        ) : null}
+      </BottomSheetHandle>
+    ),
+    [canDragSheet, sheetMode, sheetSnapIndex]
+  );
+
+  const initialSheetIndex =
+    sheetMode === 'generated' || sheetMode === 'request' ? 1 : 0;
+
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
@@ -1087,120 +1092,100 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <Animated.View
-        style={[
-          styles.filterSheet,
-          isFixedHeightSheet && styles.filterSheetFixed,
+      <View style={styles.bottomNavLayer} pointerEvents="box-none">
+        <BottomNav
+          navigation={navigation}
+          activeTab="CreateRoute"
+          fromOrigin={from}
+        />
+      </View>
+
+      <BottomSheet
+        key={`${sheetMode}-${placementMode ?? 'none'}`}
+        ref={bottomSheetRef}
+        index={initialSheetIndex}
+        snapPoints={snapPoints}
+        bottomInset={bottomSheetInset}
+        onChange={handleSheetChange}
+        enablePanDownToClose={false}
+        enableDynamicSizing={false}
+        enableHandlePanningGesture={canDragSheet}
+        enableContentPanningGesture={canDragSheetContent}
+        activeOffsetY={[-8, 8]}
+        containerStyle={styles.sheetContainer}
+        handleComponent={renderSheetHandle}
+        backgroundStyle={[
+          styles.sheetBackground,
           isPlacementSheet && styles.filterSheetPlacement,
-          {
-            height: sheetHeight,
-            transform: [
-              {
-                translateY: isFixedHeightSheet ? 0 : sheetTranslateY,
-              },
-            ],
-          },
         ]}
       >
-        <View
-          {...(isFixedHeightSheet ? {} : panResponder.panHandlers)}
-          style={[
-            styles.sheetHandleArea,
-            isFixedHeightSheet && styles.sheetHandleAreaCompact,
-          ]}
-        >
-          <View style={styles.sheetHandle} />
-          {!isFixedHeightSheet ? (
-            <View style={styles.sheetHandleSecondary} />
+        <BottomSheetView style={styles.sheetContent}>
+          {sheetMode === 'request' ? (
+            <RouteRequestSheet
+              greetingFirstName={greetingFirstName}
+              distanceKm={distanceKm}
+              isGenerating={isGenerating}
+              sliderX={sliderX}
+              sliderPanHandlers={sliderPanResponder.panHandlers}
+              onSliderLayout={handleSliderLayout}
+              onGenerate={handleGenerateRoute}
+              placementMode={placementMode}
+              startPlaced={startPoint !== null}
+              endPlaced={endPoint !== null}
+              onSelectStart={handleSelectStart}
+              onSelectEnd={handleSelectEnd}
+              onConfirmPlacement={handleConfirmPlacement}
+              onCancelPlacement={handleCancelPlacement}
+              placementPinReady={draftPlacementPin !== null}
+            />
+          ) : sheetMode === 'generated' && generatedRoute ? (
+            <RouteGeneratedSheet
+              route={generatedRoute}
+              onGenerateNew={handleGenerateRoute}
+              onStartOrienteering={handleStartOrienteering}
+              showUserPosition={showUserPosition}
+              onToggleUserPosition={toggleUserPosition}
+              onBackToRequest={() => {
+                setSheetMode('request');
+                setShowUserPosition(true);
+              }}
+            />
+          ) : sheetMode === 'active' && generatedRoute ? (
+            <RouteActiveSheet
+              route={generatedRoute}
+              terrain={activeStats}
+              onAbort={() => {
+                if (!generatedRoute) return;
+                const checkpointDone = generatedRoute.checkpoints.filter(
+                  (cp) => cp.completed
+                ).length;
+                const summary = buildRunSummary(
+                  checkpointDone,
+                  generatedRoute.checkpoints.length,
+                  generatedRoute
+                );
+                navigation.navigate('CancelRoute', {
+                  routeName: summary.routeName,
+                  totalCheckpoints: summary.totalCheckpoints,
+                  checkpointsCompleted: summary.checkpointsCompleted,
+                  elapsedMin: summary.elapsedMin,
+                  distanceKm: summary.distanceKm,
+                  paceMinPerKm: summary.paceMinPerKm,
+                  plannedDistanceKm: summary.plannedDistanceKm,
+                  from: summary.from,
+                  runId: runId ?? undefined,
+                  elapsedSeconds,
+                  distanceMeters: Math.round(trackDistanceM),
+                });
+              }}
+              onEmergency={toggleUserPosition}
+              showUserPosition={showUserPosition}
+              onFetchCheckpoint={handleFetchCheckpoint}
+              canFetchCheckpoint={canFetchCheckpoint}
+            />
           ) : null}
-          {sheetMode === 'active' && (
-            <Animated.Text
-              style={[
-                styles.sheetHandleHint,
-                {
-                  opacity: sheetTranslateY.interpolate({
-                    inputRange: [minTranslate, maxTranslate],
-                    outputRange: [0, 1],
-                    extrapolate: 'clamp',
-                  }),
-                },
-              ]}
-            >
-              Dra upp för mer information
-            </Animated.Text>
-          )}
-        </View>
-        {sheetMode === 'request' ? (
-          <RouteRequestSheet
-            greetingFirstName={greetingFirstName}
-            distanceKm={distanceKm}
-            isGenerating={isGenerating}
-            sliderX={sliderX}
-            sliderPanHandlers={sliderPanResponder.panHandlers}
-            onSliderLayout={handleSliderLayout}
-            onGenerate={handleGenerateRoute}
-            placementMode={placementMode}
-            startPlaced={startPoint !== null}
-            endPlaced={endPoint !== null}
-            onSelectStart={handleSelectStart}
-            onSelectEnd={handleSelectEnd}
-            onConfirmPlacement={handleConfirmPlacement}
-            onCancelPlacement={handleCancelPlacement}
-            placementPinReady={draftPlacementPin !== null}
-          />
-        ) : sheetMode === 'generated' && generatedRoute ? (
-          <RouteGeneratedSheet
-            route={generatedRoute}
-            onGenerateNew={handleGenerateRoute}
-            onStartOrienteering={handleStartOrienteering}
-            showUserPosition={showUserPosition}
-            onToggleUserPosition={toggleUserPosition}
-            onBackToRequest={() => {
-              setSheetMode('request');
-              setShowUserPosition(true);
-            }}
-          />
-        ) : sheetMode === 'active' && generatedRoute ? (
-          <RouteActiveSheet
-            route={generatedRoute}
-            terrain={activeStats}
-            onAbort={() => {
-              if (!generatedRoute) return;
-              const checkpointDone = generatedRoute.checkpoints.filter(
-                (cp) => cp.completed
-              ).length;
-              const summary = buildRunSummary(
-                checkpointDone,
-                generatedRoute.checkpoints.length,
-                generatedRoute
-              );
-              navigation.navigate('CancelRoute', {
-                routeName: summary.routeName,
-                totalCheckpoints: summary.totalCheckpoints,
-                checkpointsCompleted: summary.checkpointsCompleted,
-                elapsedMin: summary.elapsedMin,
-                distanceKm: summary.distanceKm,
-                paceMinPerKm: summary.paceMinPerKm,
-                plannedDistanceKm: summary.plannedDistanceKm,
-                from: summary.from,
-                runId: runId ?? undefined,
-                elapsedSeconds,
-                distanceMeters: Math.round(trackDistanceM),
-              });
-            }}
-            onEmergency={toggleUserPosition}
-            showUserPosition={showUserPosition}
-            onFetchCheckpoint={handleFetchCheckpoint}
-            canFetchCheckpoint={canFetchCheckpoint}
-          />
-        ) : null}
-      </Animated.View>
-
-      <BottomNav
-        navigation={navigation}
-        activeTab="CreateRoute"
-        fromOrigin={from}
-      />
+        </BottomSheetView>
+      </BottomSheet>
 
       <Modal
         visible={outOfRangeVisible}
@@ -1249,31 +1234,40 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 72,
   },
-  filterSheet: {
+  bottomNavLayer: {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 72,
+    bottom: 0,
+    zIndex: 5,
+    elevation: 5,
+  },
+  sheetContainer: {
+    zIndex: 20,
+    elevation: 20,
+  },
+  sheetHandleIndicatorHidden: {
+    display: 'none',
+  },
+  sheetBackground: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderWidth: 1,
     borderColor: '#e5e8eb',
-    paddingHorizontal: 18,
-    paddingTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: -4 },
     elevation: 6,
   },
-  filterSheetFixed: {
-    bottom: REQUEST_SHEET_BOTTOM_OFFSET,
-    paddingTop: 8,
-    paddingBottom: 4,
+  sheetContent: {
+    paddingHorizontal: 18,
+    paddingBottom: 8,
   },
   filterSheetPlacement: {
-    paddingTop: 8,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
   },
   sheetHandleArea: {
     alignItems: 'center',
