@@ -1,7 +1,9 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BadgeCelebrationProvider } from './src/context/BadgeCelebrationContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -96,14 +98,16 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export default function App() {
   // Stack.Navigator initialRoute means app start on home screen
   return (
-    <BadgeCelebrationProvider
-      onViewAllBadges={() => {
-        if (navigationRef.isReady()) {
-          navigationRef.navigate('Badges');
-        }
-      }}
-    >
-      <NavigationContainer ref={navigationRef}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <BadgeCelebrationProvider
+          onViewAllBadges={() => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('Badges');
+            }
+          }}
+        >
+          <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="Home">
           <Stack.Screen
             name="Home"
@@ -250,8 +254,10 @@ export default function App() {
             }}
           />
         </Stack.Navigator>
-      </NavigationContainer>
-    </BadgeCelebrationProvider>
+          </NavigationContainer>
+        </BadgeCelebrationProvider>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
   // NavigationContainer is the root component that wraps all the screens, so this is where we list all screens
 }
