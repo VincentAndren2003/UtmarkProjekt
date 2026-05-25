@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, UrlTile } from 'react-native-maps';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { SavedRouteRecord } from '../lib/api';
 import { trackPointsToPolyline } from '../utils/trackUtils';
+import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RunDetail'>;
 
@@ -103,8 +104,11 @@ export function RunDetailScreen({ navigation, route }: Props) {
 
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
         initialRegion={initialRegion}
+        provider={PROVIDER_GOOGLE}
+        customMapStyle={CustomMapStyle}
+        showsBuildings={false}
+        showsCompass={false}
       >
         {trackCoords.length > 1 && (
           <Polyline
@@ -124,6 +128,14 @@ export function RunDetailScreen({ navigation, route }: Props) {
             pinColor="#BA55A0"
           />
         ))}
+        <UrlTile
+          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+          maximumZ={20}
+          minimumZ={12}
+          shouldReplaceMapContent={false}
+          tileSize={512}
+          zIndex={1}
+        />
       </MapView>
 
       <View style={styles.legend}>

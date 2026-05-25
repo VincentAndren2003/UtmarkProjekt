@@ -77,6 +77,7 @@ import MapView, {
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
 import { NativeViewGestureHandler } from 'react-native-gesture-handler';
+import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
@@ -941,73 +942,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const ratio = (distanceKm - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
     sliderX.setValue(minX + ratio * travel);
   };
-  //
-
-  /** Styling för Google Maps kartan **/
-  const roadFIll = '#E7AB83';
-  const roadOutline = '#000000';
-  const waterFIll = '#009ee2';
-  const forestFIll = '#ffffff';
-  const parkFill = '#FFBA36';
-
-  const mapStyle = [
-    {
-      elementType: 'labels',
-      stylers: [
-        {
-          visibility: 'off',
-        },
-      ],
-    },
-    {
-      featureType: 'road',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: roadFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'road',
-      elementType: 'geometry.stroke',
-      stylers: [
-        {
-          color: roadOutline,
-        },
-        {
-          weight: 0.5,
-        },
-      ],
-    },
-    {
-      featureType: 'water',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: waterFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'landscape',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: forestFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'poi',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: parkFill,
-        },
-      ],
-    },
-  ];
 
   const placementTapHint =
     placementMode === 'start'
@@ -1142,7 +1076,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             ref={mapRef}
             style={StyleSheet.absoluteFill}
             provider={PROVIDER_GOOGLE}
-            customMapStyle={mapStyle}
+            customMapStyle={CustomMapStyle}
             showsBuildings={false}
             showsCompass={false}
             showsUserLocation={showsUserLocationOnMap}
