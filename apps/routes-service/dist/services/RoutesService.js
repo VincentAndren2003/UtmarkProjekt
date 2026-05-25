@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoutesService = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const env_1 = require("../config/env");
 const RouteRecord_1 = require("../models/RouteRecord");
 const Run_1 = require("../models/Run");
 const RouteChallenge_1 = require("../models/RouteChallenge");
+const Friendship_1 = require("../models/Friendship");
 function httpError(status, message) {
     const e = new Error(message);
     e.status = status;
@@ -46,21 +46,16 @@ function parseRunStatus(raw) {
 }
 class RoutesService {
     async assertFriends(a, b) {
-        if (!env_1.env.PROFILE_SERVICE_TOKEN) {
-            throw httpError(500, 'PROFILE_SERVICE_TOKEN is not configured');
-        }
-        const url = new URL('/internal/social/are-friends', env_1.env.PROFILE_SERVICE_URL);
-        url.searchParams.set('userA', a);
-        url.searchParams.set('userB', b);
-        const res = await fetch(url, {
-            method: 'GET',
-            headers: { 'x-service-token': env_1.env.PROFILE_SERVICE_TOKEN },
+        const userA = new mongoose_1.default.Types.ObjectId(a);
+        const userB = new mongoose_1.default.Types.ObjectId(b);
+        const friendship = await Friendship_1.Friendship.findOne({
+            status: 'accepted',
+            $or: [
+                { requester: userA, recipient: userB },
+                { requester: userB, recipient: userA },
+            ],
         });
-        const data = (await res.json().catch(() => ({})));
-        if (!res.ok) {
-            throw httpError(502, 'Profile service unavailable for friendship check');
-        }
-        if (!data.accepted) {
+        if (!friendship) {
             throw httpError(403, 'Inte vänner');
         }
     }
