@@ -42,6 +42,11 @@ export type RootStackParamList = {
         savedRouteId?: string;
         /** Nollställ kartvy efter avslutad rutt. */
         runFinished?: boolean;
+        /** Öppna befintlig rutt i generated-läge (t.ex. accepterad utmaning). */
+        openAsGenerated?: boolean;
+        /** Tid att slå från utmanarens avslutade körning (sekunder). */
+        challengeTargetSeconds?: number;
+        challengeFromName?: string;
       }
     | undefined;
   RouteStarted: { route: RouteResponse };
@@ -67,6 +72,9 @@ export type RootStackParamList = {
     from?: 'Login' | 'CreateAccount';
     /** Badges to show unlock celebration for after completed run. */
     celebrationBadgeIds?: string[];
+    challengeTargetSeconds?: number;
+    challengeFromName?: string;
+    elapsedSeconds?: number;
   };
   CancelRoute: {
     routeName: string;

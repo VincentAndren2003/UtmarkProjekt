@@ -249,15 +249,25 @@ export async function searchUsers(
       return;
     }
 
+    const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = { $regex: escaped, $options: 'i' };
+
     const profiles = await db
       .collection('profiles')
       .find({
-        username: { $regex: query, $options: 'i' },
-        userId: { $ne: new mongoose.Types.ObjectId(req.userId) }, // exkludera sig själv
+        $or: [{ username: regex }, { fullName: regex }],
+        userId: { $ne: new mongoose.Types.ObjectId(req.userId) },
       })
+      .limit(20)
       .toArray();
 
-    res.status(200).json(profiles);
+    res.status(200).json(
+      profiles.map((p) => ({
+        ...p,
+        _id: p._id?.toString?.() ?? p._id,
+        userId: p.userId?.toString?.() ?? p.userId,
+      }))
+    );
   } catch (err) {
     next(err);
   }

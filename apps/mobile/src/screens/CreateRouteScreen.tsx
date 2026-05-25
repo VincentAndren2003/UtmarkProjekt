@@ -68,6 +68,7 @@ import { Checkpoint } from '../models/Checkpoint';
 
 import { useTracking } from '../hooks/useTracking';
 import { simplifyTrackPoints } from '../utils/trackUtils';
+import { formatDurationClock } from '../utils/routeUtils';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, {
@@ -189,6 +190,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const activeRouteParam = route.params?.activeRoute;
   const activeRunIdParam = route.params?.runId;
   const activeSavedRouteIdParam = route.params?.savedRouteId;
+  const openAsGenerated = route.params?.openAsGenerated;
+  const challengeTargetSeconds = route.params?.challengeTargetSeconds;
+  const challengeFromName = route.params?.challengeFromName;
   const { location } = useUserLocation();
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -441,11 +445,21 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (!activeRouteParam) return;
     setGeneratedRoute(activeRouteParam);
+    if (activeSavedRouteIdParam) setSavedRouteId(activeSavedRouteIdParam);
+    if (openAsGenerated) {
+      setSheetMode('generated');
+      setShowUserPosition(true);
+      return;
+    }
     setSheetMode('active');
     beginActiveRun();
     if (activeRunIdParam) setRunId(activeRunIdParam);
-    if (activeSavedRouteIdParam) setSavedRouteId(activeSavedRouteIdParam);
-  }, [activeRouteParam, activeRunIdParam, activeSavedRouteIdParam]);
+  }, [
+    activeRouteParam,
+    activeRunIdParam,
+    activeSavedRouteIdParam,
+    openAsGenerated,
+  ]);
 
   useEffect(() => {
     if (!route.params?.runFinished) return;
@@ -692,6 +706,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     savedRouteId: savedRouteId ?? undefined,
     routeSnapshot,
     from,
+    challengeTargetSeconds,
+    challengeFromName,
+    elapsedSeconds,
   });
 
   const handleFetchCheckpoint = async () => {
@@ -1335,17 +1352,34 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               }}
             >
               {sheetSnapIndex > 0 ? (
-                <RouteGeneratedSheet
-                  route={generatedRoute}
-                  onGenerateNew={handleGenerateRoute}
-                  onStartOrienteering={handleStartOrienteering}
-                  showUserPosition={showUserPosition}
-                  onToggleUserPosition={toggleUserPosition}
-                  onBackToRequest={() => {
-                    setSheetMode('request');
-                    setShowUserPosition(true);
-                  }}
-                />
+                <>
+                  {challengeTargetSeconds != null ? (
+                    <View style={styles.challengeBanner}>
+                      <Text style={styles.challengeBannerTitle}>
+                        Utmaning
+                        {challengeFromName ? ` från ${challengeFromName}` : ''}
+                      </Text>
+                      <Text style={styles.challengeBannerSub}>
+                        Slå tiden {formatDurationClock(challengeTargetSeconds)}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <RouteGeneratedSheet
+                    route={generatedRoute}
+                    onGenerateNew={handleGenerateRoute}
+                    onStartOrienteering={handleStartOrienteering}
+                    showUserPosition={showUserPosition}
+                    onToggleUserPosition={toggleUserPosition}
+                    onBackToRequest={() => {
+                      if (openAsGenerated) {
+                        navigation.goBack();
+                        return;
+                      }
+                      setSheetMode('request');
+                      setShowUserPosition(true);
+                    }}
+                  />
+                </>
               ) : null}
             </View>
           ) : sheetMode === 'active' && generatedRoute ? (
@@ -1595,5 +1629,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
+  },
+  challengeBanner: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(62, 122, 68, 0.12)',
+  },
+  challengeBannerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  challengeBannerSub: {
+    fontSize: 14,
+    color: '#3E7A44',
+    fontWeight: '600',
   },
 });
