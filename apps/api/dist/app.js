@@ -135,8 +135,6 @@ function createApp() {
     // increment-generated
     app.post('/api/stats/increment-generated', authMiddleware_1.authMiddleware, async (req, res, next) => {
         try {
-            const targetUrl = `${env_1.env.PROFILE_SERVICE_URL}/stats/increment-generated`;
-            console.log(`[GATEWAY] Forwarding request to: ${targetUrl}`); // <-- ADD THIS
             await proxyJson(res, `${env_1.env.PROFILE_SERVICE_URL}/stats/increment-generated`, {
                 method: 'POST',
                 headers: { 'x-user-id': req.userId },
