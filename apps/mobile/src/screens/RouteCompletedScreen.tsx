@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../App';
 import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
 import { savePersistedRoute } from '../lib/api';
+import { formatDurationClock } from '../utils/routeUtils';
 import { addFavoriteRoute } from '../services/favoritesStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteCompleted'>;
@@ -32,7 +33,15 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     routeSnapshot,
     from,
     celebrationBadgeIds = [],
+    challengeTargetSeconds,
+    challengeFromName,
+    elapsedSeconds,
   } = route.params;
+
+  const beatChallenge =
+    challengeTargetSeconds != null &&
+    elapsedSeconds != null &&
+    elapsedSeconds < challengeTargetSeconds;
 
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
   const [savingFavorite, setSavingFavorite] = useState(false);
@@ -81,6 +90,26 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
       >
         <Text style={styles.title}>Rutt avslutad!</Text>
         <Text style={styles.subtitle}>Snyggt jobbat!</Text>
+
+        {challengeTargetSeconds != null && elapsedSeconds != null ? (
+          <View
+            style={[
+              styles.challengeResult,
+              beatChallenge
+                ? styles.challengeResultWin
+                : styles.challengeResultLose,
+            ]}
+          >
+            <Text style={styles.challengeResultTitle}>
+              {beatChallenge ? 'Du vann utmaningen!' : 'Utmaningen vanns inte'}
+            </Text>
+            <Text style={styles.challengeResultBody}>
+              Din tid {formatDurationClock(elapsedSeconds)}
+              {challengeFromName ? ` · mål från ${challengeFromName}` : ''}
+              {' · '}måltid {formatDurationClock(challengeTargetSeconds)}
+            </Text>
+          </View>
+        ) : null}
 
         <Text style={styles.progressLabel}>
           {checkpointsCompleted} / {totalCheckpoints} checkpoints tagna
@@ -288,6 +317,30 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     textAlign: 'center',
     marginBottom: 22,
+  },
+  challengeResult: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
+  },
+  challengeResultWin: {
+    backgroundColor: 'rgba(62, 122, 68, 0.15)',
+  },
+  challengeResultLose: {
+    backgroundColor: 'rgba(185, 28, 28, 0.08)',
+  },
+  challengeResultTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  challengeResultBody: {
+    fontSize: 14,
+    color: '#4a5763',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   progressLabel: {
     fontSize: 14,
