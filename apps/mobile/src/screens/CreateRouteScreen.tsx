@@ -204,9 +204,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     null
   );
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null);
-  const [draftPlacementPin, setDraftPlacementPin] = useState<Coordinate | null>(
-    null
-  );
   const [startPoint, setStartPoint] = useState<Coordinate | null>(null);
   const [endPoint, setEndPoint] = useState<Coordinate | null>(null);
   const [mapInitialRegion, setMapInitialRegion] = useState<Region | null>(null);
@@ -595,11 +592,11 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     existing: Coordinate | null
   ) => {
     if (existing) {
-      setDraftPlacementPin(existing);
       mapCenterRef.current = existing;
       animateMapTo(existing);
-    } else {
-      setDraftPlacementPin(null);
+    } else if (location) {
+      mapCenterRef.current = location;
+      animateMapTo(location);
     }
     setPlacementMode(mode);
   };
@@ -612,26 +609,18 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     beginPlacement('end', endPoint);
   };
 
-  const handleMapPress = (coord: Coordinate) => {
-    if (!placementMode) return;
-    setDraftPlacementPin(coord);
-    mapCenterRef.current = coord;
-  };
-
   const handleConfirmPlacement = () => {
-    if (!draftPlacementPin) return;
-    const coord = draftPlacementPin;
+    if (!placementMode) return;
+    const coord = mapCenterRef.current;
     if (placementMode === 'start') {
       setStartPoint(coord);
     } else if (placementMode === 'end') {
       setEndPoint(coord);
     }
-    setDraftPlacementPin(null);
     setPlacementMode(null);
   };
 
   const handleCancelPlacement = () => {
-    setDraftPlacementPin(null);
     setPlacementMode(null);
   };
 
@@ -1022,12 +1011,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   const placementTapHint =
     placementMode === 'start'
-      ? 'Tryck på kartan för att placera startposition'
-      : 'Tryck på kartan för att placera slutposition';
-  const placementMarkerLabel =
-    placementMode === 'start'
-      ? 'Startposition — tryck på kartan för att flytta'
-      : 'Slutposition — tryck på kartan för att flytta';
+      ? 'Flytta kartan så startpinnen hamnar rätt, tryck sedan Bekräfta'
+      : 'Flytta kartan så slutpinnen hamnar rätt, tryck sedan Bekräfta';
 
   const sheetChromeStyles = styles.sheetChrome;
 
@@ -1168,7 +1153,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             pitchEnabled={false}
             mapPadding={mapPadding}
             onMapReady={handleMapReady}
-            onPress={(event) => handleMapPress(event.nativeEvent.coordinate)}
             initialRegion={
               mapInitialRegion ?? {
                 latitude: 59.334591,
@@ -1182,12 +1166,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 latitudeDelta: region.latitudeDelta,
                 longitudeDelta: region.longitudeDelta,
               };
-              if (!placementMode) {
-                mapCenterRef.current = {
-                  latitude: region.latitude,
-                  longitude: region.longitude,
-                };
-              }
+              mapCenterRef.current = {
+                latitude: region.latitude,
+                longitude: region.longitude,
+              };
             }}
           >
             {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
@@ -1213,20 +1195,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               </Marker>
             ) : null}
 
-            {placementMode && draftPlacementPin ? (
-              <Marker
-                coordinate={draftPlacementPin}
-                anchor={{ x: 0.5, y: 1 }}
-                zIndex={11}
-                tappable={false}
-              >
-                <EndpointPinMarker
-                  variant={placementMode}
-                  label={placementMarkerLabel}
-                />
-              </Marker>
-            ) : null}
-
             <UrlTile
               urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
               maximumZ={20}
@@ -1237,7 +1205,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             />
           </MapView>
         </NativeViewGestureHandler>
-        {placementMode && !draftPlacementPin ? (
+        {placementMode ? (
           <PlacementTapHint
             label={placementTapHint}
             variant={placementMode}
@@ -1355,7 +1323,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 onSelectEnd={handleSelectEnd}
                 onConfirmPlacement={handleConfirmPlacement}
                 onCancelPlacement={handleCancelPlacement}
-                placementPinReady={draftPlacementPin !== null}
               />
             </View>
           ) : sheetMode === 'generated' && generatedRoute ? (
