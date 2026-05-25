@@ -9,16 +9,18 @@ export class Route {
   };
   distance: number; // km t.ex 2, 5, 10
   checkpoints: Checkpoint[] = [];
-  private currentCheckPointIndex: number = 0;
+  currentCheckPointIndex: number;
 
   constructor(
     id: string,
     start: { latitude: number; longitude: number },
-    distance: number
+    distance: number,
+    currentCheckPointIndex: number,
   ) {
     this.id = id;
     this.start = start;
     this.distance = distance;
+    this.currentCheckPointIndex = currentCheckPointIndex;
   }
 
   getCurrentCheckpoint(): Checkpoint | null {

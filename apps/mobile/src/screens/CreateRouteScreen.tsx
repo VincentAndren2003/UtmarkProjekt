@@ -69,7 +69,7 @@ import MapView, {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
-const FETCH_RADIUS_M = 50;
+const FETCH_RADIUS_M = 25;
 const PREVIEW_GENERATED_SHEET = false;
 const REQUEST_SHEET_BOTTOM_OFFSET = 86;
 
@@ -604,10 +604,15 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     if (!location || !generatedRoute) return;
     if (!canFetchCheckpoint) return;
 
+    const checkpointIndex = generatedRoute.checkpoints.filter(
+      (cp) => cp.completed
+    ).length;
+
     const routeInstance = new Route(
       generatedRoute.id,
       generatedRoute.start,
-      generatedRoute.distance
+      generatedRoute.distance,
+      checkpointIndex
     );
     routeInstance.checkpoints = generatedRoute.checkpoints.map(
       (cp) => new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
@@ -1197,7 +1202,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           style={styles.modalBackdrop}
           onPress={() => setOutOfRangeVisible(false)}
         >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
+          <Pressable style={styles.modalCard} onPress={() => { }}>
             <Ionicons
               name="lock-closed"
               size={28}
