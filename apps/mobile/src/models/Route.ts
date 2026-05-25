@@ -15,7 +15,7 @@ export class Route {
     id: string,
     start: { latitude: number; longitude: number },
     distance: number,
-    currentCheckPointIndex: number,
+    currentCheckPointIndex: number
   ) {
     this.id = id;
     this.start = start;

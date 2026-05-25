@@ -11,49 +11,9 @@ export type ActiveRouteStats = {
 type Props = {
   stats: ActiveRouteStats;
   variant?: 'sheet' | 'hud';
+  /** Override HUD top offset (already includes status bar on Android when passed from parent). */
+  hudTop?: number;
 };
-
-export function ActiveRouteStatsBar({ stats, variant = 'sheet' }: Props) {
-  return (
-    <View style={[styles.root, variant === 'hud' && styles.rootHud]}>
-      <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
-          Tid
-        </Text>
-        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
-          {stats.timeMin} min
-        </Text>
-      </View>
-      <View style={styles.divider} />
-      <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
-          Checkpoint
-        </Text>
-        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
-          {stats.checkpointDone}/{stats.checkpointTotal}
-        </Text>
-      </View>
-      <View style={styles.divider} />
-      <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
-          Till nästa
-        </Text>
-        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
-          {stats.distanceToNextM} m
-        </Text>
-      </View>
-      <View style={styles.divider} />
-      <View style={styles.item}>
-        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
-          Snitt
-        </Text>
-        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
-          {stats.paceMinPerKm}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 const HUD_TOP =
   (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0) + 69;
@@ -108,3 +68,55 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 });
+
+export function ActiveRouteStatsBar({
+  stats,
+  variant = 'sheet',
+  hudTop,
+}: Props) {
+  return (
+    <View
+      style={[
+        styles.root,
+        variant === 'hud' && styles.rootHud,
+        variant === 'hud' && hudTop != null && { top: hudTop },
+      ]}
+    >
+      <View style={styles.item}>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Tid
+        </Text>
+        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
+          {stats.timeMin} min
+        </Text>
+      </View>
+      <View style={styles.divider} />
+      <View style={styles.item}>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Checkpoint
+        </Text>
+        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
+          {stats.checkpointDone}/{stats.checkpointTotal}
+        </Text>
+      </View>
+      <View style={styles.divider} />
+      <View style={styles.item}>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Till nästa
+        </Text>
+        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
+          {stats.distanceToNextM} m
+        </Text>
+      </View>
+      <View style={styles.divider} />
+      <View style={styles.item}>
+        <Text style={[styles.label, variant === 'hud' && styles.labelHud]}>
+          Snitt
+        </Text>
+        <Text style={[styles.value, variant === 'hud' && styles.valueHud]}>
+          {stats.paceMinPerKm}
+        </Text>
+      </View>
+    </View>
+  );
+}

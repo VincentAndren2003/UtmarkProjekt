@@ -108,152 +108,152 @@ export default function App() {
           }}
         >
           <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              headerTransparent: true,
-              headerShadowVisible: false,
-              headerTintColor: '#fff',
-              headerTitleStyle: { color: '#fff' },
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CreateAccount"
-            component={CreateAccountScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen
-            name="ProfileUpsert"
-            component={ProfileUpsertScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CreateRoute"
-            component={CreateRouteScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="RouteStarted"
-            component={RouteStartedScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="CheckpointTaken"
-            component={CheckpointTakenScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="RouteCompleted"
-            component={RouteCompletedScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="CancelRoute"
-            component={CancelRouteScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="Favorites"
-            component={FavoritesScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="History"
-            component={HistoryScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="RunDetail"
-            component={RunDetailScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="Challenges"
-            component={ChallengesScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="Badges"
-            component={BadgesScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="Friends"
-            component={FriendsScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-          <Stack.Screen
-            name="FriendRequests"
-            component={FriendRequestsScreen}
-            options={{
-              headerShown: false,
-              animation: 'fade',
-              animationDuration: 140,
-            }}
-          />
-        </Stack.Navigator>
+            <Stack.Navigator initialRouteName="Home">
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  headerTransparent: true,
+                  headerShadowVisible: false,
+                  headerTintColor: '#fff',
+                  headerTitleStyle: { color: '#fff' },
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="CreateAccount"
+                component={CreateAccountScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen
+                name="ProfileUpsert"
+                component={ProfileUpsertScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="CreateRoute"
+                component={CreateRouteScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="RouteStarted"
+                component={RouteStartedScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="CheckpointTaken"
+                component={CheckpointTakenScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="RouteCompleted"
+                component={RouteCompletedScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="CancelRoute"
+                component={CancelRouteScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="Favorites"
+                component={FavoritesScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="History"
+                component={HistoryScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="RunDetail"
+                component={RunDetailScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="Challenges"
+                component={ChallengesScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="Badges"
+                component={BadgesScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="Friends"
+                component={FriendsScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+              <Stack.Screen
+                name="FriendRequests"
+                component={FriendRequestsScreen}
+                options={{
+                  headerShown: false,
+                  animation: 'fade',
+                  animationDuration: 140,
+                }}
+              />
+            </Stack.Navigator>
           </NavigationContainer>
         </BadgeCelebrationProvider>
       </BottomSheetModalProvider>

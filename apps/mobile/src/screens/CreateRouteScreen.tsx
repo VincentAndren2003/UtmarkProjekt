@@ -16,7 +16,9 @@ import {
   Animated,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -35,6 +37,14 @@ import {
   PlacementMode,
   RouteRequestSheet,
 } from '../components/route-sheet/RouteRequestSheet';
+import { useRouteSheetMetrics } from '../hooks/useRouteSheetMetrics';
+import {
+  SHEET_BODY_BOTTOM_PADDING,
+  SHEET_BOTTOM_CLEARANCE,
+  SHEET_HANDLE_HEIGHT_EXPANDED,
+  SHEET_LAYOUT_REFERENCE,
+  snapHeightForScreen,
+} from '../sheetLayout';
 import { useUserLocation } from '../hooks/userLocation';
 import {
   completeRun,
@@ -66,12 +76,14 @@ import MapView, {
   UrlTile,
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
+import { NativeViewGestureHandler } from 'react-native-gesture-handler';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
 const FETCH_RADIUS_M = 25;
+/** Close street-level zoom when centering on the user (reference tuning). */
+const MAP_USER_LOCATION_DELTA = 0.012;
 const PREVIEW_GENERATED_SHEET = false;
-const REQUEST_SHEET_BOTTOM_OFFSET = 86;
 
 // Beräknar luftlinjeavstånd i meter mellan två GPS-koordinater (Haversine-formeln).
 function haversineMeters(
@@ -144,19 +156,29 @@ const PREVIEW_ROUTE: RouteResponse = {
 
 export function CreateRouteScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const [measuredBottomNavHeight, setMeasuredBottomNavHeight] = useState<
+    number | null
+  >(null);
+  const sheetMetrics = useRouteSheetMetrics(measuredBottomNavHeight);
+  const {
+    windowHeight,
+    expandedSnap,
+    placementCollapsed,
+    sheetBottomInset,
+    activeHudTop,
+    activeHudBottom,
+    activeHudStatsTop,
+  } = sheetMetrics;
+  const [requestGreetingHeight, setRequestGreetingHeight] = useState(0);
+  const [requestContentHeight, setRequestContentHeight] = useState(0);
+  const [generatedBodyHeight, setGeneratedBodyHeight] = useState(0);
+  const [activeBodyHeight, setActiveBodyHeight] = useState(0);
   const MIN_DISTANCE = 1;
   const MAX_DISTANCE = 20;
   const THUMB_SIZE = 20;
   const LINE_INSET = 10;
-  const GENERATED_EXPANDED_HEIGHT = 516;
-  const REQUEST_SHEET_HEIGHT = 410;
-  const REQUEST_COLLAPSED_HEIGHT = 128;
-  const PLACEMENT_COLLAPSED_HEIGHT = 184;
-  const BOTTOM_NAV_HEIGHT = 72;
-  const GENERATED_COLLAPSED_HEIGHT = 128;
-  const ACTIVE_EXPANDED_HEIGHT = 384;
-  const ACTIVE_COLLAPSED_HEIGHT = 66;
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const mapGestureRef = useRef<NativeViewGestureHandler>(null);
   const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
   const sliderX = useRef(new Animated.Value(0)).current;
   const sliderXRef = useRef(0);
@@ -194,8 +216,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     longitude: 18.06324,
   });
   const mapDeltaRef = useRef({
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
+    latitudeDelta: MAP_USER_LOCATION_DELTA,
+    longitudeDelta: MAP_USER_LOCATION_DELTA,
   });
   const userLocationCenteredRef = useRef(false);
   const pendingUserCenterRef = useRef<Coordinate | null>(null);
@@ -306,22 +328,108 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     'Genererad rutt';
   const isPlacementSheet = placementMode !== null && sheetMode === 'request';
   const canDragSheet = !isPlacementSheet;
-  const canDragSheetContent = canDragSheet && sheetMode !== 'request';
+  /**
+   * Request sheet: when expanded, drag only from the handle (slider must not move the sheet).
+   * When collapsed, allow dragging on the greeting too so the peek is easy to expand.
+   */
+  const canDragSheetContent =
+    canDragSheet && (sheetMode !== 'request' || sheetSnapIndex === 0);
+
+  const requestHandleHeight = SHEET_HANDLE_HEIGHT_EXPANDED + 15;
+
+  const requestCollapsedHeight = useMemo(() => {
+    const greeting =
+      requestGreetingHeight > 0
+        ? requestGreetingHeight
+        : snapHeightForScreen(52, windowHeight);
+    return requestHandleHeight + greeting;
+  }, [requestHandleHeight, requestGreetingHeight, windowHeight]);
+
+  const requestExpandedHeight = useMemo(() => {
+    const greeting =
+      requestGreetingHeight > 0
+        ? requestGreetingHeight
+        : snapHeightForScreen(52, windowHeight);
+    const content =
+      requestContentHeight > 0
+        ? requestContentHeight
+        : snapHeightForScreen(
+            SHEET_LAYOUT_REFERENCE.requestExpanded - 52,
+            windowHeight
+          );
+    return (
+      requestHandleHeight +
+      greeting +
+      content +
+      SHEET_BOTTOM_CLEARANCE +
+      SHEET_BODY_BOTTOM_PADDING
+    );
+  }, [
+    requestHandleHeight,
+    requestGreetingHeight,
+    requestContentHeight,
+    windowHeight,
+  ]);
+
+  const generatedExpandedHeight = useMemo(
+    () =>
+      expandedSnap(
+        generatedBodyHeight,
+        SHEET_HANDLE_HEIGHT_EXPANDED,
+        SHEET_LAYOUT_REFERENCE.generatedExpanded
+      ),
+    [expandedSnap, generatedBodyHeight]
+  );
+
+  const activeExpandedHeight = useMemo(
+    () =>
+      expandedSnap(
+        activeBodyHeight,
+        SHEET_HANDLE_HEIGHT_EXPANDED,
+        SHEET_LAYOUT_REFERENCE.activeExpanded
+      ),
+    [expandedSnap, activeBodyHeight]
+  );
+
+  /** Collapsed peek: handle + hint only — per mode, not shared snap height. */
+  const collapsedPeekHeight = useCallback(
+    (referencePx: number) => snapHeightForScreen(referencePx, windowHeight),
+    [windowHeight]
+  );
+
+  const generatedCollapsedPeekHeight = useMemo(
+    () => collapsedPeekHeight(SHEET_LAYOUT_REFERENCE.generatedCollapsedPeek),
+    [collapsedPeekHeight]
+  );
+
+  const activeCollapsedPeekHeight = useMemo(
+    () => collapsedPeekHeight(SHEET_LAYOUT_REFERENCE.activeCollapsedPeek),
+    [collapsedPeekHeight]
+  );
 
   const snapPoints = useMemo(
     () =>
       isPlacementSheet
-        ? [PLACEMENT_COLLAPSED_HEIGHT]
+        ? [placementCollapsed]
         : sheetMode === 'request'
-          ? [REQUEST_COLLAPSED_HEIGHT, REQUEST_SHEET_HEIGHT]
+          ? [requestCollapsedHeight, requestExpandedHeight]
           : sheetMode === 'generated'
-            ? [GENERATED_COLLAPSED_HEIGHT, GENERATED_EXPANDED_HEIGHT]
-            : [ACTIVE_COLLAPSED_HEIGHT, ACTIVE_EXPANDED_HEIGHT],
-    [sheetMode, isPlacementSheet]
+            ? [generatedCollapsedPeekHeight, generatedExpandedHeight]
+            : [activeCollapsedPeekHeight, activeExpandedHeight],
+    [
+      sheetMode,
+      isPlacementSheet,
+      placementCollapsed,
+      requestCollapsedHeight,
+      requestExpandedHeight,
+      generatedCollapsedPeekHeight,
+      generatedExpandedHeight,
+      activeCollapsedPeekHeight,
+      activeExpandedHeight,
+    ]
   );
 
-  const bottomSheetInset =
-    sheetMode === 'request' ? REQUEST_SHEET_BOTTOM_OFFSET : BOTTOM_NAV_HEIGHT;
+  const bottomSheetInset = sheetBottomInset;
 
   const handleSheetChange = useCallback(
     (index: number) => {
@@ -370,32 +478,42 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSheetSnapIndex(0);
       setShowActiveHud(true);
     } else if (sheetMode === 'request') {
-      sheet.snapToIndex(1);
-      setSheetSnapIndex(1);
+      const targetIndex = isPlacementSheet ? 0 : 1;
+      sheet.snapToIndex(targetIndex);
+      setSheetSnapIndex(targetIndex);
     } else {
       sheet.snapToIndex(0);
       setSheetSnapIndex(0);
     }
   }, [sheetMode, isPlacementSheet]);
 
+  /** Fixed bottom padding — must not change when the sheet snaps (avoids map zoom jump). */
   const mapBottomPadding = useMemo(() => {
     if (isPlacementSheet) {
-      return PLACEMENT_COLLAPSED_HEIGHT + REQUEST_SHEET_BOTTOM_OFFSET;
+      return placementCollapsed + sheetBottomInset;
     }
     if (sheetMode === 'request') {
-      const sheetHeight =
-        sheetSnapIndex === 0 ? REQUEST_COLLAPSED_HEIGHT : REQUEST_SHEET_HEIGHT;
-      return sheetHeight + REQUEST_SHEET_BOTTOM_OFFSET;
+      return requestExpandedHeight + sheetBottomInset;
     }
     if (sheetMode === 'generated') {
-      const sheetHeight =
-        sheetSnapIndex === 0
-          ? GENERATED_COLLAPSED_HEIGHT
-          : GENERATED_EXPANDED_HEIGHT;
-      return sheetHeight + BOTTOM_NAV_HEIGHT;
+      return generatedExpandedHeight + sheetBottomInset;
     }
-    return ACTIVE_COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT;
-  }, [isPlacementSheet, sheetMode, sheetSnapIndex]);
+    return activeExpandedHeight + sheetBottomInset;
+  }, [
+    isPlacementSheet,
+    sheetMode,
+    placementCollapsed,
+    requestExpandedHeight,
+    generatedExpandedHeight,
+    activeExpandedHeight,
+    sheetBottomInset,
+  ]);
+
+  useEffect(() => {
+    const sheet = bottomSheetRef.current;
+    if (!sheet || sheetSnapIndex !== 1) return;
+    sheet.snapToIndex(1);
+  }, [requestExpandedHeight, generatedExpandedHeight, activeExpandedHeight]);
 
   const mapPadding = useMemo(
     () => ({
@@ -408,19 +526,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   );
 
   useEffect(() => {
-    if (!location || placementMode || !mapRef.current) return;
-    mapRef.current.animateToRegion(
-      {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: mapDeltaRef.current.latitudeDelta,
-        longitudeDelta: mapDeltaRef.current.longitudeDelta,
-      },
-      250
-    );
-  }, [mapBottomPadding, placementMode]);
-
-  useEffect(() => {
     if (sheetMode !== 'active') {
       setShowActiveHud(false);
     }
@@ -431,8 +536,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const region: Region = {
       latitude: coord.latitude,
       longitude: coord.longitude,
-      latitudeDelta: 0.05,
-      longitudeDelta: 0.05,
+      latitudeDelta: MAP_USER_LOCATION_DELTA,
+      longitudeDelta: MAP_USER_LOCATION_DELTA,
     };
     mapCenterRef.current = coord;
     mapDeltaRef.current = {
@@ -924,122 +1029,214 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       ? 'Startposition — tryck på kartan för att flytta'
       : 'Slutposition — tryck på kartan för att flytta';
 
+  const sheetChromeStyles = styles.sheetChrome;
+
+  const activeHudStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        pill: {
+          position: 'absolute',
+          top: activeHudTop,
+          left: 18,
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          paddingHorizontal: 10,
+          paddingVertical: 7,
+          shadowColor: '#000',
+          shadowOpacity: 0.1,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 2,
+        },
+        pillText: {
+          fontSize: 13,
+          color: '#1f2933',
+          fontWeight: '600',
+        },
+        bottomActions: {
+          position: 'absolute',
+          left: 14,
+          right: 14,
+          bottom: activeHudBottom,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        },
+        emergencyButton: {
+          backgroundColor: '#7aa681',
+          borderRadius: 18,
+          height: 36,
+          paddingHorizontal: 20,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        emergencyText: {
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: '700',
+        },
+        fetchButton: {
+          height: 36,
+          borderRadius: 14,
+          backgroundColor: '#7aa681',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 16,
+        },
+        fetchButtonDisabled: {
+          backgroundColor: '#a8aeb5',
+        },
+        fetchIcon: {
+          marginRight: 6,
+        },
+        fetchText: {
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: '700',
+          marginRight: 8,
+        },
+        fetchArrow: {
+          color: '#fff',
+          fontSize: 16,
+          fontWeight: '900',
+          marginTop: -1,
+        },
+      }),
+    [activeHudTop, activeHudBottom]
+  );
+
+  const hudStatsTop =
+    (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0) +
+    activeHudStatsTop;
+
   const renderSheetHandle = useCallback(
     (props: ComponentProps<typeof BottomSheetHandle>) => (
       <BottomSheetHandle
         {...props}
         style={[
           props.style,
-          styles.sheetHandleArea,
-          !canDragSheet && styles.sheetHandleAreaCompact,
+          sheetChromeStyles.handleArea,
+          !canDragSheet && sheetChromeStyles.handleAreaCompact,
         ]}
         indicatorStyle={styles.sheetHandleIndicatorHidden}
       >
-        <View style={styles.sheetHandle} />
-        {canDragSheet ? <View style={styles.sheetHandleSecondary} /> : null}
-        {sheetMode === 'active' && sheetSnapIndex === 0 ? (
-          <Text style={styles.sheetHandleHint}>Dra upp för mer information</Text>
+        <View style={sheetChromeStyles.handle} />
+        {canDragSheet ? (
+          <View style={sheetChromeStyles.handleSecondary} />
         ) : null}
-        {sheetMode === 'request' && sheetSnapIndex === 0 ? (
-          <Text style={styles.sheetHandleHint}>
-            Dra upp för att välja ruttlängd
+        {sheetMode === 'active' && sheetSnapIndex === 0 ? (
+          <Text style={sheetChromeStyles.handleHint}>
+            Dra upp för mer information
           </Text>
         ) : null}
         {sheetMode === 'generated' && sheetSnapIndex === 0 ? (
-          <Text style={styles.sheetHandleHint}>
+          <Text style={sheetChromeStyles.handleHint}>
             Dra upp för att se rutt och starta
           </Text>
         ) : null}
       </BottomSheetHandle>
     ),
-    [canDragSheet, sheetMode, sheetSnapIndex]
+    [canDragSheet, sheetMode, sheetSnapIndex, sheetChromeStyles]
   );
 
-  const initialSheetIndex =
-    sheetMode === 'generated' || sheetMode === 'request' ? 1 : 0;
+  const initialSheetIndex = isPlacementSheet
+    ? 0
+    : sheetMode === 'generated' || sheetMode === 'request'
+      ? 1
+      : 0;
 
   return (
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
-      <View style={styles.mapBackdrop}>
-        <MapView
-          ref={mapRef}
-          style={StyleSheet.absoluteFill}
-          provider={PROVIDER_GOOGLE}
-          customMapStyle={mapStyle}
-          showsBuildings={false}
-          showsCompass={false}
-          showsUserLocation={showsUserLocationOnMap}
-          mapPadding={mapPadding}
-          onMapReady={handleMapReady}
-          onPress={(event) => handleMapPress(event.nativeEvent.coordinate)}
-          initialRegion={
-            mapInitialRegion ?? {
-              latitude: 59.334591,
-              longitude: 18.06324,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
+      <View style={styles.mapBackdrop} pointerEvents="box-none">
+        <NativeViewGestureHandler ref={mapGestureRef} disallowInterruption>
+          <MapView
+            ref={mapRef}
+            style={StyleSheet.absoluteFill}
+            provider={PROVIDER_GOOGLE}
+            customMapStyle={mapStyle}
+            showsBuildings={false}
+            showsCompass={false}
+            showsUserLocation={showsUserLocationOnMap}
+            scrollEnabled
+            zoomEnabled
+            zoomTapEnabled
+            rotateEnabled={false}
+            pitchEnabled={false}
+            mapPadding={mapPadding}
+            onMapReady={handleMapReady}
+            onPress={(event) => handleMapPress(event.nativeEvent.coordinate)}
+            initialRegion={
+              mapInitialRegion ?? {
+                latitude: 59.334591,
+                longitude: 18.06324,
+                latitudeDelta: MAP_USER_LOCATION_DELTA,
+                longitudeDelta: MAP_USER_LOCATION_DELTA,
+              }
             }
-          }
-          onRegionChangeComplete={(region) => {
-            mapDeltaRef.current = {
-              latitudeDelta: region.latitudeDelta,
-              longitudeDelta: region.longitudeDelta,
-            };
-            if (!placementMode) {
-              mapCenterRef.current = {
-                latitude: region.latitude,
-                longitude: region.longitude,
+            onRegionChangeComplete={(region) => {
+              mapDeltaRef.current = {
+                latitudeDelta: region.latitudeDelta,
+                longitudeDelta: region.longitudeDelta,
               };
-            }
-          }}
-        >
-          {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
+              if (!placementMode) {
+                mapCenterRef.current = {
+                  latitude: region.latitude,
+                  longitude: region.longitude,
+                };
+              }
+            }}
+          >
+            {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
 
-          {!generatedRoute && startPoint && placementMode !== 'start' ? (
-            <Marker
-              coordinate={startPoint}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={10}
-              tappable={false}
-            >
-              <EndpointPinMarker variant="start" />
-            </Marker>
-          ) : null}
-          {!generatedRoute && endPoint && placementMode !== 'end' ? (
-            <Marker
-              coordinate={endPoint}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={10}
-              tappable={false}
-            >
-              <EndpointPinMarker variant="end" />
-            </Marker>
-          ) : null}
+            {!generatedRoute && startPoint && placementMode !== 'start' ? (
+              <Marker
+                coordinate={startPoint}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={10}
+                tappable={false}
+              >
+                <EndpointPinMarker variant="start" />
+              </Marker>
+            ) : null}
+            {!generatedRoute && endPoint && placementMode !== 'end' ? (
+              <Marker
+                coordinate={endPoint}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={10}
+                tappable={false}
+              >
+                <EndpointPinMarker variant="end" />
+              </Marker>
+            ) : null}
 
-          {placementMode && draftPlacementPin ? (
-            <Marker
-              coordinate={draftPlacementPin}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={11}
-              tappable={false}
-            >
-              <EndpointPinMarker
-                variant={placementMode}
-                label={placementMarkerLabel}
-              />
-            </Marker>
-          ) : null}
+            {placementMode && draftPlacementPin ? (
+              <Marker
+                coordinate={draftPlacementPin}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={11}
+                tappable={false}
+              >
+                <EndpointPinMarker
+                  variant={placementMode}
+                  label={placementMarkerLabel}
+                />
+              </Marker>
+            ) : null}
 
-          <UrlTile
-            urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
-            maximumZ={20}
-            minimumZ={12}
-            shouldReplaceMapContent={false}
-            tileSize={512}
-            zIndex={1}
-          />
-        </MapView>
+            <UrlTile
+              urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+              maximumZ={20}
+              minimumZ={12}
+              shouldReplaceMapContent={false}
+              tileSize={512}
+              zIndex={1}
+            />
+          </MapView>
+        </NativeViewGestureHandler>
         {placementMode && !draftPlacementPin ? (
           <PlacementTapHint
             label={placementTapHint}
@@ -1049,26 +1246,28 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ) : null}
       </View>
 
-      <View style={styles.content} />
-
       {sheetMode === 'active' && generatedRoute && showActiveHud && (
         <>
-          <ActiveRouteStatsBar variant="hud" stats={activeStats} />
-          <View style={styles.activeHudPill}>
+          <ActiveRouteStatsBar
+            variant="hud"
+            stats={activeStats}
+            hudTop={hudStatsTop}
+          />
+          <View style={activeHudStyles.pill}>
             <View style={styles.activeHudArrowWrap}>
               <View style={styles.activeHudArrowLine} />
               <View style={styles.activeHudArrowHeadLeft} />
               <View style={styles.activeHudArrowHeadRight} />
             </View>
-            <Text style={styles.activeHudPillText}>
+            <Text style={activeHudStyles.pillText}>
               {activeStats.distanceToNextM} m till nästa checkpoint
             </Text>
           </View>
-          <View style={styles.activeHudBottomActions}>
+          <View style={activeHudStyles.bottomActions}>
             <Pressable
               style={[
-                styles.activeHudFetchButton,
-                !canFetchCheckpoint && styles.activeHudFetchButtonDisabled,
+                activeHudStyles.fetchButton,
+                !canFetchCheckpoint && activeHudStyles.fetchButtonDisabled,
               ]}
               onPress={
                 canFetchCheckpoint
@@ -1080,16 +1279,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 name={canFetchCheckpoint ? 'checkmark-circle' : 'lock-closed'}
                 size={14}
                 color="#fff"
-                style={styles.activeHudFetchIcon}
+                style={activeHudStyles.fetchIcon}
               />
-              <Text style={styles.activeHudFetchText}>Hämta checkpoint</Text>
-              <Text style={styles.activeHudFetchArrow}>›</Text>
+              <Text style={activeHudStyles.fetchText}>Hämta checkpoint</Text>
+              <Text style={activeHudStyles.fetchArrow}>›</Text>
             </Pressable>
             <Pressable
-              style={styles.activeHudEmergencyButton}
+              style={activeHudStyles.emergencyButton}
               onPress={toggleUserPosition}
             >
-              <Text style={styles.activeHudEmergencyText}>
+              <Text style={activeHudStyles.emergencyText}>
                 {showUserPosition ? 'Dölj position' : 'Visa position'}
               </Text>
             </Pressable>
@@ -1097,7 +1296,16 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <View style={styles.bottomNavLayer} pointerEvents="box-none">
+      <View
+        style={styles.bottomNavLayer}
+        pointerEvents="box-none"
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          if (height > 0) {
+            setMeasuredBottomNavHeight(height);
+          }
+        }}
+      >
         <BottomNav
           navigation={navigation}
           activeTab="CreateRoute"
@@ -1116,78 +1324,107 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         enableDynamicSizing={false}
         enableHandlePanningGesture={canDragSheet}
         enableContentPanningGesture={canDragSheetContent}
-        activeOffsetY={[-8, 8]}
+        waitFor={mapGestureRef}
+        activeOffsetY={[-10, 10]}
+        failOffsetX={[-12, 12]}
         containerStyle={styles.sheetContainer}
         handleComponent={renderSheetHandle}
+        handleStyle={styles.sheetHandleContainer}
         backgroundStyle={[
           styles.sheetBackground,
           isPlacementSheet && styles.filterSheetPlacement,
         ]}
       >
-        <BottomSheetView style={styles.sheetContent}>
+        <BottomSheetView style={sheetChromeStyles.content}>
           {sheetMode === 'request' ? (
-            <RouteRequestSheet
-              greetingFirstName={greetingFirstName}
-              distanceKm={distanceKm}
-              isGenerating={isGenerating}
-              sliderX={sliderX}
-              sliderPanHandlers={sliderPanResponder.panHandlers}
-              onSliderLayout={handleSliderLayout}
-              onGenerate={handleGenerateRoute}
-              placementMode={placementMode}
-              startPlaced={startPoint !== null}
-              endPlaced={endPoint !== null}
-              onSelectStart={handleSelectStart}
-              onSelectEnd={handleSelectEnd}
-              onConfirmPlacement={handleConfirmPlacement}
-              onCancelPlacement={handleCancelPlacement}
-              placementPinReady={draftPlacementPin !== null}
-            />
+            <View style={sheetChromeStyles.bodyWrap}>
+              <RouteRequestSheet
+                greetingFirstName={greetingFirstName}
+                onGreetingLayout={setRequestGreetingHeight}
+                onContentLayout={setRequestContentHeight}
+                distanceKm={distanceKm}
+                isGenerating={isGenerating}
+                sliderX={sliderX}
+                sliderPanHandlers={sliderPanResponder.panHandlers}
+                onSliderLayout={handleSliderLayout}
+                onGenerate={handleGenerateRoute}
+                placementMode={placementMode}
+                startPlaced={startPoint !== null}
+                endPlaced={endPoint !== null}
+                onSelectStart={handleSelectStart}
+                onSelectEnd={handleSelectEnd}
+                onConfirmPlacement={handleConfirmPlacement}
+                onCancelPlacement={handleCancelPlacement}
+                placementPinReady={draftPlacementPin !== null}
+              />
+            </View>
           ) : sheetMode === 'generated' && generatedRoute ? (
-            <RouteGeneratedSheet
-              route={generatedRoute}
-              onGenerateNew={handleGenerateRoute}
-              onStartOrienteering={handleStartOrienteering}
-              showUserPosition={showUserPosition}
-              onToggleUserPosition={toggleUserPosition}
-              onBackToRequest={() => {
-                setSheetMode('request');
-                setShowUserPosition(true);
+            <View
+              style={sheetChromeStyles.bodyWrap}
+              onLayout={(event) => {
+                if (sheetSnapIndex === 0) return;
+                const height = event.nativeEvent.layout.height;
+                if (height > 0) setGeneratedBodyHeight(height);
               }}
-            />
+            >
+              {sheetSnapIndex > 0 ? (
+                <RouteGeneratedSheet
+                  route={generatedRoute}
+                  onGenerateNew={handleGenerateRoute}
+                  onStartOrienteering={handleStartOrienteering}
+                  showUserPosition={showUserPosition}
+                  onToggleUserPosition={toggleUserPosition}
+                  onBackToRequest={() => {
+                    setSheetMode('request');
+                    setShowUserPosition(true);
+                  }}
+                />
+              ) : null}
+            </View>
           ) : sheetMode === 'active' && generatedRoute ? (
-            <RouteActiveSheet
-              route={generatedRoute}
-              terrain={activeStats}
-              onAbort={() => {
-                if (!generatedRoute) return;
-                const checkpointDone = generatedRoute.checkpoints.filter(
-                  (cp) => cp.completed
-                ).length;
-                const summary = buildRunSummary(
-                  checkpointDone,
-                  generatedRoute.checkpoints.length,
-                  generatedRoute
-                );
-                navigation.navigate('CancelRoute', {
-                  routeName: summary.routeName,
-                  totalCheckpoints: summary.totalCheckpoints,
-                  checkpointsCompleted: summary.checkpointsCompleted,
-                  elapsedMin: summary.elapsedMin,
-                  distanceKm: summary.distanceKm,
-                  paceMinPerKm: summary.paceMinPerKm,
-                  plannedDistanceKm: summary.plannedDistanceKm,
-                  from: summary.from,
-                  runId: runId ?? undefined,
-                  elapsedSeconds,
-                  distanceMeters: Math.round(trackDistanceM),
-                });
+            <View
+              style={sheetChromeStyles.bodyWrap}
+              onLayout={(event) => {
+                if (sheetSnapIndex === 0) return;
+                const height = event.nativeEvent.layout.height;
+                if (height > 0) setActiveBodyHeight(height);
               }}
-              onEmergency={toggleUserPosition}
-              showUserPosition={showUserPosition}
-              onFetchCheckpoint={handleFetchCheckpoint}
-              canFetchCheckpoint={canFetchCheckpoint}
-            />
+            >
+              {sheetSnapIndex > 0 ? (
+                <RouteActiveSheet
+                  route={generatedRoute}
+                  terrain={activeStats}
+                  onAbort={() => {
+                    if (!generatedRoute) return;
+                    const checkpointDone = generatedRoute.checkpoints.filter(
+                      (cp) => cp.completed
+                    ).length;
+                    const summary = buildRunSummary(
+                      checkpointDone,
+                      generatedRoute.checkpoints.length,
+                      generatedRoute
+                    );
+                    navigation.navigate('CancelRoute', {
+                      routeName: summary.routeName,
+                      totalCheckpoints: summary.totalCheckpoints,
+                      checkpointsCompleted: summary.checkpointsCompleted,
+                      elapsedMin: summary.elapsedMin,
+                      distanceKm: summary.distanceKm,
+                      paceMinPerKm: summary.paceMinPerKm,
+                      plannedDistanceKm: summary.plannedDistanceKm,
+                      from: summary.from,
+                      runId: runId ?? undefined,
+                      elapsedSeconds,
+                      distanceMeters: Math.round(trackDistanceM),
+                    });
+                  }}
+                  onEmergency={toggleUserPosition}
+                  showUserPosition={showUserPosition}
+                  onFetchCheckpoint={handleFetchCheckpoint}
+                  canFetchCheckpoint={canFetchCheckpoint}
+                />
+              ) : null}
+            </View>
           ) : null}
         </BottomSheetView>
       </BottomSheet>
@@ -1202,7 +1439,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           style={styles.modalBackdrop}
           onPress={() => setOutOfRangeVisible(false)}
         >
-          <Pressable style={styles.modalCard} onPress={() => { }}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
             <Ionicons
               name="lock-closed"
               size={28}
@@ -1235,10 +1472,6 @@ const styles = StyleSheet.create({
   mapBackdrop: {
     ...StyleSheet.absoluteFillObject,
   },
-  content: {
-    flex: 1,
-    paddingBottom: 72,
-  },
   bottomNavLayer: {
     position: 'absolute',
     left: 0,
@@ -1254,68 +1487,64 @@ const styles = StyleSheet.create({
   sheetHandleIndicatorHidden: {
     display: 'none',
   },
+  sheetHandleContainer: {
+    backgroundColor: 'transparent',
+  },
   sheetBackground: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderWidth: 1,
     borderColor: '#e5e8eb',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: -4 },
     elevation: 6,
   },
-  sheetContent: {
-    paddingHorizontal: 18,
-    paddingBottom: 8,
-  },
   filterSheetPlacement: {
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
   },
-  sheetHandleArea: {
-    alignItems: 'center',
-    paddingBottom: 10,
-  },
-  sheetHandleAreaCompact: {
-    paddingBottom: 6,
-  },
-  sheetHandle: {
-    width: 22,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: '#222',
-  },
-  sheetHandleSecondary: {
-    width: 22,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: '#222',
-    marginTop: 3,
-  },
-  sheetHandleHint: {
-    marginTop: 6,
-    fontSize: 11,
-    color: '#9ca3af',
-    fontWeight: '500',
-    letterSpacing: 0.2,
-  },
-  activeHudPill: {
-    position: 'absolute',
-    top: 151,
-    left: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  sheetChrome: {
+    content: {
+      paddingHorizontal: 18,
+      paddingTop: 2,
+      paddingBottom: 0,
+    },
+    bodyWrap: {
+      paddingBottom: SHEET_BODY_BOTTOM_PADDING,
+    },
+    handleArea: {
+      alignItems: 'center',
+      paddingTop: 9,
+      paddingBottom: 10,
+      backgroundColor: 'transparent',
+    },
+    handleAreaCompact: {
+      paddingBottom: 6,
+    },
+    handle: {
+      width: 22,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: '#222',
+    },
+    handleSecondary: {
+      width: 22,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: '#222',
+      marginTop: 3,
+    },
+    handleHint: {
+      marginTop: 6,
+      fontSize: 11,
+      color: '#9ca3af',
+      fontWeight: '500',
+      letterSpacing: 0.2,
+    },
   },
   activeHudArrowWrap: {
     width: 12,
@@ -1349,60 +1578,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1f2933',
     transform: [{ rotate: '-50deg' }],
     borderRadius: 1,
-  },
-  activeHudPillText: {
-    fontSize: 13,
-    color: '#1f2933',
-    fontWeight: '600',
-  },
-  activeHudBottomActions: {
-    position: 'absolute',
-    left: 14,
-    right: 14,
-    bottom: 145,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  activeHudEmergencyButton: {
-    backgroundColor: '#7aa681',
-    borderRadius: 18,
-    height: 36,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeHudEmergencyText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  activeHudFetchButton: {
-    height: 36,
-    borderRadius: 14,
-    backgroundColor: '#7aa681',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  activeHudFetchButtonDisabled: {
-    backgroundColor: '#a8aeb5',
-  },
-  activeHudFetchIcon: {
-    marginRight: 6,
-  },
-  activeHudFetchText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
-    marginRight: 8,
-  },
-  activeHudFetchArrow: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '900',
-    marginTop: -1,
   },
   modalBackdrop: {
     flex: 1,
