@@ -25,7 +25,7 @@ import {
   RouteChallengeRecord,
 } from '../lib/api';
 import {
-  formatDurationClock,
+  challengeTargetLabel,
   savedRouteToRouteResponse,
 } from '../utils/routeUtils';
 import { useUserBadges } from '../hooks/useUserBadges';
@@ -258,9 +258,7 @@ export function ProfileScreen({ navigation, route }: Props) {
                             {name} utmanar dig!
                           </Text>
                           <Text style={styles.challengeTime} numberOfLines={1}>
-                            {target != null
-                              ? `Slå ${formatDurationClock(target)}`
-                              : `${challenge.route.distance} km`}
+                            {challengeTargetLabel(target)}
                           </Text>
                         </View>
 

@@ -1287,14 +1287,21 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             >
               {sheetSnapIndex > 0 ? (
                 <>
-                  {challengeTargetSeconds != null ? (
+                  {challengeFromName != null || challengeTargetSeconds != null ? (
                     <View style={styles.challengeBanner}>
                       <Text style={styles.challengeBannerTitle}>
                         Utmaning
                         {challengeFromName ? ` från ${challengeFromName}` : ''}
                       </Text>
                       <Text style={styles.challengeBannerSub}>
-                        Slå tiden {formatDurationClock(challengeTargetSeconds)}
+                        {challengeTargetSeconds != null &&
+                        challengeTargetSeconds > 0
+                          ? `Tid att slå: ${formatDurationClock(challengeTargetSeconds)}`
+                          : 'Kör samma planerade rutt som utmanaren'}
+                      </Text>
+                      <Text style={styles.challengeBannerHint}>
+                        Rutten visas på kartan med checkpoints — som när du
+                        skapar en rutt.
                       </Text>
                     </View>
                   ) : null}
@@ -1581,5 +1588,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3E7A44',
     fontWeight: '600',
+  },
+  challengeBannerHint: {
+    fontSize: 13,
+    color: '#5c636a',
+    marginTop: 6,
+    lineHeight: 18,
   },
 });

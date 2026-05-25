@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../App';
 import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
 import { savePersistedRoute } from '../lib/api';
+import { ChallengeFriendModal } from '../components/ChallengeFriendModal';
 import { formatDurationClock } from '../utils/routeUtils';
 import { addFavoriteRoute } from '../services/favoritesStorage';
 
@@ -30,6 +31,7 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     paceMinPerKm,
     plannedDistanceKm,
     savedRouteId: initialSavedRouteId,
+    runId,
     routeSnapshot,
     from,
     celebrationBadgeIds = [],
@@ -45,7 +47,33 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
 
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
   const [savingFavorite, setSavingFavorite] = useState(false);
+  const [challengeModalVisible, setChallengeModalVisible] = useState(false);
+  const [preparingChallenge, setPreparingChallenge] = useState(false);
   const { showBadgeCelebration } = useBadgeCelebration();
+
+  const openChallengeModal = async () => {
+    if (!routeSnapshot) {
+      Alert.alert('Kan inte utmana', 'Ruttdata saknas.');
+      return;
+    }
+    if (savedRouteId) {
+      setChallengeModalVisible(true);
+      return;
+    }
+    setPreparingChallenge(true);
+    try {
+      const saved = await savePersistedRoute(routeSnapshot);
+      setSavedRouteId(saved._id);
+      setChallengeModalVisible(true);
+    } catch (err) {
+      Alert.alert(
+        'Kunde inte spara rutt',
+        err instanceof Error ? err.message : 'Försök igen senare.'
+      );
+    } finally {
+      setPreparingChallenge(false);
+    }
+  };
 
   useEffect(() => {
     if (celebrationBadgeIds.length === 0) return;
@@ -243,15 +271,14 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
 
         <Pressable
           style={styles.primaryButton}
-          onPress={() => {
-            // TODO: Utmana vän när utmaningsflödet finns.
-            Alert.alert(
-              'Kommer snart',
-              'Här ska du kunna utmana en vän på samma rutt.'
-            );
-          }}
+          onPress={openChallengeModal}
+          disabled={preparingChallenge || !routeSnapshot}
         >
-          <Text style={styles.primaryButtonText}>Utmana en vän!</Text>
+          {preparingChallenge ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Utmana en vän!</Text>
+          )}
         </Pressable>
 
         <Pressable
@@ -278,6 +305,16 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
           )}
         </Pressable>
       </ScrollView>
+
+      {savedRouteId ? (
+        <ChallengeFriendModal
+          visible={challengeModalVisible}
+          onClose={() => setChallengeModalVisible(false)}
+          routeId={savedRouteId}
+          sourceRunId={runId}
+          targetSeconds={elapsedSeconds}
+        />
+      ) : null}
 
       <BottomNav
         navigation={navigation}

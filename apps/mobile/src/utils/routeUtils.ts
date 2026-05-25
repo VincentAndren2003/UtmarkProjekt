@@ -23,3 +23,10 @@ export function formatDurationClock(seconds?: number): string {
   const s = seconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
+
+export function challengeTargetLabel(seconds?: number): string {
+  if (seconds != null && seconds > 0) {
+    return `Tid att slå: ${formatDurationClock(seconds)}`;
+  }
+  return 'Samma planerade rutt — ingen måltid registrerad än';
+}

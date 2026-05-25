@@ -19,7 +19,10 @@ import {
   getMyRouteChallenges,
   RouteChallengeRecord,
 } from '../lib/api';
-import { formatDurationClock, savedRouteToRouteResponse } from '../utils/routeUtils';
+import {
+  challengeTargetLabel,
+  savedRouteToRouteResponse,
+} from '../utils/routeUtils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Challenges'>;
 
@@ -107,11 +110,9 @@ export function ChallengesScreen({ navigation }: Props) {
         <Text style={styles.cardMeta}>
           {item.route.distance} km · {item.route.checkpoints.length} checkpoints
         </Text>
-        {target != null ? (
-          <Text style={styles.cardTarget}>
-            Tid att slå: {formatDurationClock(target)}
-          </Text>
-        ) : null}
+        <Text style={styles.cardTarget}>
+          {challengeTargetLabel(target)}
+        </Text>
         <Pressable style={styles.acceptButton} onPress={() => onAccept(item)}>
           <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
         </Pressable>
