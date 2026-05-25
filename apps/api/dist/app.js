@@ -227,13 +227,36 @@ function createApp() {
     app.use('/api/routes', routeRouter_1.default);
     //Map tiles
     app.use('/tiles', express_1.default.static('/var/www/html/tiles'));
-    // Friend requests and response
+    // Friend requests and response (req.url includes query string, e.g. /search?query=foo)
     app.use('/api/friends', authMiddleware_1.authMiddleware, async (req, res, next) => {
         try {
-            await proxyJson(res, `${env_1.env.FRIENDS_SERVICE_URL}/api/friends${req.path}`, {
+            await proxyJson(res, `${env_1.env.FRIENDS_SERVICE_URL}/api/friends${req.url}`, {
                 method: req.method,
                 headers: { 'x-user-id': req.userId },
                 body: req.method !== 'GET' ? req.body : undefined,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+    app.post('/api/challenges', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.ROUTES_SERVICE_URL}/challenges`, {
+                method: 'POST',
+                headers: { 'x-user-id': req.userId },
+                body: req.body,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+    app.get('/api/challenges/me', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.ROUTES_SERVICE_URL}/challenges/me`, {
+                method: 'GET',
+                headers: { 'x-user-id': req.userId },
             });
         }
         catch (err) {

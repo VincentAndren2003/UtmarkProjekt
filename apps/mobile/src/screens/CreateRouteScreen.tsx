@@ -68,6 +68,7 @@ import { Checkpoint } from '../models/Checkpoint';
 
 import { useTracking } from '../hooks/useTracking';
 import { simplifyTrackPoints } from '../utils/trackUtils';
+import { formatDurationClock } from '../utils/routeUtils';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, {
@@ -77,6 +78,7 @@ import MapView, {
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
 import { NativeViewGestureHandler } from 'react-native-gesture-handler';
+import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
@@ -189,6 +191,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const activeRouteParam = route.params?.activeRoute;
   const activeRunIdParam = route.params?.runId;
   const activeSavedRouteIdParam = route.params?.savedRouteId;
+  const openAsGenerated = route.params?.openAsGenerated;
+  const challengeTargetSeconds = route.params?.challengeTargetSeconds;
+  const challengeFromName = route.params?.challengeFromName;
   const { location } = useUserLocation();
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -441,11 +446,21 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (!activeRouteParam) return;
     setGeneratedRoute(activeRouteParam);
+    if (activeSavedRouteIdParam) setSavedRouteId(activeSavedRouteIdParam);
+    if (openAsGenerated) {
+      setSheetMode('generated');
+      setShowUserPosition(true);
+      return;
+    }
     setSheetMode('active');
     beginActiveRun();
     if (activeRunIdParam) setRunId(activeRunIdParam);
-    if (activeSavedRouteIdParam) setSavedRouteId(activeSavedRouteIdParam);
-  }, [activeRouteParam, activeRunIdParam, activeSavedRouteIdParam]);
+  }, [
+    activeRouteParam,
+    activeRunIdParam,
+    activeSavedRouteIdParam,
+    openAsGenerated,
+  ]);
 
   useEffect(() => {
     if (!route.params?.runFinished) return;
@@ -692,6 +707,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     savedRouteId: savedRouteId ?? undefined,
     routeSnapshot,
     from,
+    challengeTargetSeconds,
+    challengeFromName,
+    elapsedSeconds,
   });
 
   const handleFetchCheckpoint = async () => {
@@ -941,73 +959,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     const ratio = (distanceKm - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
     sliderX.setValue(minX + ratio * travel);
   };
-  //
-
-  /** Styling för Google Maps kartan **/
-  const roadFIll = '#E7AB83';
-  const roadOutline = '#000000';
-  const waterFIll = '#009ee2';
-  const forestFIll = '#ffffff';
-  const parkFill = '#FFBA36';
-
-  const mapStyle = [
-    {
-      elementType: 'labels',
-      stylers: [
-        {
-          visibility: 'off',
-        },
-      ],
-    },
-    {
-      featureType: 'road',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: roadFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'road',
-      elementType: 'geometry.stroke',
-      stylers: [
-        {
-          color: roadOutline,
-        },
-        {
-          weight: 0.5,
-        },
-      ],
-    },
-    {
-      featureType: 'water',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: waterFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'landscape',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: forestFIll,
-        },
-      ],
-    },
-    {
-      featureType: 'poi',
-      elementType: 'geometry.fill',
-      stylers: [
-        {
-          color: parkFill,
-        },
-      ],
-    },
-  ];
 
   const placementTapHint =
     placementMode === 'start'
@@ -1142,7 +1093,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             ref={mapRef}
             style={StyleSheet.absoluteFill}
             provider={PROVIDER_GOOGLE}
-            customMapStyle={mapStyle}
+            customMapStyle={CustomMapStyle}
             showsBuildings={false}
             showsCompass={false}
             showsUserLocation={showsUserLocationOnMap}
@@ -1335,17 +1286,34 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               }}
             >
               {sheetSnapIndex > 0 ? (
-                <RouteGeneratedSheet
-                  route={generatedRoute}
-                  onGenerateNew={handleGenerateRoute}
-                  onStartOrienteering={handleStartOrienteering}
-                  showUserPosition={showUserPosition}
-                  onToggleUserPosition={toggleUserPosition}
-                  onBackToRequest={() => {
-                    setSheetMode('request');
-                    setShowUserPosition(true);
-                  }}
-                />
+                <>
+                  {challengeTargetSeconds != null ? (
+                    <View style={styles.challengeBanner}>
+                      <Text style={styles.challengeBannerTitle}>
+                        Utmaning
+                        {challengeFromName ? ` från ${challengeFromName}` : ''}
+                      </Text>
+                      <Text style={styles.challengeBannerSub}>
+                        Slå tiden {formatDurationClock(challengeTargetSeconds)}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <RouteGeneratedSheet
+                    route={generatedRoute}
+                    onGenerateNew={handleGenerateRoute}
+                    onStartOrienteering={handleStartOrienteering}
+                    showUserPosition={showUserPosition}
+                    onToggleUserPosition={toggleUserPosition}
+                    onBackToRequest={() => {
+                      if (openAsGenerated) {
+                        navigation.goBack();
+                        return;
+                      }
+                      setSheetMode('request');
+                      setShowUserPosition(true);
+                    }}
+                  />
+                </>
               ) : null}
             </View>
           ) : sheetMode === 'active' && generatedRoute ? (
@@ -1595,5 +1563,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
+  },
+  challengeBanner: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(62, 122, 68, 0.12)',
+  },
+  challengeBannerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  challengeBannerSub: {
+    fontSize: 14,
+    color: '#3E7A44',
+    fontWeight: '600',
   },
 });
