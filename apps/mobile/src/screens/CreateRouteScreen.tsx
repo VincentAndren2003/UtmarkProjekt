@@ -1088,7 +1088,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       {/* Karta i bakgrunden */}
       <View style={styles.mapBackdrop} pointerEvents="box-none">
-        <NativeViewGestureHandler ref={mapGestureRef} disallowInterruption>
+        <NativeViewGestureHandler ref={mapGestureRef}>
           <MapView
             ref={mapRef}
             style={StyleSheet.absoluteFill}
@@ -1100,7 +1100,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             scrollEnabled
             zoomEnabled
             zoomTapEnabled
-            rotateEnabled={false}
+            rotateEnabled
             pitchEnabled={false}
             mapPadding={mapPadding}
             onMapReady={handleMapReady}
@@ -1123,6 +1123,15 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               };
             }}
           >
+            <UrlTile
+              urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+              maximumZ={20}
+              minimumZ={12}
+              shouldReplaceMapContent={false}
+              tileSize={512}
+              zIndex={1}
+            />
+
             {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
 
             {!generatedRoute && startPoint && placementMode !== 'start' ? (
@@ -1145,15 +1154,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 <EndpointPinMarker variant="end" />
               </Marker>
             ) : null}
-
-            <UrlTile
-              urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
-              maximumZ={20}
-              minimumZ={12}
-              shouldReplaceMapContent={false}
-              tileSize={512}
-              zIndex={1}
-            />
           </MapView>
         </NativeViewGestureHandler>
         {placementMode ? (
@@ -1244,8 +1244,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         enableHandlePanningGesture={canDragSheet}
         enableContentPanningGesture={canDragSheetContent}
         waitFor={mapGestureRef}
-        activeOffsetY={[-10, 10]}
-        failOffsetX={[-12, 12]}
+        simultaneousHandlers={mapGestureRef}
+        activeOffsetY={[-20, 20]}
+        failOffsetX={[-15, 15]}
         containerStyle={styles.sheetContainer}
         handleComponent={renderSheetHandle}
         handleStyle={styles.sheetHandleContainer}
