@@ -37,7 +37,9 @@ export function useRouteSheetMetrics(measuredBottomNavHeight: number | null) {
       requestExpandedFallback: collapsedSnap(
         SHEET_LAYOUT_REFERENCE.requestExpanded
       ),
-      generatedCollapsed: collapsedSnap(SHEET_LAYOUT_REFERENCE.generatedCollapsed),
+      generatedCollapsed: collapsedSnap(
+        SHEET_LAYOUT_REFERENCE.generatedCollapsed
+      ),
       generatedExpandedFallback: collapsedSnap(
         SHEET_LAYOUT_REFERENCE.generatedExpanded
       ),
@@ -45,7 +47,9 @@ export function useRouteSheetMetrics(measuredBottomNavHeight: number | null) {
       activeExpandedFallback: collapsedSnap(
         SHEET_LAYOUT_REFERENCE.activeExpanded
       ),
-      placementCollapsed: collapsedSnap(SHEET_LAYOUT_REFERENCE.placementCollapsed),
+      placementCollapsed: collapsedSnap(
+        SHEET_LAYOUT_REFERENCE.placementCollapsed
+      ),
       expandedSnap,
       activeHudTop: snapHeightForScreen(
         SHEET_LAYOUT_REFERENCE.activeHudTop,

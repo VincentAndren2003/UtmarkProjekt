@@ -123,7 +123,10 @@ export function RouteRequestSheet({
         >
           <View style={styles.sliderLine} />
           <Animated.View
-            style={[styles.sliderThumb, { transform: [{ translateX: sliderX }] }]}
+            style={[
+              styles.sliderThumb,
+              { transform: [{ translateX: sliderX }] },
+            ]}
           />
         </View>
         <Text style={styles.sliderValue}>{distanceKm} km</Text>

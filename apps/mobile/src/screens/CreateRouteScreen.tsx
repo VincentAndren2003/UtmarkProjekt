@@ -333,8 +333,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
    * When collapsed, allow dragging on the greeting too so the peek is easy to expand.
    */
   const canDragSheetContent =
-    canDragSheet &&
-    (sheetMode !== 'request' || sheetSnapIndex === 0);
+    canDragSheet && (sheetMode !== 'request' || sheetSnapIndex === 0);
 
   const requestHandleHeight = SHEET_HANDLE_HEIGHT_EXPANDED + 15;
 
@@ -1191,51 +1190,51 @@ export function CreateRouteScreen({ navigation, route }: Props) {
               }
             }}
           >
-          {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
+            {generatedRoute && <GeneratedRouteLayer route={generatedRoute} />}
 
-          {!generatedRoute && startPoint && placementMode !== 'start' ? (
-            <Marker
-              coordinate={startPoint}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={10}
-              tappable={false}
-            >
-              <EndpointPinMarker variant="start" />
-            </Marker>
-          ) : null}
-          {!generatedRoute && endPoint && placementMode !== 'end' ? (
-            <Marker
-              coordinate={endPoint}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={10}
-              tappable={false}
-            >
-              <EndpointPinMarker variant="end" />
-            </Marker>
-          ) : null}
+            {!generatedRoute && startPoint && placementMode !== 'start' ? (
+              <Marker
+                coordinate={startPoint}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={10}
+                tappable={false}
+              >
+                <EndpointPinMarker variant="start" />
+              </Marker>
+            ) : null}
+            {!generatedRoute && endPoint && placementMode !== 'end' ? (
+              <Marker
+                coordinate={endPoint}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={10}
+                tappable={false}
+              >
+                <EndpointPinMarker variant="end" />
+              </Marker>
+            ) : null}
 
-          {placementMode && draftPlacementPin ? (
-            <Marker
-              coordinate={draftPlacementPin}
-              anchor={{ x: 0.5, y: 1 }}
-              zIndex={11}
-              tappable={false}
-            >
-              <EndpointPinMarker
-                variant={placementMode}
-                label={placementMarkerLabel}
-              />
-            </Marker>
-          ) : null}
+            {placementMode && draftPlacementPin ? (
+              <Marker
+                coordinate={draftPlacementPin}
+                anchor={{ x: 0.5, y: 1 }}
+                zIndex={11}
+                tappable={false}
+              >
+                <EndpointPinMarker
+                  variant={placementMode}
+                  label={placementMarkerLabel}
+                />
+              </Marker>
+            ) : null}
 
-          <UrlTile
-            urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
-            maximumZ={20}
-            minimumZ={12}
-            shouldReplaceMapContent={false}
-            tileSize={512}
-            zIndex={1}
-          />
+            <UrlTile
+              urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+              maximumZ={20}
+              minimumZ={12}
+              shouldReplaceMapContent={false}
+              tileSize={512}
+              zIndex={1}
+            />
           </MapView>
         </NativeViewGestureHandler>
         {placementMode && !draftPlacementPin ? (
@@ -1339,25 +1338,25 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         <BottomSheetView style={sheetChromeStyles.content}>
           {sheetMode === 'request' ? (
             <View style={sheetChromeStyles.bodyWrap}>
-            <RouteRequestSheet
-              greetingFirstName={greetingFirstName}
-              onGreetingLayout={setRequestGreetingHeight}
-              onContentLayout={setRequestContentHeight}
-              distanceKm={distanceKm}
-              isGenerating={isGenerating}
-              sliderX={sliderX}
-              sliderPanHandlers={sliderPanResponder.panHandlers}
-              onSliderLayout={handleSliderLayout}
-              onGenerate={handleGenerateRoute}
-              placementMode={placementMode}
-              startPlaced={startPoint !== null}
-              endPlaced={endPoint !== null}
-              onSelectStart={handleSelectStart}
-              onSelectEnd={handleSelectEnd}
-              onConfirmPlacement={handleConfirmPlacement}
-              onCancelPlacement={handleCancelPlacement}
-              placementPinReady={draftPlacementPin !== null}
-            />
+              <RouteRequestSheet
+                greetingFirstName={greetingFirstName}
+                onGreetingLayout={setRequestGreetingHeight}
+                onContentLayout={setRequestContentHeight}
+                distanceKm={distanceKm}
+                isGenerating={isGenerating}
+                sliderX={sliderX}
+                sliderPanHandlers={sliderPanResponder.panHandlers}
+                onSliderLayout={handleSliderLayout}
+                onGenerate={handleGenerateRoute}
+                placementMode={placementMode}
+                startPlaced={startPoint !== null}
+                endPlaced={endPoint !== null}
+                onSelectStart={handleSelectStart}
+                onSelectEnd={handleSelectEnd}
+                onConfirmPlacement={handleConfirmPlacement}
+                onCancelPlacement={handleCancelPlacement}
+                placementPinReady={draftPlacementPin !== null}
+              />
             </View>
           ) : sheetMode === 'generated' && generatedRoute ? (
             <View
@@ -1368,19 +1367,19 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 if (height > 0) setGeneratedBodyHeight(height);
               }}
             >
-            {sheetSnapIndex > 0 ? (
-            <RouteGeneratedSheet
-              route={generatedRoute}
-              onGenerateNew={handleGenerateRoute}
-              onStartOrienteering={handleStartOrienteering}
-              showUserPosition={showUserPosition}
-              onToggleUserPosition={toggleUserPosition}
-              onBackToRequest={() => {
-                setSheetMode('request');
-                setShowUserPosition(true);
-              }}
-            />
-            ) : null}
+              {sheetSnapIndex > 0 ? (
+                <RouteGeneratedSheet
+                  route={generatedRoute}
+                  onGenerateNew={handleGenerateRoute}
+                  onStartOrienteering={handleStartOrienteering}
+                  showUserPosition={showUserPosition}
+                  onToggleUserPosition={toggleUserPosition}
+                  onBackToRequest={() => {
+                    setSheetMode('request');
+                    setShowUserPosition(true);
+                  }}
+                />
+              ) : null}
             </View>
           ) : sheetMode === 'active' && generatedRoute ? (
             <View
@@ -1391,40 +1390,40 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                 if (height > 0) setActiveBodyHeight(height);
               }}
             >
-            {sheetSnapIndex > 0 ? (
-            <RouteActiveSheet
-              route={generatedRoute}
-              terrain={activeStats}
-              onAbort={() => {
-                if (!generatedRoute) return;
-                const checkpointDone = generatedRoute.checkpoints.filter(
-                  (cp) => cp.completed
-                ).length;
-                const summary = buildRunSummary(
-                  checkpointDone,
-                  generatedRoute.checkpoints.length,
-                  generatedRoute
-                );
-                navigation.navigate('CancelRoute', {
-                  routeName: summary.routeName,
-                  totalCheckpoints: summary.totalCheckpoints,
-                  checkpointsCompleted: summary.checkpointsCompleted,
-                  elapsedMin: summary.elapsedMin,
-                  distanceKm: summary.distanceKm,
-                  paceMinPerKm: summary.paceMinPerKm,
-                  plannedDistanceKm: summary.plannedDistanceKm,
-                  from: summary.from,
-                  runId: runId ?? undefined,
-                  elapsedSeconds,
-                  distanceMeters: Math.round(trackDistanceM),
-                });
-              }}
-              onEmergency={toggleUserPosition}
-              showUserPosition={showUserPosition}
-              onFetchCheckpoint={handleFetchCheckpoint}
-              canFetchCheckpoint={canFetchCheckpoint}
-            />
-            ) : null}
+              {sheetSnapIndex > 0 ? (
+                <RouteActiveSheet
+                  route={generatedRoute}
+                  terrain={activeStats}
+                  onAbort={() => {
+                    if (!generatedRoute) return;
+                    const checkpointDone = generatedRoute.checkpoints.filter(
+                      (cp) => cp.completed
+                    ).length;
+                    const summary = buildRunSummary(
+                      checkpointDone,
+                      generatedRoute.checkpoints.length,
+                      generatedRoute
+                    );
+                    navigation.navigate('CancelRoute', {
+                      routeName: summary.routeName,
+                      totalCheckpoints: summary.totalCheckpoints,
+                      checkpointsCompleted: summary.checkpointsCompleted,
+                      elapsedMin: summary.elapsedMin,
+                      distanceKm: summary.distanceKm,
+                      paceMinPerKm: summary.paceMinPerKm,
+                      plannedDistanceKm: summary.plannedDistanceKm,
+                      from: summary.from,
+                      runId: runId ?? undefined,
+                      elapsedSeconds,
+                      distanceMeters: Math.round(trackDistanceM),
+                    });
+                  }}
+                  onEmergency={toggleUserPosition}
+                  showUserPosition={showUserPosition}
+                  onFetchCheckpoint={handleFetchCheckpoint}
+                  canFetchCheckpoint={canFetchCheckpoint}
+                />
+              ) : null}
             </View>
           ) : null}
         </BottomSheetView>
@@ -1440,7 +1439,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           style={styles.modalBackdrop}
           onPress={() => setOutOfRangeVisible(false)}
         >
-          <Pressable style={styles.modalCard} onPress={() => { }}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
             <Ionicons
               name="lock-closed"
               size={28}
