@@ -20,7 +20,6 @@ type Props = {
   onSelectEnd: () => void;
   onConfirmPlacement: () => void;
   onCancelPlacement: () => void;
-  placementPinReady: boolean;
 };
 
 export function RouteRequestSheet({
@@ -40,7 +39,6 @@ export function RouteRequestSheet({
   onSelectEnd,
   onConfirmPlacement,
   onCancelPlacement,
-  placementPinReady,
 }: Props) {
   const isPlacing = placementMode !== null;
 
@@ -53,9 +51,8 @@ export function RouteRequestSheet({
             : 'Placera slutposition'}
         </Text>
         <Text style={styles.placementHint}>
-          {placementPinReady
-            ? 'Tryck någon annanstans på kartan för att flytta pin, sedan bekräfta.'
-            : 'Tryck på kartan där du vill ha pin, sedan bekräfta.'}
+          Flytta kartan under pinnen i mitten. Platsen sparas när du trycker
+          Bekräfta.
         </Text>
         <View style={styles.placementActions}>
           <Pressable
@@ -70,20 +67,11 @@ export function RouteRequestSheet({
           <Pressable
             style={({ pressed }) => [
               styles.confirmPlacement,
-              !placementPinReady && styles.confirmPlacementDisabled,
-              pressed && placementPinReady && styles.placementButtonPressed,
+              pressed && styles.placementButtonPressed,
             ]}
             onPress={onConfirmPlacement}
-            disabled={!placementPinReady}
           >
-            <Text
-              style={[
-                styles.confirmPlacementText,
-                !placementPinReady && styles.confirmPlacementTextDisabled,
-              ]}
-            >
-              Bekräfta placering
-            </Text>
+            <Text style={styles.confirmPlacementText}>Bekräfta placering</Text>
           </Pressable>
         </View>
       </View>
