@@ -28,6 +28,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
+import { MapLegendModal } from '../components/MapLegendModal';
 import { ActiveRouteStatsBar } from '../components/route-sheet/ActiveRouteStatsBar';
 import { RouteActiveSheet } from '../components/route-sheet/RouteActiveSheet';
 import { RouteGeneratedSheet } from '../components/route-sheet/RouteGeneratedSheet';
@@ -200,6 +201,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const isGeneratingRef = useRef(false);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [showActiveHud, setShowActiveHud] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<
     'request' | 'generated' | 'active'
   >(PREVIEW_GENERATED_SHEET ? 'generated' : 'request');
@@ -1168,6 +1170,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ) : null}
       </View>
 
+      <Pressable
+        style={styles.legendButton}
+        onPress={() => setLegendOpen(true)}
+        accessibilityLabel="Visa karttecken"
+        hitSlop={8}
+      >
+        <Text style={styles.legendButtonText}>?</Text>
+      </Pressable>
+
+      <MapLegendModal visible={legendOpen} onClose={() => setLegendOpen(false)} />
+
       {sheetMode === 'active' && generatedRoute && showActiveHud && (
         <>
           <ActiveRouteStatsBar
@@ -1600,5 +1613,26 @@ const styles = StyleSheet.create({
     color: '#5c636a',
     marginTop: 6,
     lineHeight: 18,
+  },
+  legendButton: {
+    position: 'absolute',
+    top: 56,
+    left: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  legendButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#3E7A44',
   },
 });
