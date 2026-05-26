@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "Utmark",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,17 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.utmark.app",
+      "config": {
+        "googleMapsApiKey": "DIN_IOS_API_NYCKEL_HÄR"
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +32,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.mobile",
+      "package": "com.utmark.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "DIN_ANDROID_API_NYCKEL_HÄR"
+        }
+      },
       "usesCleartextTraffic": true
     },
     "web": {
@@ -32,6 +47,11 @@
       "@maplibre/maplibre-react-native",
       "expo-secure-store",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "947c6cd2-14d5-406a-8822-86bab8a0db5b"
+      }
+    }
   }
 }
