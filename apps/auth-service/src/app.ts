@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { env } from './config/env';
-import { signup, login } from './controllers/authController';
+import { signup, login, deleteMe } from './controllers/authController';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
@@ -16,6 +16,7 @@ export function createApp() {
   // Public auth endpoints (gateway forwards /api/auth/* here)
   app.post('/auth/signup', signup);
   app.post('/auth/login', login);
+  app.delete('/auth/me', deleteMe);
 
   app.use(errorHandler);
   return app;

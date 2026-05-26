@@ -106,6 +106,15 @@ export async function signOut(): Promise<void> {
   await tokenStorage.clear();
 }
 
+export async function deleteMyAccount(): Promise<void> {
+  await request('/api/profile/me', { method: 'DELETE', auth: true });
+  await request('/api/auth/me', { method: 'DELETE', auth: true });
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
+  await tokenStorage.clear();
+}
+
 // Profile functions (protected — auth: true sends the JWT)
 
 export function getMyProfile(): Promise<Profile> {

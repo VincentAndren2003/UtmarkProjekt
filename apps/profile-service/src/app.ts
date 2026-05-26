@@ -3,7 +3,7 @@ import cors from 'cors';
 import { env } from './config/env';
 import { gatewayAuthMiddleware } from './middleware/gatewayAuthMiddleware';
 import { errorHandler } from './middleware/errorHandler';
-import { getMyProfile, upsertMyProfile } from './controllers/profileController';
+import { getMyProfile, upsertMyProfile, deleteMyProfile } from './controllers/profileController';
 import {
   getMyStats,
   completeRun,
@@ -23,6 +23,7 @@ export function createApp() {
 
   app.get('/profile/me', gatewayAuthMiddleware, getMyProfile);
   app.put('/profile/me', gatewayAuthMiddleware, upsertMyProfile);
+  app.delete('/profile/me', gatewayAuthMiddleware, deleteMyProfile);
 
   app.get('/stats/me', gatewayAuthMiddleware, getMyStats);
   app.post('/stats/complete-run', gatewayAuthMiddleware, completeRun);

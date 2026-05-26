@@ -20,6 +20,7 @@ function createApp() {
     });
     app.get('/profile/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.getMyProfile);
     app.put('/profile/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.upsertMyProfile);
+    app.delete('/profile/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.deleteMyProfile);
     app.get('/stats/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.getMyStats);
     app.post('/stats/complete-run', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.completeRun);
     app.post('/stats/increment-shared', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesShared);

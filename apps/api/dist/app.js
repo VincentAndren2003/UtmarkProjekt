@@ -91,6 +91,28 @@ function createApp() {
             next(err);
         }
     });
+    app.delete('/api/profile/me', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.PROFILE_SERVICE_URL}/profile/me`, {
+                method: 'DELETE',
+                headers: { 'x-user-id': req.userId },
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+    app.delete('/api/auth/me', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.AUTH_SERVICE_URL}/auth/me`, {
+                method: 'DELETE',
+                headers: { 'x-user-id': req.userId },
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
     /*
      * USER STATS
      */
