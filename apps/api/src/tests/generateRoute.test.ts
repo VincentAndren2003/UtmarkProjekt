@@ -29,7 +29,6 @@ describe('POST /generate-route', () => {
   });
 
   afterEach((context) => {
-    // ← Lägg till detta
     if (context.task.result?.state === 'pass') {
       console.log(`PASSED: ${context.task.name}`);
     } else {
