@@ -276,15 +276,11 @@ export function createApp() {
   // Friend requests and response (req.url includes query string, e.g. /search?query=foo)
   app.use('/api/friends', authMiddleware, async (req, res, next) => {
     try {
-      await proxyJson(
-        res,
-        `${env.FRIENDS_SERVICE_URL}/api/friends${req.url}`,
-        {
-          method: req.method,
-          headers: { 'x-user-id': req.userId! },
-          body: req.method !== 'GET' ? req.body : undefined,
-        }
-      );
+      await proxyJson(res, `${env.FRIENDS_SERVICE_URL}/api/friends${req.url}`, {
+        method: req.method,
+        headers: { 'x-user-id': req.userId! },
+        body: req.method !== 'GET' ? req.body : undefined,
+      });
     } catch (err) {
       next(err);
     }

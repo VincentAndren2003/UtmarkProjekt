@@ -11,10 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createRouteChallenge, Friend, getFriends } from '../lib/api';
-import {
-  challengeTargetLabel,
-  formatDurationClock,
-} from '../utils/routeUtils';
+import { challengeTargetLabel, formatDurationClock } from '../utils/routeUtils';
 
 type Props = {
   visible: boolean;
@@ -74,7 +71,10 @@ export function ChallengeFriendModal({
         targetSeconds != null && targetSeconds > 0
           ? ` Måltid att slå: ${formatDurationClock(targetSeconds)}.`
           : ' Samma planerade rutt som du — ingen måltid registrerad.';
-      Alert.alert('Utmaning skickad', `${name} kan nu köra utmaningen.${timePart}`);
+      Alert.alert(
+        'Utmaning skickad',
+        `${name} kan nu köra utmaningen.${timePart}`
+      );
       onClose();
     } catch (err) {
       Alert.alert(

@@ -62,8 +62,7 @@ export function ChallengesScreen({ navigation }: Props) {
       setFriends(friendList);
       const myId = me.userId;
       const incoming = all.filter(
-        (c) =>
-          c.status === 'pending' && idString(c.toUserId) === idString(myId)
+        (c) => c.status === 'pending' && idString(c.toUserId) === idString(myId)
       );
       setChallenges(incoming);
     } catch {
@@ -110,9 +109,7 @@ export function ChallengesScreen({ navigation }: Props) {
         <Text style={styles.cardMeta}>
           {item.route.distance} km · {item.route.checkpoints.length} checkpoints
         </Text>
-        <Text style={styles.cardTarget}>
-          {challengeTargetLabel(target)}
-        </Text>
+        <Text style={styles.cardTarget}>{challengeTargetLabel(target)}</Text>
         <Pressable style={styles.acceptButton} onPress={() => onAccept(item)}>
           <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
         </Pressable>

@@ -1288,7 +1288,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             >
               {sheetSnapIndex > 0 ? (
                 <>
-                  {challengeFromName != null || challengeTargetSeconds != null ? (
+                  {challengeFromName != null ||
+                  challengeTargetSeconds != null ? (
                     <View style={styles.challengeBanner}>
                       <Text style={styles.challengeBannerTitle}>
                         Utmaning
