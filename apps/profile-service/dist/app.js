@@ -14,7 +14,7 @@ const userStatsController_1 = require("./controllers/userStatsController");
 function createApp() {
     const app = (0, express_1.default)();
     app.use((0, cors_1.default)({ origin: env_1.env.CORS_ORIGIN }));
-    app.use(express_1.default.json());
+    app.use(express_1.default.json({ limit: '10mb' }));
     app.get('/health', (_req, res) => {
         res.json({ status: 'ok', service: 'profile-service' });
     });

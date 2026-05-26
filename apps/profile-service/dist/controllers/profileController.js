@@ -25,7 +25,7 @@ async function upsertMyProfile(req, res, next) {
         const { username, fullName, age, gender } = req.body ?? {};
         // In the gateway we attach userId as string. Profile schema expects ObjectId.
         const userObjectId = new mongoose_1.Types.ObjectId(req.userId);
-        const profile = await Profile_1.Profile.findOneAndUpdate({ userId: userObjectId }, { userId: userObjectId, username, fullName, age, gender }, { new: true, upsert: true, setDefaultsOnInsert: true });
+        const profile = await Profile_1.Profile.findOneAndUpdate({ userId: userObjectId }, { $set: { username, fullName, age, gender }, $setOnInsert: { userId: userObjectId } }, { new: true, upsert: true, setDefaultsOnInsert: true });
         res.status(200).json(profile);
     }
     catch (err) {

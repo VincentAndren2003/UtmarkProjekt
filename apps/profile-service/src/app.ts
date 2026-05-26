@@ -15,7 +15,7 @@ import {
 export function createApp() {
   const app = express();
   app.use(cors({ origin: env.CORS_ORIGIN }));
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'profile-service' });

@@ -38,7 +38,7 @@ function createApp() {
     // CORS lets the mobile app (different origin) call this API.
     // env.CORS_ORIGIN says which origins are allowed (set in .env).
     app.use((0, cors_1.default)({ origin: env_1.env.CORS_ORIGIN }));
-    app.use(express_1.default.json());
+    app.use(express_1.default.json({ limit: '10mb' }));
     // Health check —
     app.get('/api/health', (_req, res) => {
         res.json({ status: 'ok' });
