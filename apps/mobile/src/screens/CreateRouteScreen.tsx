@@ -197,6 +197,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const { location } = useUserLocation();
   const [distanceKm, setDistanceKm] = useState(MIN_DISTANCE);
   const [isGenerating, setIsGenerating] = useState(false);
+  const isGeneratingRef = useRef(false);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [showActiveHud, setShowActiveHud] = useState(false);
   const [sheetMode, setSheetMode] = useState<
@@ -640,7 +641,8 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   };
 
   const handleGenerateRoute = async () => {
-    if (isGenerating || placementMode) return;
+    if (isGeneratingRef.current || placementMode) return;
+    isGeneratingRef.current = true;
     setIsGenerating(true);
     try {
       const start = startPoint ??
@@ -687,6 +689,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     } catch (error) {
       console.error('Kunde inte generera rutt:', error);
     } finally {
+      isGeneratingRef.current = false;
       setIsGenerating(false);
     }
   };
@@ -1313,6 +1316,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                     onStartOrienteering={handleStartOrienteering}
                     showUserPosition={showUserPosition}
                     onToggleUserPosition={toggleUserPosition}
+                    isGenerating={isGenerating}
                     onBackToRequest={() => {
                       if (openAsGenerated) {
                         navigation.goBack();

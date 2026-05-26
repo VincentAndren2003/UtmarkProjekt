@@ -1,4 +1,11 @@
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { PanResponderInstance } from 'react-native';
 
 export type PlacementMode = 'start' | 'end' | null;
@@ -169,9 +176,11 @@ export function RouteRequestSheet({
           onPress={onGenerate}
           disabled={isGenerating}
         >
-          <Text style={styles.generateButtonText}>
-            {isGenerating ? 'Genererar rutt...' : '▶ Generera ny rutt'}
-          </Text>
+          {isGenerating ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.generateButtonText}>▶ Generera ny rutt</Text>
+          )}
         </Pressable>
       </View>
     </>

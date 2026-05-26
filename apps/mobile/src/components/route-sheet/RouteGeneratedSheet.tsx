@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RouteResponse } from '../../types/route';
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   onBackToRequest: () => void;
   showUserPosition: boolean;
   onToggleUserPosition: () => void;
+  isGenerating?: boolean;
 };
 
 export function RouteGeneratedSheet({
@@ -17,6 +18,7 @@ export function RouteGeneratedSheet({
   onBackToRequest,
   showUserPosition,
   onToggleUserPosition,
+  isGenerating = false,
 }: Props) {
   const routeName =
     (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
@@ -77,8 +79,16 @@ export function RouteGeneratedSheet({
         <Pressable style={styles.primaryButton} onPress={onStartOrienteering}>
           <Text style={styles.primaryButtonText}>▶ Starta orientering</Text>
         </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={onGenerateNew}>
-          <Text style={styles.secondaryButtonText}>Slumpa ny rutt</Text>
+        <Pressable
+          style={[styles.secondaryButton, isGenerating && styles.secondaryButtonDisabled]}
+          onPress={onGenerateNew}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <ActivityIndicator size="small" color="#2f7a3f" />
+          ) : (
+            <Text style={styles.secondaryButtonText}>Slumpa ny rutt</Text>
+          )}
         </Pressable>
         <Pressable style={styles.backButton} onPress={onBackToRequest}>
           <Text style={styles.backButtonText}>← Tillbaka</Text>
@@ -220,6 +230,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 14,
+  },
+  secondaryButtonDisabled: {
+    opacity: 0.6,
   },
   secondaryButtonText: {
     color: '#233127',
