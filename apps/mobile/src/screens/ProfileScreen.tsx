@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -52,6 +53,7 @@ export function ProfileScreen({ navigation, route }: Props) {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Lokal state för vald profilbild. När vi senare lägger till uppladdning
   // mot backend ersätts denna med en URL från servern.
@@ -195,13 +197,68 @@ export function ProfileScreen({ navigation, route }: Props) {
       <View style={styles.header}>
         <Pressable
           style={styles.editIconButton}
-          onPress={() => navigation.navigate('ProfileUpsert', { from: 'Profile' })}
-          accessibilityLabel="Redigera profil"
+          onPress={() => setMenuOpen(true)}
+          accessibilityLabel="Meny"
           hitSlop={12}
         >
-          <Ionicons name="pencil-outline" size={22} color="#1a1a1a" />
+          <Ionicons name="ellipsis-horizontal" size={22} color="#1a1a1a" />
         </Pressable>
       </View>
+
+      <Modal
+        visible={menuOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <View style={styles.menuOverlay}>
+          <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)} />
+          <View style={styles.menuSheet}>
+            <View style={styles.menuHandle} />
+            <Text style={styles.menuTitle}>Konto</Text>
+
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                navigation.navigate('ProfileUpsert', { from: 'Profile' });
+              }}
+            >
+              <Ionicons name="pencil-outline" size={22} color="#1a1a1a" />
+              <Text style={styles.menuItemText}>Redigera profil</Text>
+              <Ionicons name="chevron-forward" size={18} color="rgba(26,26,26,0.35)" />
+            </Pressable>
+
+            <View style={styles.menuDivider} />
+
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                onSignOut();
+              }}
+            >
+              <Ionicons name="log-out-outline" size={22} color="#1a1a1a" />
+              <Text style={styles.menuItemText}>Logga ut</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                onDeleteAccount();
+              }}
+            >
+              <Ionicons name="trash-outline" size={22} color="#c0392b" />
+              <Text style={[styles.menuItemText, styles.menuItemDanger]}>Radera konto</Text>
+            </Pressable>
+
+            <Pressable style={styles.menuCancelButton} onPress={() => setMenuOpen(false)}>
+              <Text style={styles.menuCancelText}>Avbryt</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.content}>
         {loading ? (
@@ -336,24 +393,6 @@ export function ProfileScreen({ navigation, route }: Props) {
               <Ionicons name="chevron-forward" size={20} color="#1a1a1a" />
             </Pressable>
 
-            <View style={styles.accountActions}>
-              <Pressable
-                style={styles.signOutButton}
-                onPress={onSignOut}
-                accessibilityLabel="Logga ut"
-              >
-                <Ionicons name="log-out-outline" size={18} color="#1a1a1a" />
-                <Text style={styles.signOutText}>Logga ut</Text>
-              </Pressable>
-
-              <Pressable
-                style={styles.deleteAccountButton}
-                onPress={onDeleteAccount}
-                accessibilityLabel="Radera konto"
-              >
-                <Text style={styles.deleteAccountText}>Radera konto</Text>
-              </Pressable>
-            </View>
           </>
         )}
       </View>
@@ -570,34 +609,71 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
   },
-  accountActions: {
-    alignSelf: 'stretch',
-    marginTop: 28,
-    gap: 12,
+  menuOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  menuBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  menuSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 32,
+  },
+  menuHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(26,26,26,0.15)',
+    marginBottom: 16,
+  },
+  menuTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(26,26,26,0.45)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
     paddingHorizontal: 4,
   },
-  signOutButton: {
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#f1f2f4',
+    gap: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 4,
   },
-  signOutText: {
+  menuItemText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1a1a1a',
+  },
+  menuItemDanger: {
+    color: '#c0392b',
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(26,26,26,0.1)',
+    marginVertical: 4,
+  },
+  menuCancelButton: {
+    marginTop: 12,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: '#f1f2f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuCancelText: {
     fontSize: 15,
     fontWeight: '600',
     color: '#1a1a1a',
-  },
-  deleteAccountButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  deleteAccountText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#c0392b',
   },
 });
