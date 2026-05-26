@@ -32,13 +32,19 @@ function buildFullName(first: string, last: string): string {
   return [first.trim(), last.trim()].filter(Boolean).join(' ').trim();
 }
 
+function splitFullName(fullName: string): { first: string; last: string } {
+  const parts = fullName.trim().split(' ');
+  const first = parts[0] ?? '';
+  const last = parts.slice(1).join(' ');
+  return { first, last };
+}
+
 const MIN_AGE = 1;
 const MAX_AGE = 120;
 const DEFAULT_AGE_PICK = 25;
 
-export function ProfileUpsertScreen({ navigation }: Props) {
-  /** All new accounts go through CreateAccount → ProfileUpsert; no legacy login-without-profile path. */
-  const flowFrom = 'CreateAccount' as const;
+export function ProfileUpsertScreen({ navigation, route }: Props) {
+  const isEditMode = route.params?.from === 'Profile';
 
   const [username, setUsername] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -57,9 +63,19 @@ export function ProfileUpsertScreen({ navigation }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        await getMyProfile();
-        if (!cancelled) {
-          navigation.replace('CreateRoute', { from: flowFrom });
+        const existing = await getMyProfile();
+        if (cancelled) return;
+        if (isEditMode) {
+          const { first, last } = splitFullName(existing.fullName);
+          setUsername(existing.username);
+          setFirstName(first);
+          setLastName(last);
+          setAge(existing.age);
+          setAgePickerValue(existing.age ?? DEFAULT_AGE_PICK);
+          setGender(existing.gender);
+          setLoading(false);
+        } else {
+          navigation.replace('CreateRoute', { from: 'CreateAccount' });
         }
       } catch {
         if (!cancelled) setLoading(false);
@@ -68,7 +84,7 @@ export function ProfileUpsertScreen({ navigation }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [navigation]);
+  }, [navigation, isEditMode]);
 
   const onSave = async () => {
     setMsg('');
@@ -106,7 +122,11 @@ export function ProfileUpsertScreen({ navigation }: Props) {
         age,
         gender,
       });
-      navigation.replace('CreateRoute', { from: flowFrom });
+      if (isEditMode) {
+        navigation.goBack();
+      } else {
+        navigation.replace('CreateRoute', { from: 'CreateAccount' });
+      }
     } catch (err) {
       setMsg(err instanceof Error ? err.message : 'Kunde inte spara profilen.');
     } finally {
@@ -135,72 +155,90 @@ export function ProfileUpsertScreen({ navigation }: Props) {
         </Pressable>
 
         <View style={styles.infoBlock}>
-          <Text style={styles.infoHeaderLabel}>Din profil</Text>
+          <Text style={styles.infoHeaderLabel}>
+            {isEditMode ? 'Redigera profil' : 'Din profil'}
+          </Text>
           <Text style={styles.infoSubText}>
-            Fyll i uppgifterna nedan. Du kan uppdatera dem senare under fliken
-            Profil.
+            {isEditMode
+              ? 'Uppdatera dina uppgifter och tryck Spara.'
+              : 'Fyll i uppgifterna nedan. Du kan uppdatera dem senare under fliken Profil.'}
           </Text>
         </View>
 
         <View style={styles.inputBlock}>
-          <TextInput
-            placeholder="Användarnamn"
-            placeholderTextColor="rgba(26, 26, 26, 0.35)"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={username}
-            onChangeText={setUsername}
-            style={styles.inputContainer}
-          />
+          <View style={styles.fieldGroup}>
+            {isEditMode && <Text style={styles.fieldLabel}>Användarnamn</Text>}
+            <TextInput
+              placeholder="t.ex. löparen99"
+              placeholderTextColor="rgba(26, 26, 26, 0.35)"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={username}
+              onChangeText={setUsername}
+              style={styles.inputContainer}
+            />
+          </View>
 
-          <TextInput
-            placeholder="Förnamn"
-            placeholderTextColor="rgba(26, 26, 26, 0.35)"
-            value={firstName}
-            onChangeText={setFirstName}
-            style={styles.inputContainer}
-          />
+          <View style={styles.fieldGroup}>
+            {isEditMode && <Text style={styles.fieldLabel}>Förnamn</Text>}
+            <TextInput
+              placeholder="Förnamn"
+              placeholderTextColor="rgba(26, 26, 26, 0.35)"
+              value={firstName}
+              onChangeText={setFirstName}
+              style={styles.inputContainer}
+            />
+          </View>
 
-          <TextInput
-            placeholder="Efternamn"
-            placeholderTextColor="rgba(26, 26, 26, 0.35)"
-            value={lastName}
-            onChangeText={setLastName}
-            style={styles.inputContainer}
-          />
+          <View style={styles.fieldGroup}>
+            {isEditMode && <Text style={styles.fieldLabel}>Efternamn</Text>}
+            <TextInput
+              placeholder="Efternamn"
+              placeholderTextColor="rgba(26, 26, 26, 0.35)"
+              value={lastName}
+              onChangeText={setLastName}
+              style={styles.inputContainer}
+            />
+          </View>
 
-          <Pressable
-            onPress={() => setGenderSheetOpen(true)}
-            style={styles.inputContainer}
-            accessibilityRole="button"
-            accessibilityLabel="Välj kön"
-          >
-            <Text
-              style={
-                gender !== null ? styles.selectValue : styles.selectPlaceholder
-              }
+          <View style={styles.fieldGroup}>
+            {isEditMode && <Text style={styles.fieldLabel}>Kön</Text>}
+            <Pressable
+              onPress={() => setGenderSheetOpen(true)}
+              style={styles.inputContainer}
+              accessibilityRole="button"
+              accessibilityLabel="Välj kön"
             >
-              {gender !== null ? `Kön: ${genderLabel(gender)}` : 'Kön'}
-            </Text>
-          </Pressable>
+              <Text
+                style={
+                  gender !== null ? styles.selectValue : styles.selectPlaceholder
+                }
+              >
+                {gender !== null ? genderLabel(gender) : 'Välj kön'}
+              </Text>
+            </Pressable>
+          </View>
 
-          <Pressable
-            onPress={() => {
-              setAgePickerValue(age ?? DEFAULT_AGE_PICK);
-              setAgeSheetOpen(true);
-            }}
-            style={styles.inputContainer}
-            accessibilityRole="button"
-            accessibilityLabel="Välj ålder"
-          >
-            <Text
-              style={
-                age !== null ? styles.selectValue : styles.selectPlaceholder
-              }
+          <View style={styles.fieldGroup}>
+            {isEditMode && <Text style={styles.fieldLabel}>Ålder</Text>}
+            <Pressable
+              onPress={() => {
+                setAgePickerValue(age ?? DEFAULT_AGE_PICK);
+                setAgeSheetOpen(true);
+              }}
+              style={styles.inputContainer}
+              accessibilityRole="button"
+              accessibilityLabel="Välj ålder"
             >
-              {age !== null ? `Ålder: ${age} år` : 'Ålder'}
-            </Text>
-          </Pressable>
+              <Text
+                style={
+                  age !== null ? styles.selectValue : styles.selectPlaceholder
+                }
+              >
+                {age !== null ? `${age} år` : 'Välj ålder'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.buttonBlock}>
@@ -213,13 +251,15 @@ export function ProfileUpsertScreen({ navigation }: Props) {
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Skapa konto</Text>
+              <Text style={styles.buttonText}>
+                {isEditMode ? 'Spara' : 'Skapa konto'}
+              </Text>
             )}
           </Pressable>
         </View>
       </ScrollView>
 
-      <OnboardingStepDots currentStep={2} />
+      {!isEditMode && <OnboardingStepDots currentStep={2} />}
 
       <Modal
         visible={genderSheetOpen}
@@ -355,8 +395,20 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   inputBlock: {
-    gap: 12,
+    gap: 16,
     alignSelf: 'center',
+  },
+  fieldGroup: {
+    gap: 5,
+    width: 334,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(26, 26, 26, 0.55)',
+    paddingLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   inputContainer: {
     width: 334,

@@ -154,6 +154,17 @@ export function ProfileScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.editIconButton}
+          onPress={() => navigation.navigate('ProfileUpsert', { from: 'Profile' })}
+          accessibilityLabel="Redigera profil"
+          hitSlop={12}
+        >
+          <Ionicons name="pencil-outline" size={22} color="#1a1a1a" />
+        </Pressable>
+      </View>
+
       <View style={styles.content}>
         {loading ? (
           <ActivityIndicator size="large" color="#2b2f33" />
@@ -304,11 +315,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  header: {
+    paddingTop: 58,
+    paddingHorizontal: 20,
+    alignItems: 'flex-end',
+  },
+  editIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f2f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 66,
+    paddingTop: 12,
   },
   avatarWrap: {
     width: 160,
