@@ -4,5 +4,5 @@ export type RootStackParamList = {
   CreateAccount: undefined;
   Welcome: undefined;
   Map: undefined;
-  ProfileUpsert: undefined;
+  ProfileUpsert: { from: 'CreateAccount' | 'Profile' } | undefined;
 };
