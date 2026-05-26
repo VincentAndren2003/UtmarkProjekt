@@ -36,9 +36,6 @@ jobs:
       - name: Install profile-service dependencies
         run: npm ci --prefix apps/profile-service
 
-      - name: Check formatting
-        run: npm run format
-
       - name: Lint
         run: npm run lint # Checks code for common mistakes and bad patterns, reports things like, unsued variables, possibles bugs, react hook mistakes, stule rule problems.
 

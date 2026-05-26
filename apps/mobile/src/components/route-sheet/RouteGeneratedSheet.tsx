@@ -1,4 +1,10 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { RouteResponse } from '../../types/route';
 
 type Props = {
@@ -80,7 +86,10 @@ export function RouteGeneratedSheet({
           <Text style={styles.primaryButtonText}>▶ Starta orientering</Text>
         </Pressable>
         <Pressable
-          style={[styles.secondaryButton, isGenerating && styles.secondaryButtonDisabled]}
+          style={[
+            styles.secondaryButton,
+            isGenerating && styles.secondaryButtonDisabled,
+          ]}
           onPress={onGenerateNew}
           disabled={isGenerating}
         >
