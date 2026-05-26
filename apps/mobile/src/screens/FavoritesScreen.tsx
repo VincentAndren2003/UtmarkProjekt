@@ -93,7 +93,11 @@ export function FavoritesScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>Favoriter</Text>
+      <View style={styles.header}>
+        <View style={styles.headerSide} />
+        <Text style={styles.title}>Favoriter</Text>
+        <View style={styles.headerSide} />
+      </View>
 
       {loading ? (
         <View style={styles.centered}>
@@ -193,13 +197,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  headerTitle: {
-    fontSize: 28,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 56,
+    paddingBottom: 16,
+  },
+  headerSide: {
+    width: 40,
+    height: 40,
+  },
+  title: {
+    fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    textAlign: 'center',
   },
   centered: {
     flex: 1,
