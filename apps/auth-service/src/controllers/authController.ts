@@ -3,6 +3,15 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import { signToken } from '../utils/jwt';
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
+
 export async function signup(
   req: Request,
   res: Response,
@@ -69,6 +78,24 @@ export async function login(
       token,
       user: { id: user.id, email: user.email },
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteMe(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const userId = req.header('x-user-id');
+    if (!userId) {
+      res.status(401).json({ error: 'Missing x-user-id (gateway auth required)' });
+      return;
+    }
+    await User.findByIdAndDelete(userId);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

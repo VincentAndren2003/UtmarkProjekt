@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import { Profile } from '../models/Profile';
+import { UserStats } from '../models/UserStats';
 
 export async function getMyProfile(
   req: Request,
@@ -37,6 +38,23 @@ export async function upsertMyProfile(
     );
 
     res.status(200).json(profile);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteMyProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const userObjectId = new Types.ObjectId(req.userId);
+    await Promise.all([
+      Profile.deleteOne({ userId: userObjectId }),
+      UserStats.deleteOne({ userId: userObjectId }),
+    ]);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

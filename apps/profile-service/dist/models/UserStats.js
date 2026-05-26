@@ -53,6 +53,6 @@ const userStatsSchema = new mongoose_1.Schema({
         type: Number,
         default: 0,
         min: 0,
-    }
+    },
 }, { timestamps: true });
 exports.UserStats = (0, mongoose_1.model)('UserStats', userStatsSchema);

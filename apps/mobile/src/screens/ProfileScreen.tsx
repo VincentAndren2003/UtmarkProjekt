@@ -16,6 +16,7 @@ import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
 import {
+  deleteMyAccount,
   Friend,
   getFriendCount,
   getFriends,
@@ -23,6 +24,7 @@ import {
   getMyRouteChallenges,
   Profile,
   RouteChallengeRecord,
+  signOut,
 } from '../lib/api';
 import {
   challengeTargetLabel,
@@ -148,6 +150,42 @@ export function ProfileScreen({ navigation, route }: Props) {
     if (!result.canceled && result.assets[0]) {
       setAvatarUri(result.assets[0].uri);
     }
+  };
+
+  const onSignOut = () => {
+    Alert.alert('Logga ut', 'Är du säker på att du vill logga ut?', [
+      { text: 'Avbryt', style: 'cancel' },
+      {
+        text: 'Logga ut',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+        },
+      },
+    ]);
+  };
+
+  const onDeleteAccount = () => {
+    Alert.alert(
+      'Radera konto',
+      'Detta raderar ditt konto och all data permanent. Åtgärden kan inte ångras.',
+      [
+        { text: 'Avbryt', style: 'cancel' },
+        {
+          text: 'Radera',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMyAccount();
+              navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+            } catch {
+              Alert.alert('Fel', 'Kunde inte radera kontot. Försök igen.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const { badges } = useUserBadges();
@@ -297,6 +335,25 @@ export function ProfileScreen({ navigation, route }: Props) {
               <Text style={styles.historyLinkText}>Se Historik</Text>
               <Ionicons name="chevron-forward" size={20} color="#1a1a1a" />
             </Pressable>
+
+            <View style={styles.accountActions}>
+              <Pressable
+                style={styles.signOutButton}
+                onPress={onSignOut}
+                accessibilityLabel="Logga ut"
+              >
+                <Ionicons name="log-out-outline" size={18} color="#1a1a1a" />
+                <Text style={styles.signOutText}>Logga ut</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.deleteAccountButton}
+                onPress={onDeleteAccount}
+                accessibilityLabel="Radera konto"
+              >
+                <Text style={styles.deleteAccountText}>Radera konto</Text>
+              </Pressable>
+            </View>
           </>
         )}
       </View>
@@ -512,5 +569,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1a1a1a',
+  },
+  accountActions: {
+    alignSelf: 'stretch',
+    marginTop: 28,
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#f1f2f4',
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  deleteAccountButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  deleteAccountText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#c0392b',
   },
 });
