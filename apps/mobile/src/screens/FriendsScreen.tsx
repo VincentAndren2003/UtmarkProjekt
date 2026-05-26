@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,11 +14,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
   Friend,
   getFriends,
+  getPendingFriendRequests,
   Profile,
   removeFriend,
   searchUsers,
@@ -74,6 +76,7 @@ export function FriendsScreen({ navigation }: Props) {
     () => new Set()
   );
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   // Ökas vid "Försök igen" så useEffect hämtar vänlistan på nytt.
   const [reloadNonce, setReloadNonce] = useState(0);
 
@@ -108,6 +111,25 @@ export function FriendsScreen({ navigation }: Props) {
       active = false;
     };
   }, [reloadNonce]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      (async () => {
+        try {
+          const pending = await getPendingFriendRequests();
+          if (active) setPendingRequestCount(pending.length);
+        } catch {
+          if (active) setPendingRequestCount(0);
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const onRetryLoad = () => {
     setLoading(true);
@@ -268,11 +290,18 @@ export function FriendsScreen({ navigation }: Props) {
           <Pressable
             style={styles.headerShortcut}
             onPress={() => navigation.navigate('FriendRequests')}
-            accessibilityLabel="Förfrågningar"
+            accessibilityLabel={
+              pendingRequestCount > 0
+                ? `Förfrågningar, ${pendingRequestCount} nya`
+                : 'Förfrågningar'
+            }
             hitSlop={8}
           >
             <View style={styles.headerIconBox}>
               <Ionicons name="person-add-outline" size={26} color="#1a1a1a" />
+              {pendingRequestCount > 0 ? (
+                <View style={styles.requestBadge} accessibilityElementsHidden />
+              ) : null}
             </View>
             <Text style={styles.headerShortcutLabel}>Förfrågningar</Text>
           </Pressable>
@@ -456,6 +485,19 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    overflow: 'visible',
+  },
+  requestBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#3E7A44',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   headerShortcutLabel: {
     marginTop: 4,
