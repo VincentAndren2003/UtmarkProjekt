@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, UrlTile } from 'react-native-maps';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { SavedRouteRecord } from '../lib/api';
+import { ChallengeFriendModal } from '../components/ChallengeFriendModal';
 import { trackPointsToPolyline } from '../utils/trackUtils';
+import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RunDetail'>;
 
@@ -36,6 +38,11 @@ export function RunDetailScreen({ navigation, route }: Props) {
   const savedRoute = isSavedRoute(run.route) ? run.route : null;
   const trackCoords = trackPointsToPolyline(run.trackPoints);
   const plannedCheckpoints = savedRoute?.checkpoints ?? [];
+
+  const [challengeModalVisible, setChallengeModalVisible] = useState(false);
+
+  const canChallenge = savedRoute != null;
+  const challengeTargetSeconds = run.durationSeconds;
 
   const initialRegion = useMemo(() => {
     if (trackCoords.length > 0) {
@@ -103,8 +110,11 @@ export function RunDetailScreen({ navigation, route }: Props) {
 
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
         initialRegion={initialRegion}
+        provider={PROVIDER_GOOGLE}
+        customMapStyle={CustomMapStyle}
+        showsBuildings={false}
+        showsCompass={false}
       >
         {trackCoords.length > 1 && (
           <Polyline
@@ -124,6 +134,14 @@ export function RunDetailScreen({ navigation, route }: Props) {
             pinColor="#BA55A0"
           />
         ))}
+        <UrlTile
+          urlTemplate={'http://79.76.60.222:3000/tiles/{z}/{x}/{y}.png'}
+          maximumZ={20}
+          minimumZ={12}
+          shouldReplaceMapContent={false}
+          tileSize={512}
+          zIndex={1}
+        />
       </MapView>
 
       <View style={styles.legend}>
@@ -136,6 +154,26 @@ export function RunDetailScreen({ navigation, route }: Props) {
           <Text style={styles.legendText}>Planerade checkpoints</Text>
         </View>
       </View>
+
+      {canChallenge ? (
+        <Pressable
+          style={styles.challengeButton}
+          onPress={() => setChallengeModalVisible(true)}
+        >
+          <Ionicons name="trophy-outline" size={20} color="#fff" />
+          <Text style={styles.challengeButtonText}>Utmana vän</Text>
+        </Pressable>
+      ) : null}
+
+      {savedRoute ? (
+        <ChallengeFriendModal
+          visible={challengeModalVisible}
+          onClose={() => setChallengeModalVisible(false)}
+          routeId={savedRoute._id}
+          sourceRunId={run._id}
+          targetSeconds={challengeTargetSeconds}
+        />
+      ) : null}
     </View>
   );
 }
@@ -189,7 +227,7 @@ const styles = StyleSheet.create({
   },
   legend: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     gap: 8,
   },
   legendRow: {
@@ -205,5 +243,21 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 13,
     color: '#5c636a',
+  },
+  challengeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#3E7A44',
+  },
+  challengeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

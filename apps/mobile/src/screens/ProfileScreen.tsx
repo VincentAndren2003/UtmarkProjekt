@@ -15,18 +15,22 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
-import { getMyProfile, getFriendCount, Profile } from '../lib/api';
+import {
+  Friend,
+  getFriendCount,
+  getFriends,
+  getMyProfile,
+  getMyRouteChallenges,
+  Profile,
+  RouteChallengeRecord,
+} from '../lib/api';
+import {
+  challengeTargetLabel,
+  savedRouteToRouteResponse,
+} from '../utils/routeUtils';
 import { useUserBadges } from '../hooks/useUserBadges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
-
-// Utmaning skickad av en annan användare. Sätt avatarUri när vi har bilder.
-type Challenge = {
-  id: string;
-  fromName: string;
-  timeLabel: string;
-  avatarUri?: string;
-};
 
 // TODO: Ta bort denna dev-fallback när auth-flödet är på plats.
 // Används bara så vi kan se profil-UI:t utan att vara inloggade.
@@ -53,21 +57,38 @@ export function ProfileScreen({ navigation, route }: Props) {
 
   const [friendsCount, setFriendsCount] = useState(0);
 
-  // TODO: Hämta från backend när utmaningar finns. Sätt till [] för att
-  // se tomma tillståndet i UI:t.
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [incomingChallenges, setIncomingChallenges] = useState<
+    RouteChallengeRecord[]
+  >([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
-  const onAcceptChallenge = (id: string) => {
-    // TODO: anropa backend för att acceptera utmaningen.
-    setChallenges((prev) => prev.filter((c) => c.id !== id));
+  const challengeFromName = (challenge: RouteChallengeRecord) => {
+    const fromId = String(challenge.fromUserId);
+    const friend = friends.find((f) => f.userId === fromId);
+    if (friend?.fullName?.trim()) return friend.fullName.trim();
+    if (friend?.username) return `@${friend.username}`;
+    return 'En vän';
+  };
+
+  const onAcceptChallenge = (challenge: RouteChallengeRecord) => {
+    navigation.navigate('CreateRoute', {
+      activeRoute: savedRouteToRouteResponse(challenge.route),
+      savedRouteId: challenge.route._id,
+      openAsGenerated: true,
+      challengeTargetSeconds: challenge.sourceRun?.durationSeconds,
+      challengeFromName: challengeFromName(challenge),
+      from: from ?? 'Login',
+    });
   };
 
   useEffect(() => {
     let active = true;
     (async () => {
+      let myId: string | undefined;
       try {
         const data = await getMyProfile();
         if (active) setProfile(data);
+        myId = data.userId;
       } catch {
         if (active) setProfile(DEV_FALLBACK_PROFILE);
       } finally {
@@ -79,6 +100,27 @@ export function ProfileScreen({ navigation, route }: Props) {
         if (active) setFriendsCount(result.count);
       } catch {
         // behåll 0 om det misslyckas
+      }
+
+      try {
+        const [allChallenges, friendList] = await Promise.all([
+          getMyRouteChallenges(),
+          getFriends(),
+        ]);
+        if (!active) return;
+        setFriends(friendList);
+        if (myId) {
+          setIncomingChallenges(
+            allChallenges
+              .filter(
+                (c) =>
+                  c.status === 'pending' && String(c.toUserId) === String(myId)
+              )
+              .slice(0, 3)
+          );
+        }
+      } catch {
+        if (active) setIncomingChallenges([]);
       }
     })();
     return () => {
@@ -196,45 +238,42 @@ export function ProfileScreen({ navigation, route }: Props) {
                 </Pressable>
               </View>
 
-              {challenges.length === 0 ? (
+              {incomingChallenges.length === 0 ? (
                 <Text style={styles.challengesEmpty}>
                   Här var det tomt! Inga utmaningar för tillfället.
                 </Text>
               ) : (
                 <View style={styles.challengesList}>
-                  {challenges.map((challenge) => (
-                    <View key={challenge.id} style={styles.challengeRow}>
-                      <View style={styles.challengeAvatar}>
-                        {challenge.avatarUri ? (
-                          <Image
-                            source={{ uri: challenge.avatarUri }}
-                            style={styles.challengeAvatarImage}
-                          />
-                        ) : (
+                  {incomingChallenges.map((challenge) => {
+                    const name = challengeFromName(challenge);
+                    const target = challenge.sourceRun?.durationSeconds;
+                    return (
+                      <View key={challenge._id} style={styles.challengeRow}>
+                        <View style={styles.challengeAvatar}>
                           <Ionicons name="person" size={26} color="#b8bec5" />
-                        )}
-                      </View>
+                        </View>
 
-                      <View style={styles.challengeText}>
-                        <Text style={styles.challengeName} numberOfLines={1}>
-                          {challenge.fromName} utmanar dig!
-                        </Text>
-                        <Text style={styles.challengeTime} numberOfLines={1}>
-                          {challenge.timeLabel}
-                        </Text>
-                      </View>
+                        <View style={styles.challengeText}>
+                          <Text style={styles.challengeName} numberOfLines={1}>
+                            {name} utmanar dig!
+                          </Text>
+                          <Text style={styles.challengeTime} numberOfLines={1}>
+                            {challengeTargetLabel(target)}
+                          </Text>
+                        </View>
 
-                      <Pressable
-                        style={styles.challengeAccept}
-                        onPress={() => onAcceptChallenge(challenge.id)}
-                        accessibilityLabel={`Acceptera utmaning från ${challenge.fromName}`}
-                      >
-                        <Text style={styles.challengeAcceptText}>
-                          Acceptera
-                        </Text>
-                      </Pressable>
-                    </View>
-                  ))}
+                        <Pressable
+                          style={styles.challengeAccept}
+                          onPress={() => onAcceptChallenge(challenge)}
+                          accessibilityLabel={`Acceptera utmaning från ${name}`}
+                        >
+                          <Text style={styles.challengeAcceptText}>
+                            Acceptera
+                          </Text>
+                        </Pressable>
+                      </View>
+                    );
+                  })}
                 </View>
               )}
             </View>

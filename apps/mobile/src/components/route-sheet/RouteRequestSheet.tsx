@@ -5,6 +5,8 @@ export type PlacementMode = 'start' | 'end' | null;
 
 type Props = {
   greetingFirstName: string | null;
+  onGreetingLayout?: (height: number) => void;
+  onContentLayout?: (height: number) => void;
   distanceKm: number;
   isGenerating: boolean;
   sliderX: Animated.Value;
@@ -18,11 +20,12 @@ type Props = {
   onSelectEnd: () => void;
   onConfirmPlacement: () => void;
   onCancelPlacement: () => void;
-  placementPinReady: boolean;
 };
 
 export function RouteRequestSheet({
   greetingFirstName,
+  onGreetingLayout,
+  onContentLayout,
   distanceKm,
   isGenerating,
   sliderX,
@@ -36,7 +39,6 @@ export function RouteRequestSheet({
   onSelectEnd,
   onConfirmPlacement,
   onCancelPlacement,
-  placementPinReady,
 }: Props) {
   const isPlacing = placementMode !== null;
 
@@ -49,9 +51,8 @@ export function RouteRequestSheet({
             : 'Placera slutposition'}
         </Text>
         <Text style={styles.placementHint}>
-          {placementPinReady
-            ? 'Tryck någon annanstans på kartan för att flytta pin, sedan bekräfta.'
-            : 'Tryck på kartan där du vill ha pin, sedan bekräfta.'}
+          Flytta kartan under pinnen i mitten. Platsen sparas när du trycker
+          Bekräfta.
         </Text>
         <View style={styles.placementActions}>
           <Pressable
@@ -66,20 +67,11 @@ export function RouteRequestSheet({
           <Pressable
             style={({ pressed }) => [
               styles.confirmPlacement,
-              !placementPinReady && styles.confirmPlacementDisabled,
-              pressed && placementPinReady && styles.placementButtonPressed,
+              pressed && styles.placementButtonPressed,
             ]}
             onPress={onConfirmPlacement}
-            disabled={!placementPinReady}
           >
-            <Text
-              style={[
-                styles.confirmPlacementText,
-                !placementPinReady && styles.confirmPlacementTextDisabled,
-              ]}
-            >
-              Bekräfta placering
-            </Text>
+            <Text style={styles.confirmPlacementText}>Bekräfta placering</Text>
           </Pressable>
         </View>
       </View>
@@ -88,83 +80,100 @@ export function RouteRequestSheet({
 
   return (
     <>
-      <Text style={styles.greeting}>
-        {greetingFirstName
-          ? `Redo för ett nytt äventyr, ${greetingFirstName}?`
-          : 'Redo för ett nytt äventyr?'}
-      </Text>
+      <View
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          if (height > 0) onGreetingLayout?.(height);
+        }}
+      >
+        <Text style={styles.greeting}>
+          {greetingFirstName
+            ? `Redo för ett nytt äventyr, ${greetingFirstName}?`
+            : 'Redo för ett nytt äventyr?'}
+        </Text>
+      </View>
       <View style={styles.sectionDivider} />
 
-      <Text style={styles.lengthTitle}>Välj ruttlängden</Text>
-
       <View
-        {...sliderPanHandlers}
-        onLayout={(evt) => {
-          onSliderLayout(evt.nativeEvent.layout.width);
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          if (height > 0) onContentLayout?.(height);
         }}
-        style={styles.sliderRow}
       >
-        <View style={styles.sliderLine} />
-        <Animated.View
-          style={[styles.sliderThumb, { transform: [{ translateX: sliderX }] }]}
-        />
+        <Text style={styles.lengthTitle}>Välj ruttlängden</Text>
+
+        <View
+          {...sliderPanHandlers}
+          onLayout={(evt) => {
+            onSliderLayout(evt.nativeEvent.layout.width);
+          }}
+          style={styles.sliderRow}
+        >
+          <View style={styles.sliderLine} />
+          <Animated.View
+            style={[
+              styles.sliderThumb,
+              { transform: [{ translateX: sliderX }] },
+            ]}
+          />
+        </View>
+        <Text style={styles.sliderValue}>{distanceKm} km</Text>
+
+        <Text style={styles.positionSectionTitle}>
+          Valfri start och slutposition
+        </Text>
+
+        <Pressable
+          style={[
+            styles.positionRow,
+            placementMode === 'start' && styles.positionRowActive,
+          ]}
+          onPress={onSelectStart}
+          disabled={isGenerating}
+        >
+          <Text style={styles.positionRowTitle}>Välj startposition</Text>
+          <Text
+            style={[
+              styles.positionRowStatus,
+              startPlaced && styles.positionRowStatusPlaced,
+            ]}
+          >
+            {startPlaced ? 'Placerad' : 'Ej placerad'}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.positionRow,
+            placementMode === 'end' && styles.positionRowActive,
+          ]}
+          onPress={onSelectEnd}
+          disabled={isGenerating}
+        >
+          <Text style={styles.positionRowTitle}>Välj slutposition</Text>
+          <Text
+            style={[
+              styles.positionRowStatus,
+              endPlaced && styles.positionRowStatusPlaced,
+            ]}
+          >
+            {endPlaced ? 'Placerad' : 'Ej placerad'}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.generateButton,
+            isGenerating && styles.generateButtonDisabled,
+          ]}
+          onPress={onGenerate}
+          disabled={isGenerating}
+        >
+          <Text style={styles.generateButtonText}>
+            {isGenerating ? 'Genererar rutt...' : '▶ Generera ny rutt'}
+          </Text>
+        </Pressable>
       </View>
-      <Text style={styles.sliderValue}>{distanceKm} km</Text>
-
-      <Text style={styles.positionSectionTitle}>
-        Valfri start och slutposition
-      </Text>
-
-      <Pressable
-        style={[
-          styles.positionRow,
-          placementMode === 'start' && styles.positionRowActive,
-        ]}
-        onPress={onSelectStart}
-        disabled={isGenerating}
-      >
-        <Text style={styles.positionRowTitle}>Välj startposition</Text>
-        <Text
-          style={[
-            styles.positionRowStatus,
-            startPlaced && styles.positionRowStatusPlaced,
-          ]}
-        >
-          {startPlaced ? 'Placerad' : 'Ej placerad'}
-        </Text>
-      </Pressable>
-
-      <Pressable
-        style={[
-          styles.positionRow,
-          placementMode === 'end' && styles.positionRowActive,
-        ]}
-        onPress={onSelectEnd}
-        disabled={isGenerating}
-      >
-        <Text style={styles.positionRowTitle}>Välj slutposition</Text>
-        <Text
-          style={[
-            styles.positionRowStatus,
-            endPlaced && styles.positionRowStatusPlaced,
-          ]}
-        >
-          {endPlaced ? 'Placerad' : 'Ej placerad'}
-        </Text>
-      </Pressable>
-
-      <Pressable
-        style={[
-          styles.generateButton,
-          isGenerating && styles.generateButtonDisabled,
-        ]}
-        onPress={onGenerate}
-        disabled={isGenerating}
-      >
-        <Text style={styles.generateButtonText}>
-          {isGenerating ? 'Genererar rutt...' : '▶ Generera ny rutt'}
-        </Text>
-      </Pressable>
     </>
   );
 }

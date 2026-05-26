@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { env } from '../config/env';
 import { RouteRecord } from '../models/RouteRecord';
 import { Run } from '../models/Run';
 import { RouteChallenge } from '../models/RouteChallenge';
+import { Friendship } from '../models/Friendship';
 
 function httpError(status: number, message: string): Error {
   const e = new Error(message) as Error & { status?: number };
@@ -65,26 +65,16 @@ type SaveRouteBody = {
 
 export class RoutesService {
   private async assertFriends(a: string, b: string): Promise<void> {
-    if (!env.PROFILE_SERVICE_TOKEN) {
-      throw httpError(500, 'PROFILE_SERVICE_TOKEN is not configured');
-    }
-    const url = new URL(
-      '/internal/social/are-friends',
-      env.PROFILE_SERVICE_URL
-    );
-    url.searchParams.set('userA', a);
-    url.searchParams.set('userB', b);
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'x-service-token': env.PROFILE_SERVICE_TOKEN },
+    const userA = new mongoose.Types.ObjectId(a);
+    const userB = new mongoose.Types.ObjectId(b);
+    const friendship = await Friendship.findOne({
+      status: 'accepted',
+      $or: [
+        { requester: userA, recipient: userB },
+        { requester: userB, recipient: userA },
+      ],
     });
-    const data = (await res.json().catch(() => ({}))) as {
-      accepted?: boolean;
-    };
-    if (!res.ok) {
-      throw httpError(502, 'Profile service unavailable for friendship check');
-    }
-    if (!data.accepted) {
+    if (!friendship) {
       throw httpError(403, 'Inte vänner');
     }
   }

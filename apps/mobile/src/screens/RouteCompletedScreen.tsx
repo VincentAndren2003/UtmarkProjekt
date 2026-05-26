@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,8 +12,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
+import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
 import { savePersistedRoute } from '../lib/api';
+import { ChallengeFriendModal } from '../components/ChallengeFriendModal';
+import { formatDurationClock } from '../utils/routeUtils';
 import { addFavoriteRoute } from '../services/favoritesStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteCompleted'>;
@@ -28,12 +31,58 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     paceMinPerKm,
     plannedDistanceKm,
     savedRouteId: initialSavedRouteId,
+    runId,
     routeSnapshot,
     from,
+    celebrationBadgeIds = [],
+    challengeTargetSeconds,
+    challengeFromName,
+    elapsedSeconds,
   } = route.params;
+
+  const beatChallenge =
+    challengeTargetSeconds != null &&
+    elapsedSeconds != null &&
+    elapsedSeconds < challengeTargetSeconds;
 
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
   const [savingFavorite, setSavingFavorite] = useState(false);
+  const [challengeModalVisible, setChallengeModalVisible] = useState(false);
+  const [preparingChallenge, setPreparingChallenge] = useState(false);
+  const { showBadgeCelebration } = useBadgeCelebration();
+
+  const openChallengeModal = async () => {
+    if (!routeSnapshot) {
+      Alert.alert('Kan inte utmana', 'Ruttdata saknas.');
+      return;
+    }
+    if (savedRouteId) {
+      setChallengeModalVisible(true);
+      return;
+    }
+    setPreparingChallenge(true);
+    try {
+      const saved = await savePersistedRoute(routeSnapshot);
+      setSavedRouteId(saved._id);
+      setChallengeModalVisible(true);
+    } catch (err) {
+      Alert.alert(
+        'Kunde inte spara rutt',
+        err instanceof Error ? err.message : 'Försök igen senare.'
+      );
+    } finally {
+      setPreparingChallenge(false);
+    }
+  };
+
+  useEffect(() => {
+    if (celebrationBadgeIds.length === 0) return;
+    const timer = setTimeout(
+      () => showBadgeCelebration(celebrationBadgeIds),
+      400
+    );
+    return () => clearTimeout(timer);
+  }, [celebrationBadgeIds, showBadgeCelebration]);
 
   const handleSaveFavorite = async () => {
     if (savedRouteId || !routeSnapshot) return;
@@ -69,6 +118,26 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
       >
         <Text style={styles.title}>Rutt avslutad!</Text>
         <Text style={styles.subtitle}>Snyggt jobbat!</Text>
+
+        {challengeTargetSeconds != null && elapsedSeconds != null ? (
+          <View
+            style={[
+              styles.challengeResult,
+              beatChallenge
+                ? styles.challengeResultWin
+                : styles.challengeResultLose,
+            ]}
+          >
+            <Text style={styles.challengeResultTitle}>
+              {beatChallenge ? 'Du vann utmaningen!' : 'Utmaningen vanns inte'}
+            </Text>
+            <Text style={styles.challengeResultBody}>
+              Din tid {formatDurationClock(elapsedSeconds)}
+              {challengeFromName ? ` · mål från ${challengeFromName}` : ''}
+              {' · '}måltid {formatDurationClock(challengeTargetSeconds)}
+            </Text>
+          </View>
+        ) : null}
 
         <Text style={styles.progressLabel}>
           {checkpointsCompleted} / {totalCheckpoints} checkpoints tagna
@@ -202,15 +271,14 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
 
         <Pressable
           style={styles.primaryButton}
-          onPress={() => {
-            // TODO: Utmana vän när utmaningsflödet finns.
-            Alert.alert(
-              'Kommer snart',
-              'Här ska du kunna utmana en vän på samma rutt.'
-            );
-          }}
+          onPress={openChallengeModal}
+          disabled={preparingChallenge || !routeSnapshot}
         >
-          <Text style={styles.primaryButtonText}>Utmana en vän!</Text>
+          {preparingChallenge ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Utmana en vän!</Text>
+          )}
         </Pressable>
 
         <Pressable
@@ -237,6 +305,16 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
           )}
         </Pressable>
       </ScrollView>
+
+      {savedRouteId ? (
+        <ChallengeFriendModal
+          visible={challengeModalVisible}
+          onClose={() => setChallengeModalVisible(false)}
+          routeId={savedRouteId}
+          sourceRunId={runId}
+          targetSeconds={elapsedSeconds}
+        />
+      ) : null}
 
       <BottomNav
         navigation={navigation}
@@ -276,6 +354,30 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     textAlign: 'center',
     marginBottom: 22,
+  },
+  challengeResult: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
+  },
+  challengeResultWin: {
+    backgroundColor: 'rgba(62, 122, 68, 0.15)',
+  },
+  challengeResultLose: {
+    backgroundColor: 'rgba(185, 28, 28, 0.08)',
+  },
+  challengeResultTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  challengeResultBody: {
+    fontSize: 14,
+    color: '#4a5763',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   progressLabel: {
     fontSize: 14,

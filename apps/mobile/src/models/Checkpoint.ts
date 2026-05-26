@@ -11,12 +11,12 @@ export class Checkpoint {
     id: string,
     coordinate: { longitude: number; latitude: number },
     completed: boolean,
-    radius: number = 20
+    radius: number = 25
   ) {
     this.id = id;
     this.coordinate = coordinate;
     this.radius = radius;
-    this.completed = false;
+    this.completed = completed;
   }
 
   distanceTo(userLocation: { latitude: number; longitude: number }): number {

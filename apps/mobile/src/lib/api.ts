@@ -78,6 +78,9 @@ export async function signup(
     body: { email, password },
   });
   await tokenStorage.set(result.token);
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   return result;
 }
 
@@ -90,10 +93,16 @@ export async function login(
     body: { email, password },
   });
   await tokenStorage.set(result.token);
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   return result;
 }
 
 export async function signOut(): Promise<void> {
+  const { clearCelebratedBadgeUserCache } =
+    await import('../services/celebratedBadgesStorage');
+  clearCelebratedBadgeUserCache();
   await tokenStorage.clear();
 }
 
@@ -241,6 +250,46 @@ export type CompleteRunInput = {
   trackPoints?: TrackPoint[];
   status?: 'completed' | 'abandoned';
 };
+
+// Route challenges (gateway -> routes-service)
+
+export type RouteChallengeRecord = {
+  _id: string;
+  route: SavedRouteRecord;
+  fromUserId: string;
+  toUserId: string;
+  sourceRun?: RunRecord;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateChallengeInput = {
+  friendId: string;
+  routeId: string;
+  sourceRunId?: string;
+};
+
+export function createRouteChallenge(
+  body: CreateChallengeInput
+): Promise<RouteChallengeRecord> {
+  return request<RouteChallengeRecord>('/api/challenges', {
+    method: 'POST',
+    body,
+    auth: true,
+  });
+}
+
+export function getMyRouteChallenges(): Promise<RouteChallengeRecord[]> {
+  return request<RouteChallengeRecord[]>('/api/challenges/me', { auth: true });
+}
+
+export function getRouteRecord(id: string): Promise<SavedRouteRecord> {
+  return request<SavedRouteRecord>(
+    `/api/route-records/${encodeURIComponent(id)}`,
+    { auth: true }
+  );
+}
 
 /** Persist generated route. Requires login. */
 export function savePersistedRoute(
