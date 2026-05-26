@@ -40,8 +40,9 @@ export function ChallengeFriendModal({
   useEffect(() => {
     if (!visible) return;
     let active = true;
-    setLoading(true);
+    
     (async () => {
+      setLoading(true);
       try {
         const data = await getFriends();
         if (!active) return;
