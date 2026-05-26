@@ -35,6 +35,9 @@ yarn-error.*
 .env*.local
 .env
 
+# app.json backup (contains secrets)
+app.json.bak
+
 # typescript
 *.tsbuildinfo
 
