@@ -65,6 +65,7 @@ export type Profile = ProfileInput & {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  avatarUrl: string | null;
 };
 
 // Auth functions
@@ -125,6 +126,14 @@ export function saveMyProfile(input: ProfileInput): Promise<Profile> {
   return request<Profile>('/api/profile/me', {
     method: 'PUT',
     body: input,
+    auth: true,
+  });
+}
+
+export function uploadAvatar(base64: string): Promise<Profile> {
+  return request<Profile>('/api/profile/me/avatar', {
+    method: 'POST',
+    body: { base64 },
     auth: true,
   });
 }

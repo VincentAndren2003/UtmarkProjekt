@@ -59,3 +59,22 @@ export async function deleteMyProfile(
     next(err);
   }
 }
+
+export async function uploadAvatar(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { base64 } = req.body ?? {};
+    const userObjectId = new Types.ObjectId(req.userId);
+    const profile = await Profile.findOneAndUpdate(
+      { userId: userObjectId },
+      { avatarUrl: `data:image/jpeg;base64,${base64}` },
+      { new: true }
+    );
+    res.status(200).json(profile);
+  } catch (err) {
+    next(err);
+  }
+}

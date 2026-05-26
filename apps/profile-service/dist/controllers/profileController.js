@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMyProfile = getMyProfile;
 exports.upsertMyProfile = upsertMyProfile;
 exports.deleteMyProfile = deleteMyProfile;
+exports.uploadAvatar = uploadAvatar;
 const mongoose_1 = require("mongoose");
 const Profile_1 = require("../models/Profile");
 const UserStats_1 = require("../models/UserStats");
@@ -39,6 +40,17 @@ async function deleteMyProfile(req, res, next) {
             UserStats_1.UserStats.deleteOne({ userId: userObjectId }),
         ]);
         res.status(204).send();
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function uploadAvatar(req, res, next) {
+    try {
+        const { base64 } = req.body ?? {};
+        const userObjectId = new mongoose_1.Types.ObjectId(req.userId);
+        const profile = await Profile_1.Profile.findOneAndUpdate({ userId: userObjectId }, { avatarUrl: `data:image/jpeg;base64,${base64}` }, { new: true });
+        res.status(200).json(profile);
     }
     catch (err) {
         next(err);

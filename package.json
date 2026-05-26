@@ -24,6 +24,7 @@
     "test:profile-service": "npm --prefix apps/profile-service run test"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.1.1"
+    "@expo/vector-icons": "^15.1.1",
+    "expo-file-system": "~55.0.22"
   }
 }

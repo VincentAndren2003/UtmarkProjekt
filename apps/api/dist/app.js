@@ -102,6 +102,18 @@ function createApp() {
             next(err);
         }
     });
+    app.post('/api/profile/me/avatar', authMiddleware_1.authMiddleware, async (req, res, next) => {
+        try {
+            await proxyJson(res, `${env_1.env.PROFILE_SERVICE_URL}/profile/me/avatar`, {
+                method: 'POST',
+                headers: { 'x-user-id': req.userId },
+                body: req.body,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
     app.delete('/api/auth/me', authMiddleware_1.authMiddleware, async (req, res, next) => {
         try {
             await proxyJson(res, `${env_1.env.AUTH_SERVICE_URL}/auth/me`, {

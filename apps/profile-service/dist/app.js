@@ -26,6 +26,7 @@ function createApp() {
     app.post('/stats/increment-shared', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesShared);
     app.post('/stats/increment-recieved', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesReceived);
     app.post('/stats/increment-generated', gatewayAuthMiddleware_1.gatewayAuthMiddleware, userStatsController_1.incrementRoutesGenerated);
+    app.post('/profile/me/avatar', gatewayAuthMiddleware_1.gatewayAuthMiddleware, profileController_1.uploadAvatar);
     app.use(errorHandler_1.errorHandler);
     return app;
 }

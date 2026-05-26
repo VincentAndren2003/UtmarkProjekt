@@ -16,6 +16,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
+import * as FileSystem from 'expo-file-system/legacy';
 import {
   deleteMyAccount,
   Friend,
@@ -26,6 +27,7 @@ import {
   Profile,
   RouteChallengeRecord,
   signOut,
+  uploadAvatar,
 } from '../lib/api';
 import {
   challengeTargetLabel,
@@ -44,6 +46,7 @@ const DEV_FALLBACK_PROFILE: Profile = {
   fullName: 'Förnamn Efternamn',
   age: 0,
   gender: 'other',
+  avatarUrl: null,
   createdAt: '',
   updatedAt: '',
 };
@@ -91,7 +94,10 @@ export function ProfileScreen({ navigation, route }: Props) {
       let myId: string | undefined;
       try {
         const data = await getMyProfile();
-        if (active) setProfile(data);
+        if (active) {
+          setProfile(data);
+          if (data.avatarUrl) setAvatarUri(data.avatarUrl);
+        }
         myId = data.userId;
       } catch {
         if (active) setProfile(DEV_FALLBACK_PROFILE);
@@ -150,7 +156,11 @@ export function ProfileScreen({ navigation, route }: Props) {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setAvatarUri(result.assets[0].uri);
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      await uploadAvatar(base64);
+      setAvatarUri(`data:image/jpeg;base64,${base64}`);
     }
   };
 

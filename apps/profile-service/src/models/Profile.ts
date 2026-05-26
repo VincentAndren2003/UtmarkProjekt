@@ -12,6 +12,7 @@ const profileSchema = new Schema(
     username: { type: String, required: true, unique: true, trim: true },
     fullName: { type: String, required: true, trim: true },
     age: { type: Number, required: true, min: 0 },
+    avatarUrl: { type: String, default: null },
     gender: {
       type: String,
       enum: ['male', 'female', 'other'],

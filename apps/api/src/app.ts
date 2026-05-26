@@ -110,6 +110,19 @@ export function createApp() {
       next(err);
     }
   });
+  
+  app.post('/api/profile/me/avatar', authMiddleware, async (req, res, next) => {
+    try {
+      await proxyJson(res, `${env.PROFILE_SERVICE_URL}/profile/me/avatar`, {
+        method: 'POST',
+        headers: { 'x-user-id': req.userId! },
+        body: req.body,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
 
   app.delete('/api/auth/me', authMiddleware, async (req, res, next) => {
     try {
