@@ -33,10 +33,7 @@ export async function upsertMyProfile(
 
     const profile = await Profile.findOneAndUpdate(
       { userId: userObjectId },
-      {
-        $set: { username, fullName, age, gender },
-        $setOnInsert: { userId: userObjectId },
-      },
+      { $set: { username, fullName, age, gender }, $setOnInsert: { userId: userObjectId } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
