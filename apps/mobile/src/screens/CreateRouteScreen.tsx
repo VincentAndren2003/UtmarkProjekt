@@ -211,11 +211,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const {
     isTracking,
     startTracking,
+    pauseTracking,
     recordVisit,
     stopTracking,
     getResults,
     errorMsg,
   } = useTracking();
+
+  const [frozenRunStats, setFrozenRunStats] = useState<{
+    elapsedSeconds: number;
+    trackDistanceM: number;
+  } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -267,16 +273,32 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     distanceToNextCheckpointM !== null &&
     distanceToNextCheckpointM <= FETCH_RADIUS_M;
 
+  const allCheckpointsTaken = useMemo(() => {
+    if (!generatedRoute || sheetMode !== 'active') return false;
+    const checkpoints = generatedRoute.checkpoints;
+    return checkpoints.length > 0 && checkpoints.every((cp) => cp.completed);
+  }, [generatedRoute, sheetMode]);
+
+  const [isFinishingRoute, setIsFinishingRoute] = useState(false);
+
+  const runElapsedSeconds = frozenRunStats?.elapsedSeconds ?? elapsedSeconds;
+  const runTrackDistanceM = frozenRunStats?.trackDistanceM ?? trackDistanceM;
+
   const activeStats = useMemo(
     () => ({
-      timeMin: Math.floor(elapsedSeconds / 60),
+      timeMin: Math.floor(runElapsedSeconds / 60),
       checkpointDone:
         generatedRoute?.checkpoints.filter((cp) => cp.completed).length ?? 0,
       checkpointTotal: generatedRoute?.checkpoints.length ?? 0,
       distanceToNextM: Math.round(distanceToNextCheckpointM ?? 0),
-      paceMinPerKm: formatPace(elapsedSeconds, trackDistanceM),
+      paceMinPerKm: formatPace(runElapsedSeconds, runTrackDistanceM),
     }),
-    [elapsedSeconds, generatedRoute, distanceToNextCheckpointM, trackDistanceM]
+    [
+      runElapsedSeconds,
+      runTrackDistanceM,
+      generatedRoute,
+      distanceToNextCheckpointM,
+    ]
   );
 
   const beginActiveRun = () => {
@@ -289,16 +311,41 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     setRunStartedAt(null);
     setElapsedSeconds(0);
     setTrackDistanceM(0);
+    setFrozenRunStats(null);
   };
 
+  const freezeActiveRunStats = useCallback(() => {
+    const frozenElapsed =
+      runStartedAt != null
+        ? Math.floor((Date.now() - runStartedAt) / 1000)
+        : elapsedSeconds;
+    const frozenDistance = sumTrackDistanceM(getResults().movement);
+    const frozen = {
+      elapsedSeconds: frozenElapsed,
+      trackDistanceM: frozenDistance,
+    };
+    setFrozenRunStats(frozen);
+    setElapsedSeconds(frozenElapsed);
+    setTrackDistanceM(frozenDistance);
+    pauseTracking();
+    return frozen;
+  }, [runStartedAt, elapsedSeconds, getResults, pauseTracking]);
+
   useEffect(() => {
-    if (sheetMode !== 'active' || runStartedAt == null) return;
+    if (!allCheckpointsTaken || frozenRunStats != null) return;
+    freezeActiveRunStats();
+  }, [allCheckpointsTaken, frozenRunStats, freezeActiveRunStats]);
+
+  useEffect(() => {
+    if (sheetMode !== 'active' || runStartedAt == null || allCheckpointsTaken) {
+      return;
+    }
     const id = setInterval(() => {
       setElapsedSeconds(Math.floor((Date.now() - runStartedAt) / 1000));
       setTrackDistanceM(sumTrackDistanceM(getResults().movement));
     }, 1000);
     return () => clearInterval(id);
-  }, [sheetMode, runStartedAt, getResults]);
+  }, [sheetMode, runStartedAt, allCheckpointsTaken, getResults]);
   const activeRouteName =
     (generatedRoute as (RouteResponse & { name?: string }) | null)?.name ??
     'Genererad rutt';
@@ -670,23 +717,34 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const buildRunSummary = (
     checkpointDone: number,
     totalCheckpoints: number,
-    routeSnapshot: RouteResponse
-  ) => ({
-    routeName: activeRouteName,
-    totalCheckpoints,
-    checkpointsCompleted: checkpointDone,
-    elapsedMin: Math.floor(elapsedSeconds / 60),
-    distanceKm: formatDistanceKm(trackDistanceM),
-    paceMinPerKm: formatPace(elapsedSeconds, trackDistanceM),
-    plannedDistanceKm: routeSnapshot.distance,
-    runId: runId ?? undefined,
-    savedRouteId: savedRouteId ?? undefined,
-    routeSnapshot,
-    from,
-    challengeTargetSeconds,
-    challengeFromName,
-    elapsedSeconds,
-  });
+    routeSnapshot: RouteResponse,
+    statsOverride?: { elapsedSeconds: number; trackDistanceM: number }
+  ) => {
+    const sec =
+      statsOverride?.elapsedSeconds ??
+      frozenRunStats?.elapsedSeconds ??
+      elapsedSeconds;
+    const distM =
+      statsOverride?.trackDistanceM ??
+      frozenRunStats?.trackDistanceM ??
+      trackDistanceM;
+    return {
+      routeName: activeRouteName,
+      totalCheckpoints,
+      checkpointsCompleted: checkpointDone,
+      elapsedMin: Math.floor(sec / 60),
+      distanceKm: formatDistanceKm(distM),
+      paceMinPerKm: formatPace(sec, distM),
+      plannedDistanceKm: routeSnapshot.distance,
+      runId: runId ?? undefined,
+      savedRouteId: savedRouteId ?? undefined,
+      routeSnapshot,
+      from,
+      challengeTargetSeconds,
+      challengeFromName,
+      elapsedSeconds: sec,
+    };
+  };
 
   const handleFetchCheckpoint = async () => {
     if (!location || !generatedRoute) return;
@@ -706,7 +764,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       (cp) => new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
     );
 
-    const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
+    const completed = routeInstance.tryCompleteCurrentCheckpoint(location, FETCH_RADIUS_M);
 
     if (!completed) {
       console.log('Du är inte inom checkpointens radie');
@@ -738,20 +796,47 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     );
 
     const isLastCheckpoint = checkpointDone >= updatedCheckpoints.length;
+    const frozenStats = isLastCheckpoint ? freezeActiveRunStats() : undefined;
+
     const summary = buildRunSummary(
       checkpointDone,
       updatedCheckpoints.length,
-      routeSnapshot
+      routeSnapshot,
+      frozenStats
     );
 
-    if (isLastCheckpoint) {
+    navigation.navigate('CheckpointTaken', {
+      routeName: summary.routeName,
+      currentCheckpoint: checkpointDone,
+      totalCheckpoints: summary.totalCheckpoints,
+      elapsedMin: summary.elapsedMin,
+      distanceKm: summary.distanceKm,
+      paceMinPerKm: summary.paceMinPerKm,
+      isLastCheckpoint,
+    });
+  };
+
+  const handleFinishRoute = async () => {
+    if (!generatedRoute || !allCheckpointsTaken || isFinishingRoute) return;
+
+    const checkpointDone = generatedRoute.checkpoints.filter(
+      (cp) => cp.completed
+    ).length;
+    const summary = buildRunSummary(
+      checkpointDone,
+      generatedRoute.checkpoints.length,
+      generatedRoute
+    );
+
+    setIsFinishingRoute(true);
+    try {
       const { movement } = getResults();
       if (runId) {
         try {
           await completeRun(runId, {
-            durationSeconds: elapsedSeconds,
+            durationSeconds: runElapsedSeconds,
             checkpointsCompleted: checkpointDone,
-            distanceMeters: Math.round(trackDistanceM),
+            distanceMeters: Math.round(runTrackDistanceM),
             trackPoints: simplifyTrackPoints(movement),
             status: 'completed',
           });
@@ -776,7 +861,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           generatedRouteDistanceMeters: Math.round(
             generatedRoute.distance * 1000
           ),
-          actualRunDistanceMeters: Math.round(trackDistanceM),
+          actualRunDistanceMeters: Math.round(runTrackDistanceM),
           checkpointsTakenCount: checkpointDone,
         });
         const celebrated = await getCelebratedBadgeIds();
@@ -797,17 +882,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         ...summary,
         celebrationBadgeIds,
       });
-      return;
+    } finally {
+      setIsFinishingRoute(false);
     }
-
-    navigation.navigate('CheckpointTaken', {
-      routeName: summary.routeName,
-      currentCheckpoint: checkpointDone,
-      totalCheckpoints: summary.totalCheckpoints,
-      elapsedMin: summary.elapsedMin,
-      distanceKm: summary.distanceKm,
-      paceMinPerKm: summary.paceMinPerKm,
-    });
   };
 
   const handleStartOrienteering = async () => {
@@ -1163,34 +1240,52 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             hudTop={hudStatsTop}
           />
           <View style={activeHudStyles.pill}>
-            <View style={styles.activeHudArrowWrap}>
-              <View style={styles.activeHudArrowLine} />
-              <View style={styles.activeHudArrowHeadLeft} />
-              <View style={styles.activeHudArrowHeadRight} />
-            </View>
+            {!allCheckpointsTaken ? (
+              <View style={styles.activeHudArrowWrap}>
+                <View style={styles.activeHudArrowLine} />
+                <View style={styles.activeHudArrowHeadLeft} />
+                <View style={styles.activeHudArrowHeadRight} />
+              </View>
+            ) : null}
             <Text style={activeHudStyles.pillText}>
-              {activeStats.distanceToNextM} m till nästa checkpoint
+              {allCheckpointsTaken
+                ? 'Alla checkpoints tagna — avsluta när du vill'
+                : `${activeStats.distanceToNextM} m till nästa checkpoint`}
             </Text>
           </View>
           <View style={activeHudStyles.bottomActions}>
             <Pressable
               style={[
                 activeHudStyles.fetchButton,
-                !canFetchCheckpoint && activeHudStyles.fetchButtonDisabled,
+                !allCheckpointsTaken &&
+                  !canFetchCheckpoint &&
+                  activeHudStyles.fetchButtonDisabled,
+                isFinishingRoute && activeHudStyles.fetchButtonDisabled,
               ]}
               onPress={
-                canFetchCheckpoint
-                  ? handleFetchCheckpoint
-                  : () => setOutOfRangeVisible(true)
+                allCheckpointsTaken
+                  ? handleFinishRoute
+                  : canFetchCheckpoint
+                    ? handleFetchCheckpoint
+                    : () => setOutOfRangeVisible(true)
               }
+              disabled={isFinishingRoute}
             >
               <Ionicons
-                name={canFetchCheckpoint ? 'checkmark-circle' : 'lock-closed'}
+                name={
+                  allCheckpointsTaken
+                    ? 'flag'
+                    : canFetchCheckpoint
+                      ? 'checkmark-circle'
+                      : 'lock-closed'
+                }
                 size={14}
                 color="#fff"
                 style={activeHudStyles.fetchIcon}
               />
-              <Text style={activeHudStyles.fetchText}>Hämta checkpoint</Text>
+              <Text style={activeHudStyles.fetchText}>
+                {allCheckpointsTaken ? 'Avsluta rutt' : 'Hämta checkpoint'}
+              </Text>
               <Text style={activeHudStyles.fetchArrow}>›</Text>
             </Pressable>
             <Pressable
@@ -1349,14 +1444,17 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                       plannedDistanceKm: summary.plannedDistanceKm,
                       from: summary.from,
                       runId: runId ?? undefined,
-                      elapsedSeconds,
-                      distanceMeters: Math.round(trackDistanceM),
+                      elapsedSeconds: summary.elapsedSeconds,
+                      distanceMeters: Math.round(runTrackDistanceM),
                     });
                   }}
                   onEmergency={toggleUserPosition}
                   showUserPosition={showUserPosition}
                   onFetchCheckpoint={handleFetchCheckpoint}
                   canFetchCheckpoint={canFetchCheckpoint}
+                  allCheckpointsTaken={allCheckpointsTaken}
+                  onFinishRoute={handleFinishRoute}
+                  isFinishingRoute={isFinishingRoute}
                 />
               ) : null}
             </View>
