@@ -175,6 +175,20 @@ export class RoutesService {
     });
   }
 
+  async declineChallenge(userId: string, challengeId: string) {
+    const doc = await RouteChallenge.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(challengeId),
+        toUserId: new mongoose.Types.ObjectId(userId),
+        status: 'pending',
+      },
+      { status: 'declined' },
+      { new: true }
+    );
+    if (!doc) throw httpError(404, 'Utmaning hittades inte eller ej behörig');
+    return doc;
+  }
+
   async listMyChallenges(userId: string) {
     const uid = new mongoose.Types.ObjectId(userId);
     return RouteChallenge.find({

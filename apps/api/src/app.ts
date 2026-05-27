@@ -344,6 +344,25 @@ export function createApp() {
     }
   });
 
+  app.patch(
+    '/api/challenges/:id/decline',
+    authMiddleware,
+    async (req, res, next) => {
+      try {
+        await proxyJson(
+          res,
+          `${env.ROUTES_SERVICE_URL}/challenges/${req.params.id}/decline`,
+          {
+            method: 'PATCH',
+            headers: { 'x-user-id': req.userId! },
+          }
+        );
+      } catch (err) {
+        next(err);
+      }
+    }
+  );
+
   // Error handler, Express identifies it by the 4 args
   // (err, req, res, next). Any error thrown in a controller and passed to
   // next(err) lands here and gets turned into a JSON response.

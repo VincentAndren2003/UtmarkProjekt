@@ -302,6 +302,16 @@ export function getMyRouteChallenges(): Promise<RouteChallengeRecord[]> {
   return request<RouteChallengeRecord[]>('/api/challenges/me', { auth: true });
 }
 
+export function declineRouteChallenge(
+  id: string
+): Promise<RouteChallengeRecord> {
+  return request<RouteChallengeRecord>(`/api/challenges/${id}/decline`, {
+    method: 'PATCH',
+    auth: true,
+  });
+}
+
+
 export function getRouteRecord(id: string): Promise<SavedRouteRecord> {
   return request<SavedRouteRecord>(
     `/api/route-records/${encodeURIComponent(id)}`,

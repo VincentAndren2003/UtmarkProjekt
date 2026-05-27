@@ -33,6 +33,24 @@ export async function postChallenge(
   }
 }
 
+export async function patchDeclineChallenge(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { id } = req.params as { id: string };
+    const doc = await service.declineChallenge(req.userId, id);
+    res.status(200).json(doc);
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function getMyChallenges(
   req: Request,
   res: Response,

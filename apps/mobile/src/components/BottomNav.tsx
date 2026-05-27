@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
@@ -11,13 +11,24 @@ type BottomNavProps = {
   fromOrigin?: 'Login' | 'CreateAccount';
   /** Override Hem — t.ex. nollställ karta efter avslutad rutt. */
   onHomePress?: () => void;
+  /** Blockera navigering om en körning pågår. */
+  isRunActive?: boolean;
 };
+
+function blockNavAlert() {
+  Alert.alert(
+    'Körning pågår',
+    'Avsluta eller avbryt körningen innan du byter sida.',
+    [{ text: 'OK' }]
+  );
+}
 
 export function BottomNav({
   navigation,
   activeTab,
   fromOrigin,
   onHomePress,
+  isRunActive,
 }: BottomNavProps) {
   return (
     <View style={styles.wrapper}>
@@ -26,6 +37,7 @@ export function BottomNav({
         <Pressable
           style={styles.item}
           onPress={() => {
+            if (isRunActive) { blockNavAlert(); return; }
             if (onHomePress) {
               onHomePress();
               return;
@@ -50,7 +62,10 @@ export function BottomNav({
 
         <Pressable
           style={styles.item}
-          onPress={() => navigation.navigate('Favorites', { from: fromOrigin })}
+          onPress={() => {
+            if (isRunActive) { blockNavAlert(); return; }
+            navigation.navigate('Favorites', { from: fromOrigin });
+          }}
         >
           <Ionicons
             name={activeTab === 'Favorites' ? 'heart' : 'heart-outline'}
@@ -69,7 +84,10 @@ export function BottomNav({
 
         <Pressable
           style={styles.item}
-          onPress={() => navigation.navigate('Profile', { from: fromOrigin })}
+          onPress={() => {
+            if (isRunActive) { blockNavAlert(); return; }
+            navigation.navigate('Profile', { from: fromOrigin });
+          }}
         >
           <Ionicons
             name={activeTab === 'Profile' ? 'person' : 'person-outline'}

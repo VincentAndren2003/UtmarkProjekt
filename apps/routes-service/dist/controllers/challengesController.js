@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postChallenge = postChallenge;
+exports.patchDeclineChallenge = patchDeclineChallenge;
 exports.getMyChallenges = getMyChallenges;
 const RoutesService_1 = require("../services/RoutesService");
 const service = new RoutesService_1.RoutesService();
@@ -21,6 +22,20 @@ async function postChallenge(req, res, next) {
             sourceRunId,
         });
         res.status(201).json(doc);
+    }
+    catch (e) {
+        next(e);
+    }
+}
+async function patchDeclineChallenge(req, res, next) {
+    try {
+        if (!req.userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const { id } = req.params;
+        const doc = await service.declineChallenge(req.userId, id);
+        res.status(200).json(doc);
     }
     catch (e) {
         next(e);

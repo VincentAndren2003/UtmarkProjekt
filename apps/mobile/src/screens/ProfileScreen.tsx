@@ -18,6 +18,7 @@ import { BottomNav } from '../components/BottomNav';
 import { BadgeThumbnail } from '../components/BadgeThumbnail';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
+  declineRouteChallenge,
   deleteMyAccount,
   Friend,
   getFriendCount,
@@ -75,6 +76,17 @@ export function ProfileScreen({ navigation, route }: Props) {
     if (friend?.fullName?.trim()) return friend.fullName.trim();
     if (friend?.username) return `@${friend.username}`;
     return 'En vän';
+  };
+
+  const onDeclineChallenge = async (challenge: RouteChallengeRecord) => {
+    try {
+      await declineRouteChallenge(challenge._id);
+      setIncomingChallenges((prev) =>
+        prev.filter((c) => c._id !== challenge._id)
+      );
+    } catch {
+      // tyst fel
+    }
   };
 
   const onAcceptChallenge = (challenge: RouteChallengeRecord) => {
@@ -282,7 +294,11 @@ export function ProfileScreen({ navigation, route }: Props) {
         </View>
       </Modal>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {loading ? (
           <ActivityIndicator size="large" color="#2b2f33" />
         ) : (
@@ -390,15 +406,26 @@ export function ProfileScreen({ navigation, route }: Props) {
                           </Text>
                         </View>
 
-                        <Pressable
-                          style={styles.challengeAccept}
-                          onPress={() => onAcceptChallenge(challenge)}
-                          accessibilityLabel={`Acceptera utmaning från ${name}`}
-                        >
-                          <Text style={styles.challengeAcceptText}>
-                            Acceptera
-                          </Text>
-                        </Pressable>
+                        <View style={styles.challengeButtons}>
+                          <Pressable
+                            style={styles.challengeDecline}
+                            onPress={() => onDeclineChallenge(challenge)}
+                            accessibilityLabel={`Neka utmaning från ${name}`}
+                          >
+                            <Text style={styles.challengeDeclineText}>
+                              Neka
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.challengeAccept}
+                            onPress={() => onAcceptChallenge(challenge)}
+                            accessibilityLabel={`Acceptera utmaning från ${name}`}
+                          >
+                            <Text style={styles.challengeAcceptText}>
+                              Acceptera
+                            </Text>
+                          </Pressable>
+                        </View>
                       </View>
                     );
                   })}
@@ -416,7 +443,7 @@ export function ProfileScreen({ navigation, route }: Props) {
             </Pressable>
           </>
         )}
-      </View>
+      </ScrollView>
 
       <BottomNav
         navigation={navigation}
@@ -447,9 +474,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 12,
+    paddingBottom: 32,
   },
   avatarWrap: {
     width: 160,
@@ -606,15 +636,32 @@ const styles = StyleSheet.create({
     color: '#7c8189',
     marginTop: 2,
   },
+  challengeButtons: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  challengeDecline: {
+    backgroundColor: '#f1f2f4',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 22,
+    alignItems: 'center',
+  },
+  challengeDeclineText: {
+    color: '#1a1a1a',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   challengeAccept: {
     backgroundColor: '#2f7048',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 22,
+    alignItems: 'center',
   },
   challengeAcceptText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   historyLink: {

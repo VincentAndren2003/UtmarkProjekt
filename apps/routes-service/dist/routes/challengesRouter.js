@@ -7,4 +7,5 @@ const challengesController_1 = require("../controllers/challengesController");
 const router = (0, express_1.Router)();
 router.post('/', gatewayAuthMiddleware_1.gatewayAuthMiddleware, challengesController_1.postChallenge);
 router.get('/me', gatewayAuthMiddleware_1.gatewayAuthMiddleware, challengesController_1.getMyChallenges);
+router.patch('/:id/decline', gatewayAuthMiddleware_1.gatewayAuthMiddleware, challengesController_1.patchDeclineChallenge);
 exports.default = router;

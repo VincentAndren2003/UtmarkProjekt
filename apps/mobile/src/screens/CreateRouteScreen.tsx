@@ -13,6 +13,7 @@ import {
 } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  Alert,
   Animated,
   Modal,
   PanResponder,
@@ -222,6 +223,19 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     elapsedSeconds: number;
     trackDistanceM: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (sheetMode !== 'active') return;
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      Alert.alert(
+        'Körning pågår',
+        'Avsluta eller avbryt körningen innan du lämnar sidan.',
+        [{ text: 'OK' }]
+      );
+    });
+    return unsubscribe;
+  }, [navigation, sheetMode]);
 
   useEffect(() => {
     let alive = true;
@@ -1314,6 +1328,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           navigation={navigation}
           activeTab="CreateRoute"
           fromOrigin={from}
+          isRunActive={sheetMode === 'active'}
         />
       </View>
 

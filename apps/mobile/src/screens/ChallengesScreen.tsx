@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import {
+  declineRouteChallenge,
   Friend,
   getFriends,
   getMyProfile,
@@ -85,6 +86,15 @@ export function ChallengesScreen({ navigation }: Props) {
     load();
   };
 
+  const onDecline = async (challenge: RouteChallengeRecord) => {
+    try {
+      await declineRouteChallenge(challenge._id);
+      setChallenges((prev) => prev.filter((c) => c._id !== challenge._id));
+    } catch {
+      // tyst fel – utmaningen finns kvar i listan
+    }
+  };
+
   const onAccept = (challenge: RouteChallengeRecord) => {
     const route = challenge.route;
     if (!route?._id) return;
@@ -110,9 +120,20 @@ export function ChallengesScreen({ navigation }: Props) {
           {item.route.distance} km · {item.route.checkpoints.length} checkpoints
         </Text>
         <Text style={styles.cardTarget}>{challengeTargetLabel(target)}</Text>
-        <Pressable style={styles.acceptButton} onPress={() => onAccept(item)}>
-          <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
-        </Pressable>
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={styles.declineButton}
+            onPress={() => onDecline(item)}
+          >
+            <Text style={styles.declineButtonText}>Neka</Text>
+          </Pressable>
+          <Pressable
+            style={styles.acceptButton}
+            onPress={() => onAccept(item)}
+          >
+            <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
+          </Pressable>
+        </View>
       </View>
     );
   };
@@ -222,8 +243,23 @@ const styles = StyleSheet.create({
     color: '#3E7A44',
     marginBottom: 12,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  declineButton: {
+    backgroundColor: '#f1f2f4',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  declineButtonText: {
+    color: '#1a1a1a',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   acceptButton: {
-    alignSelf: 'flex-start',
     backgroundColor: '#3E7A44',
     paddingHorizontal: 16,
     paddingVertical: 10,

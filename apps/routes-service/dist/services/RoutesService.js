@@ -139,6 +139,16 @@ class RoutesService {
             status: 'pending',
         });
     }
+    async declineChallenge(userId, challengeId) {
+        const doc = await RouteChallenge_1.RouteChallenge.findOneAndUpdate({
+            _id: new mongoose_1.default.Types.ObjectId(challengeId),
+            toUserId: new mongoose_1.default.Types.ObjectId(userId),
+            status: 'pending',
+        }, { status: 'declined' }, { new: true });
+        if (!doc)
+            throw httpError(404, 'Utmaning hittades inte eller ej behörig');
+        return doc;
+    }
     async listMyChallenges(userId) {
         const uid = new mongoose_1.default.Types.ObjectId(userId);
         return RouteChallenge_1.RouteChallenge.find({
