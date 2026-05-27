@@ -11,6 +11,9 @@ type Props = {
   showUserPosition: boolean;
   onFetchCheckpoint: () => void;
   canFetchCheckpoint?: boolean;
+  allCheckpointsTaken?: boolean;
+  onFinishRoute?: () => void;
+  isFinishingRoute?: boolean;
 };
 
 export function RouteActiveSheet({
@@ -21,9 +24,15 @@ export function RouteActiveSheet({
   showUserPosition,
   onFetchCheckpoint,
   canFetchCheckpoint = false,
+  allCheckpointsTaken = false,
+  onFinishRoute,
+  isFinishingRoute = false,
 }: Props) {
   const routeName =
     (route as RouteResponse & { name?: string }).name ?? 'Genererad rutt';
+
+  const showFinish = allCheckpointsTaken;
+  const fetchEnabled = showFinish || canFetchCheckpoint;
 
   return (
     <>
@@ -50,23 +59,40 @@ export function RouteActiveSheet({
       <Pressable
         style={[
           styles.fetchButton,
-          !canFetchCheckpoint && styles.fetchButtonDisabled,
+          !fetchEnabled && styles.fetchButtonDisabled,
+          isFinishingRoute && styles.fetchButtonDisabled,
         ]}
-        onPress={onFetchCheckpoint}
-        disabled={!canFetchCheckpoint}
+        onPress={() => {
+          if (showFinish) {
+            onFinishRoute?.();
+            return;
+          }
+          onFetchCheckpoint();
+        }}
+        disabled={!fetchEnabled || isFinishingRoute}
       >
         <Ionicons
-          name={canFetchCheckpoint ? 'checkmark-circle' : 'lock-closed'}
+          name={
+            showFinish
+              ? 'flag'
+              : canFetchCheckpoint
+                ? 'checkmark-circle'
+                : 'lock-closed'
+          }
           size={22}
           color="#fff"
           style={styles.fetchIcon}
         />
         <View style={styles.fetchTextWrap}>
-          <Text style={styles.fetchText}>Hämta checkpoint</Text>
+          <Text style={styles.fetchText}>
+            {showFinish ? 'Avsluta rutt' : 'Hämta checkpoint'}
+          </Text>
           <Text style={styles.fetchSubtext}>
-            {canFetchCheckpoint
-              ? 'Nu kan du hämta checkpointen!'
-              : 'Tillgänglig när du når nästa plats'}
+            {showFinish
+              ? 'Se resultat och spara rutten'
+              : canFetchCheckpoint
+                ? 'Nu kan du hämta checkpointen!'
+                : 'Tillgänglig när du når nästa plats'}
           </Text>
         </View>
         <Text style={styles.fetchArrow}>›</Text>

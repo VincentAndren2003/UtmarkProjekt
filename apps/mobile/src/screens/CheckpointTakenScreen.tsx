@@ -18,11 +18,11 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
     elapsedMin,
     distanceKm,
     paceMinPerKm,
+    isLastCheckpoint = false,
   } = route.params;
 
   const checkpointsLeft = Math.max(0, totalCheckpoints - currentCheckpoint);
   const nextDistanceMeters = 500;
-  const isRouteComplete = checkpointsLeft === 0;
   const progressRef = useRef<FlatList<ProgressItem>>(null);
   const progressData = useMemo(
     () =>
@@ -64,11 +64,13 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
           </View>
 
           <Text style={styles.title}>
-            Checkpoint {currentCheckpoint} tagen!
+            {isLastCheckpoint
+              ? 'Sista checkpointen tagen!'
+              : `Checkpoint ${currentCheckpoint} tagen!`}
           </Text>
           <Text style={styles.subtitle}>
-            {isRouteComplete
-              ? 'Bra jobbat, Du har tagit alla checkpoints!'
+            {isLastCheckpoint
+              ? 'Gå tillbaka till kartan och tryck Avsluta rutt när du är klar.'
               : 'Fortsätt mot nästa kontroll!'}
           </Text>
 
@@ -89,8 +91,11 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
             })}
             onScrollToIndexFailed={() => {}}
             renderItem={({ item, index }) => {
-              const isDone = item.number < currentCheckpoint;
-              const isCurrent = item.number === currentCheckpoint;
+              const isDone = isLastCheckpoint
+                ? true
+                : item.number < currentCheckpoint;
+              const isCurrent =
+                !isLastCheckpoint && item.number === currentCheckpoint;
               const isLast = index === progressData.length - 1;
 
               return (
@@ -149,15 +154,33 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
 
           <View style={styles.divider} />
 
-          <Text style={styles.nextTitle}>
-            {isRouteComplete ? 'Rutt avklarad!' : 'Nästa checkpoint'}
-          </Text>
-          {!isRouteComplete && (
-            <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+          {isLastCheckpoint ? (
+            <>
+              <Text style={styles.progressTakenLabel}>
+                {totalCheckpoints} / {totalCheckpoints} checkpoints tagna
+              </Text>
+              <View style={styles.instructionBox}>
+                <Text style={styles.instructionTitle}>Ett steg kvar</Text>
+                <Text style={styles.instructionBody}>
+                  Gå tillbaka till kartan. När du är redo trycker du{' '}
+                  <Text style={styles.instructionEmphasis}>Avsluta rutt</Text>{' '}
+                  för att se resultat och spara rutten.
+                </Text>
+              </View>
+              <Text style={styles.hintText}>
+                Tid och distans är låsta. Du kan fortfarande navigera på kartan
+                innan du avslutar.
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.nextTitle}>Nästa checkpoint</Text>
+              <Text style={styles.nextDistance}>{nextDistanceMeters} m</Text>
+              <Text style={styles.leftText}>
+                {checkpointsLeft} checkpoints kvar till mål
+              </Text>
+            </>
           )}
-          <Text style={styles.leftText}>
-            {checkpointsLeft} checkpoints kvar till mål
-          </Text>
 
           <Pressable
             style={styles.cta}
@@ -169,7 +192,9 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
               navigation.navigate('CreateRoute');
             }}
           >
-            <Text style={styles.ctaText}>Fortsätt rutt →</Text>
+            <Text style={styles.ctaText}>
+              {isLastCheckpoint ? 'Tillbaka till kartan →' : 'Fortsätt rutt →'}
+            </Text>
           </Pressable>
 
           <Text style={styles.routeName}>{routeName}</Text>
@@ -372,6 +397,46 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 8,
     marginBottom: 20,
+  },
+  progressTakenLabel: {
+    color: '#3d6b47',
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 14,
+  },
+  instructionBox: {
+    backgroundColor: '#eef6f0',
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    marginBottom: 10,
+  },
+  instructionTitle: {
+    color: '#2f7a3f',
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  instructionBody: {
+    color: '#3d5344',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  instructionEmphasis: {
+    fontWeight: '800',
+    color: '#2f7a3f',
+  },
+  hintText: {
+    color: '#8a9a8e',
+    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 18,
   },
   cta: {
     height: 60,
