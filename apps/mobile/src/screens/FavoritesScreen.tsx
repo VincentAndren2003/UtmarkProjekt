@@ -17,7 +17,7 @@ import { RootStackParamList } from '../../App';
 import { BottomNav } from '../components/BottomNav';
 import {
   FavoriteRoute,
-  formatFavoriteMeta,
+  formatFavoriteSubtitle,
   getFavoriteRoutes,
   removeFavoriteRoute,
   updateFavoriteName,
@@ -126,7 +126,7 @@ export function FavoritesScreen({ navigation, route }: Props) {
                   {item.displayName}
                 </Text>
                 <Text style={styles.rowMeta}>
-                  {formatFavoriteMeta(item.favoritedAt, item.route.distance)}
+                  {formatFavoriteSubtitle(item)}
                 </Text>
               </View>
               <Pressable

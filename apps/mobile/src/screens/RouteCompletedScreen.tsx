@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +26,9 @@ import { formatDurationClock } from '../utils/routeUtils';
 import type { RouteResponse } from '../types/route';
 import {
   addFavoriteRoute,
+  defaultFavoriteDisplayName,
   isRouteFavorited,
+  type FavoriteRunSummary,
 } from '../services/favoritesStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteCompleted'>;
@@ -56,6 +60,8 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [favoriteNameDraft, setFavoriteNameDraft] = useState('');
   const [challengeModalVisible, setChallengeModalVisible] = useState(false);
   const [preparingChallenge, setPreparingChallenge] = useState(false);
   const { showBadgeCelebration } = useBadgeCelebration();
@@ -104,8 +110,17 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     };
   }, [initialSavedRouteId]);
 
-  const handleSaveFavorite = async () => {
+  const openFavoriteNameModal = () => {
     if (isFavorite || !routeSnapshot) return;
+    setFavoriteNameDraft(defaultFavoriteDisplayName());
+    setNameModalVisible(true);
+  };
+
+  const confirmSaveFavorite = async () => {
+    if (isFavorite || !routeSnapshot) return;
+    const displayName =
+      favoriteNameDraft.trim() || defaultFavoriteDisplayName();
+    setNameModalVisible(false);
     setSavingFavorite(true);
     try {
       const saved = await resolveSavedRouteRecord(
@@ -113,7 +128,13 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
         savedRouteId,
         setSavedRouteId
       );
-      await addFavoriteRoute(saved, routeName.trim() || 'Min rutt');
+      const runSummary: FavoriteRunSummary = {
+        distanceKm,
+        elapsedMin,
+        checkpointsCompleted,
+        checkpointTotal: totalCheckpoints,
+      };
+      await addFavoriteRoute(saved, displayName, runSummary);
       setIsFavorite(true);
       Alert.alert(
         'Sparad',
@@ -310,7 +331,7 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
             styles.secondaryButton,
             isFavorite && styles.secondaryButtonSaved,
           ]}
-          onPress={handleSaveFavorite}
+          onPress={openFavoriteNameModal}
           disabled={savingFavorite || isFavorite || !routeSnapshot}
         >
           {savingFavorite ? (
@@ -344,6 +365,48 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
           targetSeconds={elapsedSeconds}
         />
       ) : null}
+
+      <Modal
+        visible={nameModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNameModalVisible(false)}
+      >
+        <Pressable
+          style={styles.nameModalBackdrop}
+          onPress={() => setNameModalVisible(false)}
+        >
+          <Pressable style={styles.nameModalCard} onPress={() => {}}>
+            <Text style={styles.nameModalTitle}>Namnge favoritrutt</Text>
+            <Text style={styles.nameModalHint}>
+              {distanceKm} km · {elapsedMin} min · {checkpointsCompleted}/
+              {totalCheckpoints} checkpoints
+            </Text>
+            <TextInput
+              style={styles.nameModalInput}
+              value={favoriteNameDraft}
+              onChangeText={setFavoriteNameDraft}
+              placeholder={defaultFavoriteDisplayName()}
+              autoFocus
+              maxLength={60}
+            />
+            <View style={styles.nameModalActions}>
+              <Pressable
+                style={styles.nameModalCancel}
+                onPress={() => setNameModalVisible(false)}
+              >
+                <Text style={styles.nameModalCancelText}>Avbryt</Text>
+              </Pressable>
+              <Pressable
+                style={styles.nameModalSave}
+                onPress={confirmSaveFavorite}
+              >
+                <Text style={styles.nameModalSaveText}>Spara</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <BottomNav
         navigation={navigation}
@@ -574,6 +637,63 @@ const styles = StyleSheet.create({
   },
   secondaryButtonTextSaved: {
     color: '#c62828',
+  },
+  nameModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  nameModalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
+  nameModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  nameModalHint: {
+    fontSize: 14,
+    color: '#5f6b72',
+    marginBottom: 14,
+  },
+  nameModalInput: {
+    borderWidth: 1,
+    borderColor: '#d0d8dc',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1a1a1a',
+    marginBottom: 18,
+  },
+  nameModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  nameModalCancel: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  nameModalCancelText: {
+    fontSize: 16,
+    color: '#5f6b72',
+    fontWeight: '600',
+  },
+  nameModalSave: {
+    backgroundColor: '#2f7a3f',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  nameModalSaveText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '700',
   },
 });
 
