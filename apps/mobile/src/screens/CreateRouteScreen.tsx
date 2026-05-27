@@ -764,7 +764,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       (cp) => new Checkpoint(cp.id, cp.coordinate, cp.completed, cp.radius)
     );
 
-    const completed = routeInstance.tryCompleteCurrentCheckpoint(location);
+    const completed = routeInstance.tryCompleteCurrentCheckpoint(location, FETCH_RADIUS_M);
 
     if (!completed) {
       console.log('Du är inte inom checkpointens radie');

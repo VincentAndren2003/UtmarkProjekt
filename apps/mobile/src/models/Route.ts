@@ -31,11 +31,11 @@ export class Route {
   tryCompleteCurrentCheckpoint(userLocation: {
     latitude: number;
     longitude: number;
-  }): boolean {
+  }, fetchRadius: number): boolean {
     const current = this.getCurrentCheckpoint();
     if (!current) return false;
 
-    const completed = current.checkComplited(userLocation);
+    const completed = current.checkComplited(userLocation, fetchRadius);
     if (completed) {
       this.currentCheckPointIndex++;
     }

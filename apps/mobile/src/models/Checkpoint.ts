@@ -37,9 +37,9 @@ export class Checkpoint {
   checkComplited(userLocation: {
     latitude: number;
     longitude: number;
-  }): boolean {
+  }, fetchRadius: number): boolean {
     const distance = this.distanceTo(userLocation);
-    if (distance <= this.radius) {
+    if (distance <= fetchRadius) {
       this.completed = true;
       return true;
     }
