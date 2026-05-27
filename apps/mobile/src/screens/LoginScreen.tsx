@@ -64,31 +64,6 @@ export function LoginScreen({ navigation }: Props) {
           <Pressable style={styles.primaryButton} onPress={handleLogin}>
             <Text style={styles.buttonText}>Logga in</Text>
           </Pressable>
-          <Pressable
-            style={styles.tempRouteButton}
-            onPress={() => navigation.push('CreateRoute', { from: 'Login' })}
-          >
-            <Text style={styles.tempRouteButtonText}>
-              Temp: Gå till CreateRoute
-            </Text>
-          </Pressable>
-          <Pressable
-            style={styles.tempRouteButton}
-            onPress={() =>
-              navigation.push('CheckpointTaken', {
-                routeName: 'Demorutt',
-                currentCheckpoint: 2,
-                totalCheckpoints: 5,
-                elapsedMin: 18,
-                distanceKm: '1,9',
-                paceMinPerKm: '10:5',
-              })
-            }
-          >
-            <Text style={styles.tempRouteButtonText}>
-              Temp: Gå till CheckpointTaken
-            </Text>
-          </Pressable>
           <Pressable onPress={() => navigation.navigate('CreateAccount')}>
             <Text style={[styles.helpText, { textAlign: 'center' }]}>
               Har du inget konto? Skapa konto
@@ -97,28 +72,6 @@ export function LoginScreen({ navigation }: Props) {
         </View>
       </View>
     </View>
-    /*
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Email"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Login" onPress={handleLogin} />
-      {!!msg && <Text>{msg}</Text>}
-      <Button
-        title="No account? Create one"
-        onPress={() => navigation.navigate('CreateAccount')}
-      />
-    </View>
-    */
   );
 }
 
@@ -210,19 +163,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7A44',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  tempRouteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(62, 122, 68, 0.35)',
-    backgroundColor: 'rgba(62, 122, 68, 0.08)',
-  },
-  tempRouteButtonText: {
-    color: '#3E7A44',
-    fontSize: 12,
-    fontWeight: '600',
   },
   backLink: {
     color: 'rgba(26, 26, 26, 0.8)',

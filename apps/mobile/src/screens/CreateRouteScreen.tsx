@@ -86,7 +86,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 const FETCH_RADIUS_M = 25;
 /** Close street-level zoom when centering on the user (reference tuning). */
 const MAP_USER_LOCATION_DELTA = 0.012;
-const PREVIEW_GENERATED_SHEET = false;
 
 // Beräknar luftlinjeavstånd i meter mellan två GPS-koordinater (Haversine-formeln).
 function haversineMeters(
@@ -130,32 +129,6 @@ function formatPace(elapsedSeconds: number, distanceMeters: number): string {
 function formatDistanceKm(distanceMeters: number): string {
   return (distanceMeters / 1000).toFixed(1).replace('.', ',');
 }
-
-const PREVIEW_ROUTE: RouteResponse = {
-  id: 'preview-route',
-  start: { latitude: 59.334591, longitude: 18.06324 },
-  distance: 5,
-  checkpoints: [
-    {
-      id: 'checkpoint-1',
-      coordinate: { latitude: 59.336, longitude: 18.07 },
-      radius: 20,
-      completed: false,
-    },
-    {
-      id: 'checkpoint-2',
-      coordinate: { latitude: 59.33, longitude: 18.064 },
-      radius: 20,
-      completed: false,
-    },
-    {
-      id: 'checkpoint-3',
-      coordinate: { latitude: 59.338, longitude: 18.061 },
-      radius: 20,
-      completed: false,
-    },
-  ],
-};
 
 export function CreateRouteScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
@@ -204,9 +177,9 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const [legendOpen, setLegendOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<
     'request' | 'generated' | 'active'
-  >(PREVIEW_GENERATED_SHEET ? 'generated' : 'request');
+  >('request');
   const [generatedRoute, setGeneratedRoute] = useState<RouteResponse | null>(
-    PREVIEW_GENERATED_SHEET ? PREVIEW_ROUTE : null
+    null
   );
   const [greetingFirstName, setGreetingFirstName] = useState<string | null>(
     null
@@ -263,9 +236,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
 
   const [outOfRangeVisible, setOutOfRangeVisible] = useState(false);
   const { showBadgeCelebration } = useBadgeCelebration();
-  const [showUserPosition, setShowUserPosition] = useState(
-    !PREVIEW_GENERATED_SHEET
-  );
+  const [showUserPosition, setShowUserPosition] = useState(true);
 
   const showsUserLocationOnMap = sheetMode === 'request' || showUserPosition;
 
@@ -1179,7 +1150,10 @@ export function CreateRouteScreen({ navigation, route }: Props) {
         <Text style={styles.legendButtonText}>?</Text>
       </Pressable>
 
-      <MapLegendModal visible={legendOpen} onClose={() => setLegendOpen(false)} />
+      <MapLegendModal
+        visible={legendOpen}
+        onClose={() => setLegendOpen(false)}
+      />
 
       {sheetMode === 'active' && generatedRoute && showActiveHud && (
         <>
