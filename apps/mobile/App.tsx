@@ -57,6 +57,8 @@ export type RootStackParamList = {
     elapsedMin: number;
     distanceKm: string;
     paceMinPerKm: string;
+    /** Sista checkpointen — användaren avslutar rutten manuellt på kartan. */
+    isLastCheckpoint?: boolean;
   };
   RouteCompleted: {
     routeName: string;

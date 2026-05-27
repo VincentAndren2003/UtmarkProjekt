@@ -43,13 +43,19 @@ class LocationService {
     };
   }
 
-  public clear(): void {
-    this.locationTimeStamps = [];
-    this.checkpointTimeStamps = [];
+  /** Stop recording GPS track points; keep session data for run completion. */
+  public pause(): void {
     if (this.subsciption) {
       this.subsciption.remove();
       this.subsciption = null;
     }
+  }
+
+  public clear(): void {
+    this.locationTimeStamps = [];
+    this.checkpointTimeStamps = [];
+    this.pause();
+    this.routeId = '';
   }
 }
 

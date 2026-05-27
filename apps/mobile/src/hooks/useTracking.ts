@@ -37,6 +37,11 @@ export const useTracking = () => {
     locationService.addCheckpoint(checkpointId, lat, long);
   };
 
+  const pauseTracking = useCallback(() => {
+    locationService.pause();
+    setIsTracking(false);
+  }, []);
+
   const stopTracking = useCallback(() => {
     locationService.clear();
     setIsTracking(false);
@@ -45,6 +50,7 @@ export const useTracking = () => {
   return {
     isTracking,
     startTracking,
+    pauseTracking,
     stopTracking,
     recordVisit,
     getResults: () => locationService.getRunSession(),
