@@ -222,7 +222,10 @@ export function ProfileScreen({ navigation, route }: Props) {
         onRequestClose={() => setMenuOpen(false)}
       >
         <View style={styles.menuOverlay}>
-          <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)} />
+          <Pressable
+            style={styles.menuBackdrop}
+            onPress={() => setMenuOpen(false)}
+          />
           <View style={styles.menuSheet}>
             <View style={styles.menuHandle} />
             <Text style={styles.menuTitle}>Konto</Text>
@@ -236,7 +239,11 @@ export function ProfileScreen({ navigation, route }: Props) {
             >
               <Ionicons name="pencil-outline" size={22} color="#1a1a1a" />
               <Text style={styles.menuItemText}>Redigera profil</Text>
-              <Ionicons name="chevron-forward" size={18} color="rgba(26,26,26,0.35)" />
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color="rgba(26,26,26,0.35)"
+              />
             </Pressable>
 
             <View style={styles.menuDivider} />
@@ -260,10 +267,15 @@ export function ProfileScreen({ navigation, route }: Props) {
               }}
             >
               <Ionicons name="trash-outline" size={22} color="#c0392b" />
-              <Text style={[styles.menuItemText, styles.menuItemDanger]}>Radera konto</Text>
+              <Text style={[styles.menuItemText, styles.menuItemDanger]}>
+                Radera konto
+              </Text>
             </Pressable>
 
-            <Pressable style={styles.menuCancelButton} onPress={() => setMenuOpen(false)}>
+            <Pressable
+              style={styles.menuCancelButton}
+              onPress={() => setMenuOpen(false)}
+            >
               <Text style={styles.menuCancelText}>Avbryt</Text>
             </Pressable>
           </View>
@@ -402,7 +414,6 @@ export function ProfileScreen({ navigation, route }: Props) {
               <Text style={styles.historyLinkText}>Se Historik</Text>
               <Ionicons name="chevron-forward" size={20} color="#1a1a1a" />
             </Pressable>
-
           </>
         )}
       </View>

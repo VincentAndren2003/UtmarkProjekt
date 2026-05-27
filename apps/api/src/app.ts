@@ -110,7 +110,7 @@ export function createApp() {
       next(err);
     }
   });
-  
+
   app.post('/api/profile/me/avatar', authMiddleware, async (req, res, next) => {
     try {
       await proxyJson(res, `${env.PROFILE_SERVICE_URL}/profile/me/avatar`, {
@@ -122,7 +122,6 @@ export function createApp() {
       next(err);
     }
   });
-
 
   app.delete('/api/auth/me', authMiddleware, async (req, res, next) => {
     try {

@@ -1,4 +1,13 @@
-import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+} from 'react-native';
 
 type Props = {
   visible: boolean;
