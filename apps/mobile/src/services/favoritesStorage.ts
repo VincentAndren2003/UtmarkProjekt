@@ -3,13 +3,36 @@ import type { SavedRouteRecord } from '../lib/api';
 
 const STORAGE_KEY = 'favorite_routes_v1';
 
+/** Körstats från avslutad rutt — visas under rubriken i favoritlistan. */
+export type FavoriteRunSummary = {
+  distanceKm: string;
+  elapsedMin: number;
+  checkpointsCompleted: number;
+  checkpointTotal: number;
+};
+
 /** Sparad rutt + visningsnamn (namn lagras lokalt tills backend stödjer det). */
 export type FavoriteRoute = {
   displayName: string;
   route: SavedRouteRecord;
   /** När rutten lades till i favoriter (lokal tidpunkt). */
   favoritedAt: string;
+  runSummary?: FavoriteRunSummary;
 };
+
+/** Standardrubrik: datum, år och tid (sv-SE). */
+export function defaultFavoriteDisplayName(date = new Date()): string {
+  const datePart = date.toLocaleDateString('sv-SE', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const timePart = date.toLocaleTimeString('sv-SE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `${datePart}, ${timePart}`;
+}
 
 type StoredFavorites = FavoriteRoute[];
 
@@ -36,17 +59,24 @@ export async function getFavoriteRoutes(): Promise<FavoriteRoute[]> {
   );
 }
 
+export async function isRouteFavorited(routeId: string): Promise<boolean> {
+  const items = await readAll();
+  return items.some((f) => f.route._id === routeId);
+}
+
 export async function addFavoriteRoute(
   route: SavedRouteRecord,
-  displayName: string
+  displayName: string,
+  runSummary?: FavoriteRunSummary
 ): Promise<FavoriteRoute> {
   const items = await readAll();
-  const trimmed = displayName.trim() || 'Min rutt';
+  const trimmed = displayName.trim() || defaultFavoriteDisplayName();
   const existingIndex = items.findIndex((f) => f.route._id === route._id);
   const entry: FavoriteRoute = {
     displayName: trimmed,
     route,
     favoritedAt: new Date().toISOString(),
+    ...(runSummary ? { runSummary } : {}),
   };
   if (existingIndex >= 0) {
     items[existingIndex] = entry;
@@ -81,6 +111,16 @@ export function formatFavoriteMeta(
 ): string {
   const label = formatRelativeTimeSv(favoritedAt);
   return `${label}, ${distanceKm} km`;
+}
+
+/** Underrad under rubriken i favoritlistan. */
+export function formatFavoriteSubtitle(item: FavoriteRoute): string {
+  if (item.runSummary) {
+    const { distanceKm, elapsedMin, checkpointsCompleted, checkpointTotal } =
+      item.runSummary;
+    return `${distanceKm} km · ${elapsedMin} min · ${checkpointsCompleted}/${checkpointTotal} checkpoints`;
+  }
+  return formatFavoriteMeta(item.favoritedAt, item.route.distance);
 }
 
 function formatRelativeTimeSv(iso: string): string {

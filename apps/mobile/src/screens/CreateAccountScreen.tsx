@@ -106,14 +106,6 @@ export function CreateAccountScreen({ navigation }: Props) {
             <Text style={styles.buttonText}>Nästa steg</Text>
           </Pressable>
           {!!msg && <Text style={styles.errorText}>{msg}</Text>}
-          <Pressable
-            style={styles.tempRouteButton}
-            onPress={() => navigation.push('ProfileUpsert')}
-          >
-            <Text style={styles.tempRouteButtonText}>
-              Temp: Gå till ProfileUpsert
-            </Text>
-          </Pressable>
           <View style={styles.loginRow}>
             <Text style={styles.loginPrompt}>Har du redan konto? </Text>
             <Pressable onPress={() => navigation.navigate('Login')}>
@@ -276,19 +268,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7A44',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  tempRouteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(62, 122, 68, 0.35)',
-    backgroundColor: 'rgba(62, 122, 68, 0.08)',
-  },
-  tempRouteButtonText: {
-    color: '#3E7A44',
-    fontSize: 12,
-    fontWeight: '600',
   },
   backLink: {
     color: 'rgba(26, 26, 26, 0.8)',

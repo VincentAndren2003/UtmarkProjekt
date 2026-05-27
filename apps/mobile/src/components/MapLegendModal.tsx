@@ -1,4 +1,14 @@
-import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
+import kartteckenImage from '../../assets/karttecken.png';
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+} from 'react-native';
 
 type Props = {
   visible: boolean;
@@ -44,7 +54,7 @@ export function MapLegendModal({ visible, onClose }: Props) {
             centerContent
           >
             <Image
-              source={require('../../assets/karttecken.png')}
+              source={kartteckenImage}
               style={{
                 width: IMAGE_DISPLAY_WIDTH,
                 height: IMAGE_DISPLAY_HEIGHT,

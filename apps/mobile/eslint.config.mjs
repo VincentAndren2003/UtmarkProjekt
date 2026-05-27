@@ -5,7 +5,13 @@ import reactPlugin from 'eslint-plugin-react';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'metro.config.js'] },
+  { ignores: ['dist', 'node_modules', 'metro.config.js', 'eas.json'] },
+  {
+    files: ['app.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

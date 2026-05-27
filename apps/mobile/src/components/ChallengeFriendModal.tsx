@@ -40,7 +40,7 @@ export function ChallengeFriendModal({
   useEffect(() => {
     if (!visible) return;
     let active = true;
-    
+
     (async () => {
       setLoading(true);
       try {

@@ -211,7 +211,9 @@ export function ProfileUpsertScreen({ navigation, route }: Props) {
             >
               <Text
                 style={
-                  gender !== null ? styles.selectValue : styles.selectPlaceholder
+                  gender !== null
+                    ? styles.selectValue
+                    : styles.selectPlaceholder
                 }
               >
                 {gender !== null ? genderLabel(gender) : 'Välj kön'}
