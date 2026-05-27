@@ -14,10 +14,18 @@ import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 import { useBadgeCelebration } from '../context/BadgeCelebrationContext';
 import { BottomNav } from '../components/BottomNav';
-import { savePersistedRoute } from '../lib/api';
+import {
+  getRouteRecord,
+  savePersistedRoute,
+  type SavedRouteRecord,
+} from '../lib/api';
 import { ChallengeFriendModal } from '../components/ChallengeFriendModal';
 import { formatDurationClock } from '../utils/routeUtils';
-import { addFavoriteRoute } from '../services/favoritesStorage';
+import type { RouteResponse } from '../types/route';
+import {
+  addFavoriteRoute,
+  isRouteFavorited,
+} from '../services/favoritesStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteCompleted'>;
 
@@ -46,6 +54,7 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     elapsedSeconds < challengeTargetSeconds;
 
   const [savedRouteId, setSavedRouteId] = useState(initialSavedRouteId ?? null);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [challengeModalVisible, setChallengeModalVisible] = useState(false);
   const [preparingChallenge, setPreparingChallenge] = useState(false);
@@ -84,13 +93,28 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
     return () => clearTimeout(timer);
   }, [celebrationBadgeIds, showBadgeCelebration]);
 
+  useEffect(() => {
+    if (!initialSavedRouteId) return;
+    let cancelled = false;
+    void isRouteFavorited(initialSavedRouteId).then((favorited) => {
+      if (!cancelled && favorited) setIsFavorite(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialSavedRouteId]);
+
   const handleSaveFavorite = async () => {
-    if (savedRouteId || !routeSnapshot) return;
+    if (isFavorite || !routeSnapshot) return;
     setSavingFavorite(true);
     try {
-      const saved = await savePersistedRoute(routeSnapshot);
+      const saved = await resolveSavedRouteRecord(
+        routeSnapshot,
+        savedRouteId,
+        setSavedRouteId
+      );
       await addFavoriteRoute(saved, routeName.trim() || 'Min rutt');
-      setSavedRouteId(saved._id);
+      setIsFavorite(true);
       Alert.alert(
         'Sparad',
         'Rutten finns nu under Favoriter. Du kan döpa om den där.'
@@ -284,22 +308,27 @@ export function RouteCompletedScreen({ navigation, route }: Props) {
         <Pressable
           style={[
             styles.secondaryButton,
-            savedRouteId && styles.secondaryButtonSaved,
+            isFavorite && styles.secondaryButtonSaved,
           ]}
           onPress={handleSaveFavorite}
-          disabled={savingFavorite || Boolean(savedRouteId) || !routeSnapshot}
+          disabled={savingFavorite || isFavorite || !routeSnapshot}
         >
           {savingFavorite ? (
             <ActivityIndicator color="#2f7a3f" />
           ) : (
             <>
               <Ionicons
-                name={savedRouteId ? 'heart' : 'heart-outline'}
+                name={isFavorite ? 'heart' : 'heart-outline'}
                 size={22}
-                color="#2f7a3f"
+                color={isFavorite ? '#e53935' : '#2f7a3f'}
               />
-              <Text style={styles.secondaryButtonText}>
-                {savedRouteId ? 'Sparad som favorit' : 'Spara som favorit'}
+              <Text
+                style={[
+                  styles.secondaryButtonText,
+                  isFavorite && styles.secondaryButtonTextSaved,
+                ]}
+              >
+                {isFavorite ? 'Sparad som favorit' : 'Spara som favorit'}
               </Text>
             </>
           )}
@@ -536,11 +565,50 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   secondaryButtonSaved: {
-    opacity: 0.85,
+    backgroundColor: '#fdecea',
   },
   secondaryButtonText: {
     color: '#2f7a3f',
     fontSize: 17,
     fontWeight: '600',
   },
+  secondaryButtonTextSaved: {
+    color: '#c62828',
+  },
 });
+
+async function resolveSavedRouteRecord(
+  routeSnapshot: RouteResponse,
+  existingRouteId: string | null,
+  setSavedRouteId: (id: string) => void
+): Promise<SavedRouteRecord> {
+  if (existingRouteId) {
+    try {
+      return await getRouteRecord(existingRouteId);
+    } catch {
+      return savedRouteFromSnapshot(existingRouteId, routeSnapshot);
+    }
+  }
+  const saved = await savePersistedRoute(routeSnapshot);
+  setSavedRouteId(saved._id);
+  return saved;
+}
+
+function savedRouteFromSnapshot(
+  routeId: string,
+  routeSnapshot: RouteResponse
+): SavedRouteRecord {
+  return {
+    _id: routeId,
+    start: routeSnapshot.start,
+    distance: routeSnapshot.distance,
+    checkpoints: routeSnapshot.checkpoints.map(
+      ({ id, coordinate, radius }) => ({
+        id,
+        coordinate,
+        radius,
+      })
+    ),
+    filters: [],
+  };
+}

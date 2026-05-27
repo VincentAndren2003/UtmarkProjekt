@@ -36,6 +36,11 @@ export async function getFavoriteRoutes(): Promise<FavoriteRoute[]> {
   );
 }
 
+export async function isRouteFavorited(routeId: string): Promise<boolean> {
+  const items = await readAll();
+  return items.some((f) => f.route._id === routeId);
+}
+
 export async function addFavoriteRoute(
   route: SavedRouteRecord,
   displayName: string
