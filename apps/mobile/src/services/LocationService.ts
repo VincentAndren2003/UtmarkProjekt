@@ -15,14 +15,10 @@ class LocationService {
   public start(subsciption: Location.LocationSubscription, routeId: string) {
     this.subsciption = subsciption;
     this.routeId = routeId;
-
-    console.log(`[Service] Started recording for route: ${routeId}`);
   }
 
   public addPoint(point: LocationTimeStamp): void {
     this.locationTimeStamps.push(point);
-
-    console.log(`[Service] Total points: ${this.locationTimeStamps.length}`);
   }
 
   public addCheckpoint(checkpointId: string, lat: number, long: number): void {
@@ -32,7 +28,6 @@ class LocationService {
       long,
       timeStamp: Date.now(),
     });
-    console.log(`[Service] Checkpoint ${checkpointId} recorded.`);
   }
 
   public getRunSession(): RunSession {
