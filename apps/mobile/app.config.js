@@ -31,6 +31,7 @@ export default {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
+        useCleartextTraffic: true,
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
