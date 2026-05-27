@@ -147,7 +147,9 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Snitt</Text>
-              <Text style={styles.statValue}>{paceMinPerKm}</Text>
+              <Text style={[styles.statValue, styles.statValuePace]}>
+                {paceMinPerKm}
+              </Text>
               <Text style={styles.statUnit}>/km</Text>
             </View>
           </View>
@@ -369,6 +371,10 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '800',
     lineHeight: 46,
+  },
+  statValuePace: {
+    fontSize: 24,
+    lineHeight: 34,
   },
   statUnit: {
     color: '#5f7a66',

@@ -9,16 +9,25 @@ const PIN_COLORS: Record<EndpointPinVariant, string> = {
 
 type Props = {
   label: string;
+  topInset: number;
   bottomInset: number;
   variant: EndpointPinVariant;
 };
 
 /** Fast pin i kartans centrum medan användaren panorera/zoomar. */
-export function PlacementTapHint({ label, bottomInset, variant }: Props) {
+export function PlacementTapHint({
+  label,
+  topInset,
+  bottomInset,
+  variant,
+}: Props) {
   const color = PIN_COLORS[variant];
 
   return (
-    <View style={[styles.wrap, { bottom: bottomInset }]} pointerEvents="none">
+    <View
+      style={[styles.wrap, { top: topInset, bottom: bottomInset }]}
+      pointerEvents="none"
+    >
       <View style={styles.tooltip}>
         <Text style={styles.tooltipText}>{label}</Text>
       </View>

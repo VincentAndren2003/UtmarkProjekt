@@ -22,6 +22,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,6 +72,7 @@ import { Checkpoint } from '../models/Checkpoint';
 import { useTracking } from '../hooks/useTracking';
 import { simplifyTrackPoints } from '../utils/trackUtils';
 import { formatDurationClock } from '../utils/routeUtils';
+import { mapVisualCenterPoint } from '../utils/mapPlacement';
 
 import { GeneratedRouteLayer } from '../components/GeneratedRouteLayer';
 import MapView, {
@@ -133,6 +135,7 @@ function formatDistanceKm(distanceMeters: number): string {
 
 export function CreateRouteScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const [measuredBottomNavHeight, setMeasuredBottomNavHeight] = useState<
     number | null
   >(null);
@@ -200,6 +203,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   });
   const userLocationCenteredRef = useRef(false);
   const pendingUserCenterRef = useRef<Coordinate | null>(null);
+  const pendingPlacementRecenterRef = useRef<Coordinate | null>(null);
   const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [trackDistanceM, setTrackDistanceM] = useState(0);
@@ -659,16 +663,47 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     beginPlacement('end', endPoint);
   };
 
+  const resolvePlacementCoordinate = useCallback(async (): Promise<Coordinate> => {
+    const map = mapRef.current;
+    if (!map) return mapCenterRef.current;
+    try {
+      const point = mapVisualCenterPoint(
+        windowWidth,
+        windowHeight,
+        insets.top,
+        mapBottomPadding
+      );
+      return await map.coordinateForPoint(point);
+    } catch {
+      return mapCenterRef.current;
+    }
+  }, [windowWidth, windowHeight, insets.top, mapBottomPadding]);
+
   const handleConfirmPlacement = () => {
     if (!placementMode) return;
-    const coord = mapCenterRef.current;
-    if (placementMode === 'start') {
-      setStartPoint(coord);
-    } else if (placementMode === 'end') {
-      setEndPoint(coord);
-    }
-    setPlacementMode(null);
+    void (async () => {
+      const coord = await resolvePlacementCoordinate();
+      mapCenterRef.current = coord;
+      pendingPlacementRecenterRef.current = coord;
+      if (placementMode === 'start') {
+        setStartPoint(coord);
+      } else if (placementMode === 'end') {
+        setEndPoint(coord);
+      }
+      setPlacementMode(null);
+    })();
   };
+
+  useEffect(() => {
+    const coord = pendingPlacementRecenterRef.current;
+    if (placementMode !== null || !coord) return;
+    pendingPlacementRecenterRef.current = null;
+    mapCenterRef.current = coord;
+    const frameId = requestAnimationFrame(() => {
+      animateMapTo(coord);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [placementMode, mapBottomPadding]);
 
   const handleCancelPlacement = () => {
     setPlacementMode(null);
@@ -1204,7 +1239,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             {!generatedRoute && startPoint && placementMode !== 'start' ? (
               <Marker
                 coordinate={startPoint}
-                anchor={{ x: 0.5, y: 1 }}
+                anchor={{ x: 0.5, y: 0.5 }}
                 zIndex={10}
                 tappable={false}
               >
@@ -1214,7 +1249,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
             {!generatedRoute && endPoint && placementMode !== 'end' ? (
               <Marker
                 coordinate={endPoint}
-                anchor={{ x: 0.5, y: 1 }}
+                anchor={{ x: 0.5, y: 0.5 }}
                 zIndex={10}
                 tappable={false}
               >
@@ -1227,6 +1262,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           <PlacementTapHint
             label={placementTapHint}
             variant={placementMode}
+            topInset={insets.top}
             bottomInset={mapBottomPadding}
           />
         ) : null}
