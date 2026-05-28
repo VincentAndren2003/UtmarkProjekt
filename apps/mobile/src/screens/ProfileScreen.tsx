@@ -421,9 +421,9 @@ export function ProfileScreen({ navigation, route }: Props) {
                             onPress={() => onAcceptChallenge(challenge)}
                             accessibilityLabel={`Acceptera utmaning från ${name}`}
                           >
-                            <Text style={styles.challengeAcceptText}>
-                              Acceptera
-                            </Text>
+                          <Text style={styles.challengeAcceptText}>
+                            Visa rutt
+                          </Text>
                           </Pressable>
                         </View>
                       </View>

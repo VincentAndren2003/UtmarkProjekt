@@ -928,9 +928,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSheetMode('active');
       beginActiveRun();
       startTracking(generatedRoute.id);
-      navigation.navigate('RouteStarted', {
-        route: generatedRoute,
-      });
     } finally {
       setIsStartingRun(false);
     }

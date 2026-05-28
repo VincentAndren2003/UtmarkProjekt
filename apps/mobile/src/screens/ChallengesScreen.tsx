@@ -131,7 +131,7 @@ export function ChallengesScreen({ navigation }: Props) {
             style={styles.acceptButton}
             onPress={() => onAccept(item)}
           >
-            <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
+            <Text style={styles.acceptButtonText}>Visa rutt</Text>
           </Pressable>
         </View>
       </View>
