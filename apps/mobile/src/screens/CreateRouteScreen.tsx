@@ -1419,6 +1419,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                         navigation.goBack();
                         return;
                       }
+                      setGeneratedRoute(null);
                       setSheetMode('request');
                       setShowUserPosition(true);
                     }}
