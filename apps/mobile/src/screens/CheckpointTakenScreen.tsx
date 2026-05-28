@@ -24,7 +24,9 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
     paceMinPerKm,
     isLastCheckpoint = false,
   } = route.params;
-  const paceDisplayValue = paceMinPerKm.replace('/km', '');
+  const paceDisplayValue = paceMinPerKm.includes('/')
+    ? paceMinPerKm.split('/')[0]
+    : paceMinPerKm;
   const visibleCheckpointSlots = 4;
   const progressHorizontalOffset = 40;
   const progressViewportWidth = Math.max(
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   progressItem: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   progressTopRow: {
     flexDirection: 'row',
@@ -328,7 +330,7 @@ const styles = StyleSheet.create({
   },
   progressDotDone: {
     borderColor: '#2f7a3f',
-    backgroundColor: '#e8f3ea',
+    backgroundColor: '#2f7a3f',
   },
   progressDotCurrent: {
     borderColor: '#c94bc4',
@@ -337,7 +339,7 @@ const styles = StyleSheet.create({
   progressCheck: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#5f7a66',
+    color: '#fff',
     textAlign: 'center',
   },
   progressLine: {
