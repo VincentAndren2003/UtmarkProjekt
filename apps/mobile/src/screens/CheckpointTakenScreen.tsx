@@ -1,16 +1,20 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckpointTaken'>;
-type ProgressItem = { id: string; number: number };
-
-/** Horizontal space per checkpoint (dot + connector to next checkpoint). */
-const PROGRESS_SEGMENT_WIDTH = 86;
 
 export function CheckpointTakenScreen({ navigation, route }: Props) {
+  const { width: windowWidth } = useWindowDimensions();
   const {
     routeName,
     currentCheckpoint,
@@ -20,10 +24,17 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
     paceMinPerKm,
     isLastCheckpoint = false,
   } = route.params;
+  const paceDisplayValue = paceMinPerKm.replace('/km', '');
+  const visibleCheckpointSlots = 4;
+  const progressHorizontalOffset = 40;
+  const progressViewportWidth = Math.max(
+    Math.min(windowWidth - 120, 260) - progressHorizontalOffset,
+    140
+  );
+  const progressSegmentWidth = progressViewportWidth / visibleCheckpointSlots;
 
   const checkpointsLeft = Math.max(0, totalCheckpoints - currentCheckpoint);
   const nextDistanceMeters = 500;
-  const progressRef = useRef<FlatList<ProgressItem>>(null);
   const progressData = useMemo(
     () =>
       Array.from({ length: totalCheckpoints }, (_, index) => ({
@@ -32,21 +43,6 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
       })),
     [totalCheckpoints]
   );
-
-  useEffect(() => {
-    if (progressData.length === 0) return;
-    const targetIndex = Math.min(
-      Math.max(currentCheckpoint - 1, 0),
-      progressData.length - 1
-    );
-    requestAnimationFrame(() => {
-      progressRef.current?.scrollToIndex({
-        index: targetIndex,
-        animated: true,
-        viewPosition: 0.5,
-      });
-    });
-  }, [currentCheckpoint, progressData]);
 
   return (
     <View style={styles.root}>
@@ -77,20 +73,18 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
           <View style={styles.divider} />
 
           <Text style={styles.progressTitle}>Framsteg</Text>
-          <FlatList
-            ref={progressRef}
-            data={progressData}
+          <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.progressListContent}
-            getItemLayout={(_, index) => ({
-              length: PROGRESS_SEGMENT_WIDTH,
-              offset: PROGRESS_SEGMENT_WIDTH * index,
-              index,
-            })}
-            onScrollToIndexFailed={() => {}}
-            renderItem={({ item, index }) => {
+            style={[styles.progressViewport, { width: progressViewportWidth }]}
+            contentContainerStyle={[
+              styles.progressTrack,
+              progressData.length <= visibleCheckpointSlots
+                ? styles.progressTrackCentered
+                : null,
+            ]}
+          >
+            {progressData.map((item, index) => {
               const isDone = isLastCheckpoint
                 ? true
                 : item.number < currentCheckpoint;
@@ -99,7 +93,10 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
               const isLast = index === progressData.length - 1;
 
               return (
-                <View style={styles.progressItem}>
+                <View
+                  key={item.id}
+                  style={[styles.progressItem, { width: progressSegmentWidth }]}
+                >
                   <View style={styles.progressTopRow}>
                     <View
                       style={[
@@ -107,11 +104,16 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
                         isDone && styles.progressDotDone,
                         isCurrent && styles.progressDotCurrent,
                       ]}
-                    />
+                    >
+                      {isDone ? (
+                        <Text style={styles.progressCheck}>✓</Text>
+                      ) : null}
+                    </View>
                     {!isLast && (
                       <View
                         style={[
                           styles.progressLine,
+                          { width: Math.max(progressSegmentWidth - 20, 8) },
                           isDone && styles.progressLineDone,
                         ]}
                       />
@@ -127,8 +129,8 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
                   </Text>
                 </View>
               );
-            }}
-          />
+            })}
+          </ScrollView>
 
           <View style={styles.divider} />
 
@@ -147,7 +149,7 @@ export function CheckpointTakenScreen({ navigation, route }: Props) {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Snitt</Text>
-              <Text style={styles.statValue}>{paceMinPerKm}</Text>
+              <Text style={styles.statValue}>{paceDisplayValue}</Text>
               <Text style={styles.statUnit}>/km</Text>
             </View>
           </View>
@@ -293,18 +295,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 10,
   },
-  progressListContent: {
-    paddingHorizontal: 8,
+  progressViewport: {
+    alignSelf: 'center',
+    overflow: 'hidden',
+    marginLeft: 40,
+    marginRight: 40,
+  },
+  progressTrack: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  progressTrackCentered: {
+    justifyContent: 'center',
   },
   progressItem: {
-    width: PROGRESS_SEGMENT_WIDTH,
     alignItems: 'flex-start',
-    marginBottom: 2,
   },
   progressTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'stretch',
     marginBottom: 4,
   },
   progressDot: {
@@ -314,6 +323,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#c5d4c8',
     backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressDotDone: {
     borderColor: '#2f7a3f',
@@ -323,11 +334,14 @@ const styles = StyleSheet.create({
     borderColor: '#c94bc4',
     backgroundColor: '#fae8f9',
   },
+  progressCheck: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#5f7a66',
+    textAlign: 'center',
+  },
   progressLine: {
-    flex: 1,
     height: 2,
-    alignSelf: 'center',
-    minWidth: 0,
     backgroundColor: '#d0ddd4',
   },
   progressLineDone: {
