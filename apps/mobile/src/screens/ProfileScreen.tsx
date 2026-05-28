@@ -70,9 +70,11 @@ export function ProfileScreen({ navigation, route }: Props) {
   >([]);
   const [friends, setFriends] = useState<Friend[]>([]);
 
+  const challengeFromFriend = (challenge: RouteChallengeRecord) =>
+    friends.find((f) => f.userId === String(challenge.fromUserId));
+
   const challengeFromName = (challenge: RouteChallengeRecord) => {
-    const fromId = String(challenge.fromUserId);
-    const friend = friends.find((f) => f.userId === fromId);
+    const friend = challengeFromFriend(challenge);
     if (friend?.fullName?.trim()) return friend.fullName.trim();
     if (friend?.username) return `@${friend.username}`;
     return 'En vän';
@@ -390,11 +392,19 @@ export function ProfileScreen({ navigation, route }: Props) {
                 <View style={styles.challengesList}>
                   {incomingChallenges.map((challenge) => {
                     const name = challengeFromName(challenge);
+                    const challenger = challengeFromFriend(challenge);
                     const target = challenge.sourceRun?.durationSeconds;
                     return (
                       <View key={challenge._id} style={styles.challengeRow}>
                         <View style={styles.challengeAvatar}>
-                          <Ionicons name="person" size={26} color="#b8bec5" />
+                          {challenger?.avatarUrl ? (
+                            <Image
+                              source={{ uri: challenger.avatarUrl }}
+                              style={styles.challengeAvatarImage}
+                            />
+                          ) : (
+                            <Ionicons name="person" size={26} color="#b8bec5" />
+                          )}
                         </View>
 
                         <View style={styles.challengeText}>

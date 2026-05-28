@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -104,7 +105,11 @@ export function FriendRequestsScreen({ navigation }: Props) {
       <View style={styles.card}>
         <View style={styles.cardTop}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={28} color="#b8bec5" />
+            {item.avatarUrl ? (
+              <Image source={{ uri: item.avatarUrl }} style={styles.avatarImage} />
+            ) : (
+              <Ionicons name="person" size={28} color="#b8bec5" />
+            )}
           </View>
 
           <View style={styles.cardInfo}>
@@ -340,6 +345,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   cardInfo: {
     flex: 1,

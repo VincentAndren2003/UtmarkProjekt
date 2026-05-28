@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -124,7 +125,14 @@ export function ChallengeFriendModal({
                     onPress={() => onPickFriend(item)}
                   >
                     <View style={styles.avatar}>
-                      <Ionicons name="person" size={24} color="#b8bec5" />
+                      {item.avatarUrl ? (
+                        <Image
+                          source={{ uri: item.avatarUrl }}
+                          style={styles.avatarImage}
+                        />
+                      ) : (
+                        <Ionicons name="person" size={24} color="#b8bec5" />
+                      )}
                     </View>
                     <Text style={styles.name}>{friendDisplayName(item)}</Text>
                     {busy ? (
@@ -208,6 +216,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   name: {
     flex: 1,
