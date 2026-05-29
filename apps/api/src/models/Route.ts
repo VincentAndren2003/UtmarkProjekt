@@ -2,7 +2,6 @@ import { Checkpoint } from './checkpoint';
 import { GreenAreaCollection } from '../types';
 
 export class Route {
-  // slut koridnater ? // antal checkpoints?
   id: string;
   start: {
     latitude: number;
@@ -83,7 +82,7 @@ export class Route {
         !this.checkpointLegal(newCheckPoint!, greenAreas)
       ) {
         console.warn(
-          `⚠️ Checkpoint ${i} kunde inte placeras inom grönt område efter ${maxAttempts} försök`
+          `Checkpoint ${i} kunde inte placeras inom grönt område efter ${maxAttempts} försök`
         );
       }
 
