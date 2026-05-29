@@ -928,9 +928,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
       setSheetMode('active');
       beginActiveRun();
       startTracking(generatedRoute.id);
-      navigation.navigate('RouteStarted', {
-        route: generatedRoute,
-      });
     } finally {
       setIsStartingRun(false);
     }
@@ -1419,6 +1416,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
                         navigation.goBack();
                         return;
                       }
+                      setGeneratedRoute(null);
                       setSheetMode('request');
                       setShowUserPosition(true);
                     }}
@@ -1705,20 +1703,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 56,
     left: 14,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#3E7A44',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.18,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.22,
+    shadowRadius: 4,
+    elevation: 4,
   },
   legendButtonText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#3E7A44',
   },

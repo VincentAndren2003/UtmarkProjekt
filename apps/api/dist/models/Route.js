@@ -55,6 +55,10 @@ class Route {
                 longitude: newCheckPoint.coordinate.longitude,
             };
         }
+        if (this.checkpoints.length > 0) {
+            const last = this.checkpoints[this.checkpoints.length - 1];
+            last.coordinate = { ...this.end };
+        }
         return this.checkpoints;
     }
     checkpointLegal(checkpoint, greenAreas) {

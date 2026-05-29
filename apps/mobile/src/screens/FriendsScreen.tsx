@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -238,8 +239,11 @@ export function FriendsScreen({ navigation }: Props) {
       }}
     >
       <View style={styles.avatar}>
-        {/* TODO: visa friend.avatarUrl när profilbilder sparas i backend. */}
-        <Ionicons name="person" size={28} color="#b8bec5" />
+        {item.avatarUrl ? (
+          <Image source={{ uri: item.avatarUrl }} style={styles.avatarImage} />
+        ) : (
+          <Ionicons name="person" size={28} color="#b8bec5" />
+        )}
       </View>
 
       <View style={styles.friendTextBlock}>
@@ -408,7 +412,14 @@ export function FriendsScreen({ navigation }: Props) {
                       return (
                         <View style={styles.modalResultRow}>
                           <View style={styles.avatar}>
-                            <Ionicons name="person" size={28} color="#b8bec5" />
+                            {item.avatarUrl ? (
+                              <Image
+                                source={{ uri: item.avatarUrl }}
+                                style={styles.avatarImage}
+                              />
+                            ) : (
+                              <Ionicons name="person" size={28} color="#b8bec5" />
+                            )}
                           </View>
                           <View style={styles.friendTextBlock}>
                             <Text style={styles.friendName} numberOfLines={1}>
@@ -632,6 +643,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   friendTextBlock: {
     flex: 1,

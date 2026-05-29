@@ -17,8 +17,10 @@ type Props = {
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 // Keep A4 aspect ratio (842 × 1191)
-const IMAGE_DISPLAY_WIDTH = SCREEN_WIDTH - 32;
+const IMAGE_DISPLAY_WIDTH = SCREEN_WIDTH - 16;
 const IMAGE_DISPLAY_HEIGHT = IMAGE_DISPLAY_WIDTH * (1191 / 842);
+
+const COLOR = '#BA55A0';
 
 export function MapLegendModal({ visible, onClose }: Props) {
   return (
@@ -41,6 +43,25 @@ export function MapLegendModal({ visible, onClose }: Props) {
             <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
               <Text style={styles.closeBtnText}>✕</Text>
             </Pressable>
+          </View>
+
+          <View style={styles.symbolSection}>
+            {/* Startpunkt – triangel */}
+            <View style={styles.symbolRow}>
+              <View style={styles.triangleWrap}>
+                <View style={styles.triangle} />
+              </View>
+              <Text style={styles.symbolLabel}>Startpunkt</Text>
+            </View>
+            {/* Mål – dubbel cirkel */}
+            <View style={styles.symbolRow}>
+              <View style={styles.doubleCircleWrap}>
+                <View style={styles.outerCircle}>
+                  <View style={styles.innerCircle} />
+                </View>
+              </View>
+              <Text style={styles.symbolLabel}>Mål</Text>
+            </View>
           </View>
 
           <ScrollView
@@ -120,11 +141,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(26,26,26,0.5)',
   },
+  symbolSection: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: '#f5f6f8',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  symbolRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  symbolLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  triangleWrap: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  triangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 11,
+    borderRightWidth: 11,
+    borderBottomWidth: 20,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: COLOR,
+  },
+  doubleCircleWrap: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outerCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: COLOR,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  innerCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: COLOR,
+  },
   imageScroll: {
     flex: 1,
   },
   imageScrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingBottom: 16,
     alignItems: 'center',
   },

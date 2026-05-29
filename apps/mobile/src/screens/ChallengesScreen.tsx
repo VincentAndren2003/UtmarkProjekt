@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -36,12 +37,18 @@ function idString(value: unknown): string {
   return String(value);
 }
 
+function challengerFriend(
+  challenge: RouteChallengeRecord,
+  friends: Friend[]
+): Friend | undefined {
+  return friends.find((f) => f.userId === idString(challenge.fromUserId));
+}
+
 function challengerName(
   challenge: RouteChallengeRecord,
   friends: Friend[]
 ): string {
-  const fromId = idString(challenge.fromUserId);
-  const friend = friends.find((f) => f.userId === fromId);
+  const friend = challengerFriend(challenge, friends);
   if (friend?.fullName?.trim()) return friend.fullName.trim();
   if (friend?.username) return `@${friend.username}`;
   return 'En vän';
@@ -111,11 +118,24 @@ export function ChallengesScreen({ navigation }: Props) {
 
   const renderItem = ({ item }: { item: RouteChallengeRecord }) => {
     const target = item.sourceRun?.durationSeconds;
+    const friend = challengerFriend(item, friends);
     return (
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          {challengerName(item, friends)} utmanar dig!
-        </Text>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardAvatar}>
+            {friend?.avatarUrl ? (
+              <Image
+                source={{ uri: friend.avatarUrl }}
+                style={styles.cardAvatarImage}
+              />
+            ) : (
+              <Ionicons name="person" size={24} color="#b8bec5" />
+            )}
+          </View>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {challengerName(item, friends)} utmanar dig!
+          </Text>
+        </View>
         <Text style={styles.cardMeta}>
           {item.route.distance} km · {item.route.checkpoints.length} checkpoints
         </Text>
@@ -131,7 +151,7 @@ export function ChallengesScreen({ navigation }: Props) {
             style={styles.acceptButton}
             onPress={() => onAccept(item)}
           >
-            <Text style={styles.acceptButtonText}>Kör utmaningen</Text>
+            <Text style={styles.acceptButtonText}>Visa rutt</Text>
           </Pressable>
         </View>
       </View>
@@ -226,11 +246,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 12,
+  },
+  cardAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f1f2f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
   cardTitle: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 6,
   },
   cardMeta: {
     fontSize: 14,

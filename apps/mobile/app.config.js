@@ -31,8 +31,8 @@ export default {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
-        useCleartextTraffic: true,
       },
+      usesCleartextTraffic: true,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: 'com.utmark.app',
