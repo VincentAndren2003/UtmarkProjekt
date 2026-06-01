@@ -84,7 +84,7 @@ import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
-const FETCH_RADIUS_M = 25;
+const FETCH_RADIUS_M = 50000;
 /** Close street-level zoom when centering on the user (reference tuning). */
 const MAP_USER_LOCATION_DELTA = 0.012;
 
