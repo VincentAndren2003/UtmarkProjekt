@@ -31,6 +31,9 @@ Thumbs.db
 # Coverage (test)
 coverage/
 
+# Vitest HTML report (generated, do not lint or commit)
+**/html/
+
 # Temporary files
 tmp/
 temp/
