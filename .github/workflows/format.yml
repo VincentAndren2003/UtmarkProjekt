@@ -36,6 +36,12 @@ jobs:
       - name: Install profile-service dependencies
         run: npm ci --prefix apps/profile-service
 
+      - name: Install routes-service dependencies
+        run: npm ci --prefix apps/routes-service
+
+      - name: Install friend-service dependencies
+        run: npm ci --prefix apps/friend-service
+
       - name: Lint
         run: npm run lint # Checks code for common mistakes and bad patterns, reports things like, unsued variables, possibles bugs, react hook mistakes, stule rule problems.
 

@@ -3,6 +3,7 @@
   "private": true,
   "devDependencies": {
     "@types/react": "~19.2.10",
+    "@vitest/ui": "^4.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
@@ -14,8 +15,8 @@
   "scripts": {
     "prepare": "husky",
     "format": "npx prettier --check .",
-    "lint": "npm run lint:mobile && npm run lint:api && npm run lint:auth-service && npm run lint:profile-service",
-    "test": "npm run test:mobile && npm run test:api && npm run test:auth-service && npm run test:profile-service",
+    "lint": "npm run lint:mobile && npm run lint:api && npm run lint:auth-service && npm run lint:profile-service && npm run lint:routes-service && npm run lint:friend-service",
+    "test": "npm run test:mobile && npm run test:api && npm run test:auth-service && npm run test:profile-service && npm run test:routes-service && npm run test:friend-service",
     "lint:mobile": "npm --prefix apps/mobile run lint",
     "lint:api": "npm --prefix apps/api run lint",
     "lint:auth-service": "npm --prefix apps/auth-service run lint",
@@ -23,7 +24,11 @@
     "test:mobile": "npm --prefix apps/mobile run test",
     "test:api": "npm --prefix apps/api run test",
     "test:auth-service": "npm --prefix apps/auth-service run test",
-    "test:profile-service": "npm --prefix apps/profile-service run test"
+    "test:profile-service": "npm --prefix apps/profile-service run test",
+    "lint:routes-service": "npm --prefix apps/routes-service run lint",
+    "lint:friend-service": "npm --prefix apps/friend-service run lint",
+    "test:routes-service": "npm --prefix apps/routes-service run test",
+    "test:friend-service": "npm --prefix apps/friend-service run test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
