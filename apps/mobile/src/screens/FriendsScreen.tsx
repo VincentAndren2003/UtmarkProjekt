@@ -140,7 +140,7 @@ export function FriendsScreen({ navigation }: Props) {
   const trimmedAddSearch = addSearchQuery.trim();
   const addSearchTooShort = trimmedAddSearch.length < 2;
 
-  // Sök nya personer i popup (debounce). setState bara i timeout/async.
+  // Sök nya personer i popup.
   useEffect(() => {
     if (!addModalVisible || addSearchTooShort) return;
 
@@ -204,7 +204,7 @@ export function FriendsScreen({ navigation }: Props) {
     }
   };
 
-  // Tre-prick-menyn: ta bort vän (fungerar mot befintligt DELETE-endpoint).
+  // Tre-prick-menyn: ta bort vän.
   const onFriendMenuPress = (friend: Friend) => {
     Alert.alert(friend.fullName, undefined, [
       { text: 'Avbryt', style: 'cancel' },
@@ -235,7 +235,6 @@ export function FriendsScreen({ navigation }: Props) {
         pressed && styles.friendRowPressed,
       ]}
       onPress={() => {
-        // TODO: Navigera till väns profil när vi har en skärm för andras profiler.
       }}
     >
       <View style={styles.avatar}>

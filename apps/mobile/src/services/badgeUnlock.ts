@@ -5,7 +5,6 @@ import { BADGES, Badge } from '../data/badges';
 export const ONE_MIL_METERS = 10_000;
 export const TWO_MIL_METERS = 20_000;
 
-/** Completed-run count milestones: unlock when count >= min, celebrate when count equals min. */
 const RUN_COMPLETION_MILESTONES = [
   { minCompletedRuns: 1, id: 'ny-utforskare' },
   { minCompletedRuns: 10, id: 'aventyrare' },
@@ -13,22 +12,18 @@ const RUN_COMPLETION_MILESTONES = [
   { minCompletedRuns: 100, id: 'legend' },
 ] as const;
 
-/** Planned route distance milestones (maxRunDistanceCompleted in meters). */
 const DISTANCE_MILESTONES = [
   { minMeters: ONE_MIL_METERS, id: 'milen' },
   { minMeters: TWO_MIL_METERS, id: 'halvmaran' },
 ] as const;
 
-/** Cumulative actual distance milestones (totalDistanceMeters). */
 const TOTAL_DISTANCE_MILESTONES = [
   { minMeters: 100_000, id: 'hundra-km' },
   { minMeters: 1_000_000, id: 'tusenkilometaren' },
 ] as const;
 
-/** Day streak milestones (dayStreakOfCompletedRuns). */
 const STREAK_MILESTONES = [{ exactStreak: 3, id: 'tre-i-rad' }] as const;
 
-/** Cumulative checkpoints taken (totalCheckpointsTaken). */
 const TOTAL_CHECKPOINTS_MILESTONES = [
   { minCount: 100, id: 'hundra-kontroller' },
 ] as const;
@@ -41,7 +36,7 @@ function pushAllUnique(ids: string[], more: string[]): void {
   for (const id of more) pushUnique(ids, id);
 }
 
-/** Badge IDs unlocked from current user stats (extend as more rules are added). */
+/** Badge IDs unlocked from current user stats */
 export function getUnlockedBadgeIds(stats: UserStats | null): string[] {
   if (!stats) return [];
 
@@ -177,7 +172,7 @@ function getTotalCheckpointsCelebrationBadgeIds(
   return ids;
 }
 
-/** All badges to celebrate on RouteCompleted for this run, in display order. */
+/** all badges to celebrate on RouteCompleted for this run*/
 export function getRunCompletionCelebrationBadgeIds(
   stats: UserStats,
   celebratedIds: ReadonlySet<string>,
@@ -233,7 +228,7 @@ export function getNewUnlockIds(
   return getUnlockedBadgeIds(stats).filter((id) => !celebratedIds.has(id));
 }
 
-/** Badges to celebrate after generating a route (first generation → Första rutten). */
+/** Badges to celebrate after generating a route*/
 export function getRouteGeneratedCelebrationBadgeIds(
   stats: UserStats,
   celebratedIds: ReadonlySet<string>,

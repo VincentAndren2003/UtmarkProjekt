@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import BottomSheet, {
   BottomSheetHandle,
   BottomSheetView,
@@ -85,11 +84,10 @@ import { CustomMapStyle } from '../models/CustomMapStyle';
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
 const FETCH_RADIUS_M = 50000;
-/** Close street-level zoom when centering on the user (reference tuning). */
 const MAP_USER_LOCATION_DELTA = 0.012;
 
-// Beräknar luftlinjeavstånd i meter mellan två GPS-koordinater (Haversine-formeln).
-function haversineMeters(
+// Avstånd i meter mellan två koordinater.
+function distanceBetweenCoordinates(
   a: { latitude: number; longitude: number },
   b: { latitude: number; longitude: number }
 ): number {
@@ -108,7 +106,7 @@ function haversineMeters(
 function sumTrackDistanceM(points: { lat: number; long: number }[]): number {
   let total = 0;
   for (let i = 1; i < points.length; i++) {
-    total += haversineMeters(
+    total += distanceBetweenCoordinates(
       { latitude: points[i - 1].lat, longitude: points[i - 1].long },
       { latitude: points[i].lat, longitude: points[i].long }
     );
@@ -365,10 +363,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     'Genererad rutt';
   const isPlacementSheet = placementMode !== null && sheetMode === 'request';
   const canDragSheet = !isPlacementSheet;
-  /**
-   * Request sheet: when expanded, drag only from the handle (slider must not move the sheet).
-   * When collapsed, allow dragging on the greeting too so the peek is easy to expand.
-   */
+
   const canDragSheetContent =
     canDragSheet && (sheetMode !== 'request' || sheetSnapIndex === 0);
 
@@ -428,7 +423,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     [expandedSnap, activeBodyHeight]
   );
 
-  /** Collapsed peek: handle + hint only — per mode, not shared snap height. */
   const collapsedPeekHeight = useCallback(
     (referencePx: number) => snapHeightForScreen(referencePx, windowHeight),
     [windowHeight]
@@ -534,7 +528,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
     }
   }, [sheetMode, isPlacementSheet]);
 
-  /** Fixed bottom padding — must not change when the sheet snaps (avoids map zoom jump). */
   const mapBottomPadding = useMemo(() => {
     if (isPlacementSheet) {
       return placementCollapsed + sheetBottomInset;
@@ -698,7 +691,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           const priorStats = await getMyStats();
           previousRoutesGenerated = priorStats.routesGeneratedCount ?? 0;
         } catch {
-          // Anta 0 om stats inte kan hämtas före increment.
         }
 
         const stats = await incrementGeneratedStats();
@@ -868,7 +860,6 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           previousTotalMeters = priorStats.totalDistanceMeters;
           previousTotalCheckpoints = priorStats.totalCheckpointsTaken;
         } catch {
-          // Om stats inte kan hämtas antar vi 0 — celebration kan missas en gång.
         }
 
         const stats = await completeRunStats({

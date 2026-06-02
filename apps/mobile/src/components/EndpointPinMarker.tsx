@@ -13,7 +13,6 @@ type Props = {
   label?: string;
 };
 
-/** Grön (start) eller röd (slut) pin på kartan. */
 export function EndpointPinMarker({ variant, label }: Props) {
   const color = PIN_COLORS[variant];
 

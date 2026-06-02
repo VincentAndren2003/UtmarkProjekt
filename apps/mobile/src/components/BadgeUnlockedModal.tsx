@@ -31,7 +31,6 @@ type ContentProps = {
   onViewAll: () => void;
 };
 
-/** Remounted via key when badge set changes so pager index resets without an effect. */
 function BadgeUnlockedModalContent({
   badges,
   onClose,

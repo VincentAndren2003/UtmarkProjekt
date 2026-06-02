@@ -1,19 +1,10 @@
-/* eslint-disable @typescript-eslint/no-require-imports -- lokala badge-tillgångar */
 import { ImageSourcePropType } from 'react-native';
 
-// Katalog över alla badges. Lägg till en ny badge genom att utöka listan
-// här, så dyker den upp både på profilsidan och i BadgesScreen automatiskt.
-//
-// `unlocked` i listan nedan är bara default — använd `getBadgesForUser()` i UI
-// med id:n från backend så att bara verkligt upplåsta badges visas som aktiva.
 export type Badge = {
   id: string;
   name: string;
   description: string;
   unlocked: boolean;
-  // TODO: Lägg till bild när vi har grafik för respektive badge.
-  // Lokal: image: require('../assets/badges/skogsvandrare.png')
-  // Remote: image: { uri: 'https://...' }
   image?: ImageSourcePropType;
 };
 
@@ -125,7 +116,6 @@ export const BADGES: Badge[] = [
   },
 ];
 
-/** Bygg badge-lista för inloggad användare. `unlockedIds` från t.ex. GET /users/me/badges. */
 export function getBadgesForUser(
   unlockedIds: ReadonlySet<string> | readonly string[] = []
 ): Badge[] {
