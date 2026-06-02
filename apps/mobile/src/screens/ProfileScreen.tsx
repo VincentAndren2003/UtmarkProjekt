@@ -119,6 +119,7 @@ export function ProfileScreen({ navigation, route }: Props) {
         const result = await getFriendCount();
         if (active) setFriendsCount(result.count);
       } catch {
+        // ignore (friend-service may be unavailable)
       }
 
       try {

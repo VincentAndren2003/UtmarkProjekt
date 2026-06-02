@@ -12,7 +12,7 @@ type UseUserLocationResult = {
   loading: boolean;
 };
 
-export function useUserLocation() {
+export function useUserLocation(): UseUserLocationResult {
   const [location, setLocation] = useState<Coordinate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

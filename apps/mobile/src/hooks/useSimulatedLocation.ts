@@ -19,17 +19,20 @@ export function useSimuladtedLocation(intervalMs: number = 2000) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    let i = 0;
     const timer = setInterval(() => {
-      setLocation(SIMULATED_PATH[index]);
-      setIndex((prev) => {
-        if (prev >= SIMULATED_PATH.length - 1) {
-          clearInterval(timer);
-          return prev;
-        }
-        return prev + 1;
-      });
+      setLocation(SIMULATED_PATH[i] ?? null);
+      setIndex(i);
+
+      i += 1;
+      if (i >= SIMULATED_PATH.length) {
+        clearInterval(timer);
+      }
     }, intervalMs);
     return () => clearInterval(timer);
-  }, [index]);
+  }, [intervalMs]);
   return { location };
 }
+
+// Typo-safe alias (the original export name is kept for backwards compatibility).
+export const useSimulatedLocation = useSimuladtedLocation;

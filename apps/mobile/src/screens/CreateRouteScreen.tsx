@@ -83,7 +83,7 @@ import { CustomMapStyle } from '../models/CustomMapStyle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateRoute'>;
 
-const FETCH_RADIUS_M = 50000;
+const FETCH_RADIUS_M = 25;
 const MAP_USER_LOCATION_DELTA = 0.012;
 
 // Avstånd i meter mellan två koordinater.
@@ -155,7 +155,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapGestureRef = useRef<NativeViewGestureHandler>(null);
   const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
-  const sliderX = useRef(new Animated.Value(0)).current;
+  const sliderX = useMemo(() => new Animated.Value(0), []);
   const sliderXRef = useRef(0);
   const sliderStartRef = useRef(0);
   const distanceRef = useRef(MIN_DISTANCE);
@@ -691,6 +691,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           const priorStats = await getMyStats();
           previousRoutesGenerated = priorStats.routesGeneratedCount ?? 0;
         } catch {
+          // ignore (stats may be unavailable)
         }
 
         const stats = await incrementGeneratedStats();
@@ -860,6 +861,7 @@ export function CreateRouteScreen({ navigation, route }: Props) {
           previousTotalMeters = priorStats.totalDistanceMeters;
           previousTotalCheckpoints = priorStats.totalCheckpointsTaken;
         } catch {
+          // ignore (stats may be unavailable)
         }
 
         const stats = await completeRunStats({

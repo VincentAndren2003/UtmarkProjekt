@@ -15,11 +15,8 @@ export function GreenAreaLayer({ lat, lng, radius = 1000 }: Props) {
   );
 
   useEffect(() => {
-    console.log('Hämtar grönområden för:', lat, lng, radius);
     fetchGreenAreas(lat, lng, radius)
       .then((data) => {
-        console.log('Antal grönområden:', data.features.length);
-        console.log('Första feature:', JSON.stringify(data.features[0]));
         setGreenAreas(data);
       })
       .catch((err) => console.error('Kunde inte hämta grönområden:', err));

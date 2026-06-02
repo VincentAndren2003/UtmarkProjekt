@@ -1,5 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 export type Badge = {
   id: string;
   name: string;

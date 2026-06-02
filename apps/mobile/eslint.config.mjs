@@ -33,6 +33,10 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',
+      // React Native code often uses state/ref patterns that are fine in practice
+      // but can be flagged by some react-hooks rule sets.
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_' },
