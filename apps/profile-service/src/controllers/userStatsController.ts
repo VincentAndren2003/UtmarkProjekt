@@ -8,9 +8,8 @@ interface CompleteRunBody {
   checkpointsTakenCount: number;
 }
 
-/**
- * GET /stats/me
- */
+//GET /stats/me
+
 export async function getMyStats(
   req: Request,
   res: Response,
@@ -30,9 +29,8 @@ export async function getMyStats(
   }
 }
 
-/**
- * POST /stats/complete-run
- */
+//POST /stats/complete-run
+ 
 export async function completeRun(
   req: Request,
   res: Response,
@@ -94,9 +92,8 @@ export async function completeRun(
   }
 }
 
-/**
- * POST /stats/increment-shared
- */
+//POST /stats/increment-shared
+ 
 export async function incrementRoutesShared(
   req: Request,
   res: Response,
@@ -117,9 +114,8 @@ export async function incrementRoutesShared(
   }
 }
 
-/**
- * POST /stats/increment-recieved
- */
+// POST /stats/increment-recieved
+
 export async function incrementRoutesReceived(
   req: Request,
   res: Response,
@@ -140,9 +136,8 @@ export async function incrementRoutesReceived(
   }
 }
 
-/**
- * POST /stats/increment-generated
- */
+// POST /stats/increment-generated
+ 
 export async function incrementRoutesGenerated(
   req: Request,
   res: Response,

@@ -9,10 +9,6 @@ declare global {
   }
 }
 
-/**
- * This service trusts the API gateway to verify JWTs.
- * Gateway must forward `x-user-id` for protected routes.
- */
 export function gatewayAuthMiddleware(
   req: Request,
   res: Response,
@@ -25,6 +21,6 @@ export function gatewayAuthMiddleware(
       .json({ error: 'Missing x-user-id (gateway auth required)' });
     return;
   }
-  req.userId = userId;
+  req.userId = userId; // Spara userId på req så controllers kan använda det
   next();
 }
