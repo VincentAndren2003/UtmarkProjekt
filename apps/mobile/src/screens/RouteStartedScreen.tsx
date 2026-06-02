@@ -7,8 +7,6 @@ import { RouteResponse } from '../types/route';
 type Props = NativeStackScreenProps<RootStackParamList, 'RouteStarted'>;
 
 function estimateMinutes(distanceKm: number) {
-  // Placeholder until backend provides ETA.
-  // ~11 min/km, rounded to nearest 5.
   const raw = Math.max(1, Math.round(distanceKm * 11));
   return Math.round(raw / 5) * 5;
 }

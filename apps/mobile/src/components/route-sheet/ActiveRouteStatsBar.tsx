@@ -11,7 +11,6 @@ export type ActiveRouteStats = {
 type Props = {
   stats: ActiveRouteStats;
   variant?: 'sheet' | 'hud';
-  /** Override HUD top offset (already includes status bar on Android when passed from parent). */
   hudTop?: number;
 };
 

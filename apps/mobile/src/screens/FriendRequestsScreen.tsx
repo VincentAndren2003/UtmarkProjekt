@@ -121,7 +121,6 @@ export function FriendRequestsScreen({ navigation }: Props) {
                 @{item.username}
               </Text>
             ) : null}
-            {/* TODO: Nivå och avstånd när backend/profil har dessa fält. */}
           </View>
 
           <View style={styles.cardActions}>
@@ -143,13 +142,10 @@ export function FriendRequestsScreen({ navigation }: Props) {
             </Pressable>
           </View>
         </View>
-
-        {/* TODO: Visa meddelande när vänförfrågningar kan ha text i backend. */}
       </View>
     );
   };
 
-  // TODO: Lista utgående förfrågningar när GET /api/friends/sent finns.
   const emptyState = (message: string) => (
     <View style={styles.centered}>
       <Text style={styles.emptyText}>{message}</Text>

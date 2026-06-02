@@ -8,7 +8,6 @@ export function trackPointsToPolyline(points: TrackPoint[] | undefined) {
   }));
 }
 
-/** Reduce point count for large tracks before sending to API. */
 export function simplifyTrackPoints(
   points: TrackPoint[],
   maxPoints = 2000

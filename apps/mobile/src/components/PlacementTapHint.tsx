@@ -13,7 +13,6 @@ type Props = {
   variant: EndpointPinVariant;
 };
 
-/** Fast pin i kartans centrum medan användaren panorera/zoomar. */
 export function PlacementTapHint({ label, bottomInset, variant }: Props) {
   const color = PIN_COLORS[variant];
 

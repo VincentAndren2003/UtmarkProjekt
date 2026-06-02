@@ -1,13 +1,12 @@
 import { Checkpoint } from './Checkpoint';
 
 export class Route {
-  // slut koridnater ? // antal checkpoints?
   id: string;
   start: {
     latitude: number;
     longitude: number;
   };
-  distance: number; // km t.ex 2, 5, 10
+  distance: number; // km 
   checkpoints: Checkpoint[] = [];
   currentCheckPointIndex: number;
 

@@ -14,7 +14,6 @@ export function useRouteSheetMetrics(measuredBottomNavHeight: number | null) {
   return useMemo(() => {
     const bottomNavHeight =
       measuredBottomNavHeight ?? SHEET_LAYOUT_REFERENCE.bottomNavOffset;
-    /** Align sheet bottom with nav top — clearance is only inside snap height. */
     const sheetBottomInset = bottomNavHeight;
 
     const collapsedSnap = (referencePx: number) =>
@@ -67,5 +66,4 @@ export function useRouteSheetMetrics(measuredBottomNavHeight: number | null) {
   }, [windowHeight, measuredBottomNavHeight]);
 }
 
-// re-export for consumers that need the reference constant
 export { SHEET_REFERENCE_SCREEN_HEIGHT };

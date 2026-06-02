@@ -3,7 +3,6 @@ import { useWindowDimensions } from 'react-native';
 
 import { SHEET_REFERENCE_SCREEN_HEIGHT } from '../sheetLayout';
 
-/** Scales layout values from the iPhone 17 reference height to the current screen. */
 export function useSheetScale() {
   const { height: windowHeight } = useWindowDimensions();
 

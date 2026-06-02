@@ -13,7 +13,6 @@ const LIST_FRAME = 80;
 const LIST_PLACEHOLDER = 64;
 const PROFILE_FRAME = 80;
 const PROFILE_PLACEHOLDER = 64;
-// Cirkelns grå — syns tillsammans med lockedVeil nedan.
 const BADGE_LOCKED_SURFACE = '#ebecee';
 const BADGE_LOCKED_VEIL = 'rgba(36, 40, 44, 0.20)';
 

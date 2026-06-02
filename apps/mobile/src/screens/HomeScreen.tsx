@@ -172,8 +172,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-// färgkoder:
-// gröna färgen från figma: background: rgba(45, 94, 64, 1);
-// UTMARK färgen: rgba(232, 244, 237, 1) #E8F4ED
-//
