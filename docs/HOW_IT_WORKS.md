@@ -1,135 +1,130 @@
-# How Utmark Works — A Complete Walkthrough
+# Hur Utmark fungerar
 
-This document explains the entire codebase: folder structure, how a request flows through every layer, why things are built the way they are, and where to find anything. 
-
----
-
-
-
-The stack has six pieces:
-
-1. **Mobile app** (Expo / React Native) — what the user actually taps.
-2. **API Gateway** (Express + Node.js + TypeScript, port `3000`) — the single public HTTP entry-point the phone calls.
-3. **auth-service** (port `3001`) — user accounts, password hashing, JWT issuance.
-4. **profile-service** (port `3002`) — user profiles + gamification stats.
-5. **routes-service** (port `3003`) — saved routes, active runs, route challenges.
-6. **friend-service** (port `3004`) — friend requests, acceptance, lists.
-
-All four internal services talk to the **same MongoDB instance** (different collections). The phone never touches MongoDB — it only talks to the gateway.
-
-Authentication uses **JWT**: the phone stores a signed token and sends it on every protected request.
+Det här dokumentet förklarar hela kodbasen: hur monorepot hänger ihop, hur en request rör sig genom systemet, vilka services som finns och var man hittar det man letar efter. Det är tänkt för någon som vill förstå *arkitekturen* och *varför* vi byggt som vi gjort — inte bara hur man startar appen (det står i `README.md`).
 
 ---
 
-## 1. The Big Picture
+## Översikt
 
-```
-┌────────────────┐     HTTP/JSON      ┌─────────────────────────────────────────┐
-│  Mobile App    │ ─────────────────► │           API Gateway  :3000            │
-│  (Expo / RN)   │ ◄───────────────── │           apps/api                      │
-└────────────────┘                    └───────────┬──────────────────────────────┘
-    apps/mobile                                   │  internal HTTP (localhost)
-                                    ┌─────────────┼─────────────────────────┐
-                                    ▼             ▼             ▼            ▼
-                             :3001           :3002          :3003         :3004
-                          auth-service  profile-service  routes-service  friend-service
-                                    │             │             │            │
-                                    └─────────────┴─────────────┴────────────┘
-                                                          │
-                                                          ▼
-                                                      MongoDB
-                                              (utmarkprojekt database)
+Stacken består av sex delar:
+
+1. **Mobilapp** (Expo / React Native) — det användaren faktiskt trycker på.
+2. **API Gateway** (Express + Node.js + TypeScript, port `3000`) — den enda publika ingången som mobilen pratar med.
+3. **auth-service** (port `3001`) — konton, lösenordshashning, utfärdar JWT.
+4. **profile-service** (port `3002`) — profiler och statistik (badges).
+5. **routes-service** (port `3003`) — sparade rutter, aktiva runs, utmaningar.
+6. **friend-service** (port `3004`) — vänförfrågningar, vänlista, sök.
+
+De fyra interna servicerna pratar med **samma MongoDB** (men olika collections). Mobilen rör aldrig databasen direkt — den pratar bara med gatewayen.
+
+Inloggning bygger på **JWT**: mobilen sparar en signerad token och skickar med den på varje skyddad request.
+
+```mermaid
+flowchart LR
+  Mobile[Mobilapp_Expo_RN] -->|"HTTP_JSON"| Gateway[API_Gateway_3000]
+  Gateway -->|"HTTP_JSON"| Auth[auth_service_3001]
+  Gateway -->|"HTTP_JSON_x_user_id"| Profile[profile_service_3002]
+  Gateway -->|"HTTP_JSON_x_user_id"| Routes[routes_service_3003]
+  Gateway -->|"HTTP_JSON_x_user_id"| Friends[friend_service_3004]
+  Auth -->|"Mongoose"| Mongo[(MongoDB)]
+  Profile -->|"Mongoose"| Mongo
+  Routes -->|"Mongoose"| Mongo
+  Friends -->|"Mongoose"| Mongo
+  Gateway -->|"Overpass_API"| Overpass[(Overpass)]
+  Gateway -->|"GET_/tiles/*"| Tiles[(Karttiles_på_VM)]
+  Mobile -->|"UrlTile_/tiles"| Tiles
 ```
 
-Key points:
-- The **gateway** is the only service the phone ever knows about.
-- The **gateway** verifies JWTs and proxies requests — it has no database connection of its own.
-- Internal services trust the `x-user-id` header the gateway adds after verifying the token (they never see the raw JWT).
-- Route **generation** and **green area lookup** (Overpass API) happen directly inside the gateway.
+Det viktigaste att ta med sig:
+
+- Gatewayen är den enda service mobilen känner till.
+- Gatewayen verifierar JWT och proxar vidare — den har ingen egen databas.
+- Efter att gatewayen verifierat en token skickar den bara vidare ett `x-user-id`-header till interna services. Servicerna litar på det headerna (de behöver inte verifiera JWT själva).
+- Ruttgenerering och grönområdessökning (Overpass API) sker direkt i gatewayen.
 
 ---
 
-## 2. Folder Tour
+## 1. Mappstruktur
 
-### Monorepo root
+### Repo-roten
 
 ```
 apps/
   api/               ← API Gateway
-  auth-service/      ← accounts + auth
-  profile-service/   ← profiles + stats
-  routes-service/    ← routes, runs, challenges
-  friend-service/    ← friends
-  mobile/            ← Expo app
+  auth-service/      ← konton + auth
+  profile-service/   ← profiler + stats
+  routes-service/    ← rutter, runs, challenges
+  friend-service/    ← vänner
+  mobile/            ← Expo-app
 packages/
-  types/             ← shared TypeScript types (defined, not yet imported everywhere)
-docs/                ← you are here
+  types/             ← delade TS-typer (definierade, men inte importerade överallt)
+docs/                ← du är här
 .github/workflows/   ← CI (format, lint, test)
 ecosystem.api.config.js        ← PM2: gateway
-ecosystem.services.config.js   ← PM2: all four internal services
+ecosystem.services.config.js   ← PM2: alla fyra interna services
 ```
 
 ### Gateway — `apps/api/src/`
 
 ```
-app.ts              ← ALL gateway routes live here (the menu)
-server.ts           ← bootstraps Express, connects nothing (gateway has no DB)
-config/env.ts       ← reads .env: PORT, JWT_SECRET, service URLs, CORS_ORIGIN
+app.ts              ← Alla gateway-routes ligger här (menyn)
+server.ts           ← startar Express (gatewayen har ingen DB)
+config/env.ts       ← läser .env: PORT, JWT_SECRET, service-URL:er, CORS_ORIGIN
 middleware/
-  authMiddleware.ts ← verifies JWT Bearer token → req.userId
-  errorHandler.ts   ← turns thrown errors into clean { error } JSON
+  authMiddleware.ts ← verifierar JWT Bearer-token → req.userId
+  errorHandler.ts   ← gör kastade fel till rent { error }-JSON
 controllers/
-  routeController.ts    ← generateRouteController (checkpoint placement logic)
-  greenAreaController.ts ← listGreenAreas (calls Overpass)
+  routeController.ts     ← generateRouteController (logik för checkpoints)
+  greenAreaController.ts  ← listGreenAreas (anropar Overpass)
 services/
-  GreenAreaService.ts   ← Overpass API wrapper
-utils/jwt.ts        ← signToken / verifyToken helpers
-routes/routeRouter.ts   ← legacy, not wired in (safe to ignore)
+  GreenAreaService.ts    ← wrapper mot Overpass API
+utils/jwt.ts        ← signToken / verifyToken
+routes/routeRouter.ts   ← router för ruttgenerering
 ```
 
-### Internal services — each follows the same shape
+### Interna services — alla följer samma form
 
 ```
 apps/<service>/src/
-  app.ts              ← Express app + routes
-  server.ts           ← listens on its port
-  config/db.ts        ← Mongoose connect
-  config/env.ts       ← reads .env
-  models/             ← Mongoose schemas
-  controllers/        ← request handlers
+  app.ts              ← Express-app + routes
+  server.ts           ← lyssnar på sin port
+  config/db.ts        ← Mongoose-anslutning
+  config/env.ts       ← läser .env
+  models/             ← Mongoose-scheman
+  controllers/        ← request-hanterare
   middleware/
-    gatewayAuthMiddleware.ts  ← trusts x-user-id header (no JWT verify needed)
+    gatewayAuthMiddleware.ts  ← litar på x-user-id (ingen JWT-verifiering)
     errorHandler.ts
 ```
 
-### Mobile — `apps/mobile/src/`
+### Mobil — `apps/mobile/src/`
 
 ```
-config/env.ts         ← reads EXPO_PUBLIC_API_URL
-lib/api.ts            ← THE file. Every API call + JWT storage lives here.
-screens/              ← one file per screen (see section 4)
-components/           ← shared UI (map layers, bottom sheets, modals, nav bar)
+config/env.ts         ← läser EXPO_PUBLIC_API_URL
+lib/api.ts            ← Nyckelfilen. Alla API-anrop + JWT-lagring sker här.
+screens/              ← en fil per skärm (se avsnitt 6)
+components/           ← delad UI (kartlager, bottom sheets, modaler, navbar)
 hooks/                ← useTracking, useUserLocation, useUserBadges, …
 services/
-  LocationService.ts  ← GPS track-point accumulator during a run
-data/badges.ts        ← badge definitions
-services/badgeUnlock.ts ← client-side badge unlock logic
-storage/              ← AsyncStorage wrappers (favorites, celebrated badges)
-context/BadgeCelebrationContext.tsx ← global badge-unlock modal state
-types/navigation.ts   ← RootStackParamList (also declared in App.tsx)
+  LocationService.ts  ← samlar GPS-punkter under en run
+data/badges.ts        ← badge-definitioner
+services/badgeUnlock.ts ← logik för upplåsning av badges (på klienten)
+storage/              ← AsyncStorage-wrappers (favoriter, firade badges)
+context/BadgeCelebrationContext.tsx ← global modal-state för badge-upplåsning
+types/navigation.ts   ← RootStackParamList
 ```
 
 ---
 
-## 3. Complete API Map
+## 2. Komplett API-karta
 
-### Gateway endpoints (`apps/api/src/app.ts`)
+### Gateway-endpoints (`apps/api/src/app.ts`)
 
-| Method | Path | Auth | What it does |
-|--------|------|------|--------------|
-| GET | `/api/health` | Public | `{ status: 'ok' }` |
-| POST | `/api/auth/signup` | Public | Proxy → auth-service |
-| POST | `/api/auth/login` | Public | Proxy → auth-service |
+| Metod | Path | Auth | Vad den gör |
+|-------|------|------|-------------|
+| GET | `/api/health` | Publik | `{ status: 'ok' }` |
+| POST | `/api/auth/signup` | Publik | Proxy → auth-service |
+| POST | `/api/auth/login` | Publik | Proxy → auth-service |
 | GET | `/api/profile/me` | JWT | Proxy → profile-service + `x-user-id` |
 | PUT | `/api/profile/me` | JWT | Proxy → profile-service |
 | GET | `/api/stats/me` | JWT | Proxy → profile-service |
@@ -145,66 +140,66 @@ types/navigation.ts   ← RootStackParamList (also declared in App.tsx)
 | POST | `/api/challenges` | JWT | Proxy → routes-service |
 | GET | `/api/challenges/me` | JWT | Proxy → routes-service |
 | ALL | `/api/friends/*` | JWT | Catch-all proxy → friend-service |
-| GET | `/api/green-areas` | Public | Overpass API lookup (in gateway) |
-| POST | `/api/routes/generate-route` | Public | Checkpoint generation (in gateway) |
-| GET | `/tiles/*` | Public | Serves map tiles from `/var/www/html/tiles` |
+| GET | `/api/green-areas` | Publik | Overpass-sökning (i gateway) |
+| POST | `/api/routes/generate-route` | Publik | Checkpoint-generering (i gateway) |
+| GET | `/tiles/*` | Publik | Serverar karttiles från `/var/www/html/tiles` |
 
-### Internal service endpoints
+### Interna service-endpoints
 
 **auth-service `:3001`**
 
-| Method | Path | What it does |
-|--------|------|--------------|
-| GET | `/health` | Health check |
-| POST | `/auth/signup` | Validate → bcrypt hash → User.create → JWT |
-| POST | `/auth/login` | Validate → User.findOne → bcrypt.compare → JWT |
+| Metod | Path | Vad den gör |
+|-------|------|-------------|
+| GET | `/health` | Hälsokoll |
+| POST | `/auth/signup` | Validera → bcrypt-hash → User.create → JWT |
+| POST | `/auth/login` | Validera → User.findOne → bcrypt.compare → JWT |
 
 **profile-service `:3002`**
 
-| Method | Path | What it does |
-|--------|------|--------------|
-| GET | `/health` | Health check |
-| GET | `/profile/me` | Profile.findOne by x-user-id |
+| Metod | Path | Vad den gör |
+|-------|------|-------------|
+| GET | `/health` | Hälsokoll |
+| GET | `/profile/me` | Profile.findOne på x-user-id |
 | PUT | `/profile/me` | Profile.findOneAndUpdate (upsert) |
 | GET | `/stats/me` | UserStats.findOne |
-| POST | `/stats/complete-run` | Update streak, distance, run count |
-| POST | `/stats/increment-*` | Increment a specific counter |
+| POST | `/stats/complete-run` | Uppdaterar streak, distans, antal runs |
+| POST | `/stats/increment-*` | Ökar en specifik räknare |
 
 **routes-service `:3003`**
 
-| Method | Path | What it does |
-|--------|------|--------------|
-| GET | `/health` | Health check |
-| POST | `/routes` | Save a generated route |
-| GET | `/routes/:id` | Fetch a saved route |
-| POST | `/runs` | Start a run (status: in_progress) |
-| GET | `/runs/me` | List user's runs (filterable by status) |
-| PATCH | `/runs/:id/complete` | Finalise run + store track points |
-| POST | `/challenges` | Send a route challenge to a friend |
-| GET | `/challenges/me` | List challenges sent/received |
+| Metod | Path | Vad den gör |
+|-------|------|-------------|
+| GET | `/health` | Hälsokoll |
+| POST | `/routes` | Sparar en genererad rutt |
+| GET | `/routes/:id` | Hämtar en sparad rutt |
+| POST | `/runs` | Startar en run (status: in_progress) |
+| GET | `/runs/me` | Listar användarens runs (filtrerbart på status) |
+| PATCH | `/runs/:id/complete` | Avslutar run + sparar track points |
+| POST | `/challenges` | Skickar en ruttutmaning till en vän |
+| GET | `/challenges/me` | Listar skickade/mottagna utmaningar |
 
 **friend-service `:3004`**
 
-| Method | Path | What it does |
-|--------|------|--------------|
-| GET | `/health` | Health check |
-| GET | `/api/friends` | List accepted friends (aggregated with profiles) |
-| GET | `/api/friends/count` | Friend count |
-| GET | `/api/friends/pending` | Incoming requests |
-| GET | `/api/friends/search` | Search users by username |
-| POST | `/api/friends/request/:friendId` | Send friend request |
-| POST | `/api/friends/accept/:requesterId` | Accept friend request |
-| DELETE | `/api/friends/:friendId` | Remove friend |
+| Metod | Path | Vad den gör |
+|-------|------|-------------|
+| GET | `/health` | Hälsokoll |
+| GET | `/api/friends` | Listar accepterade vänner (sammanslaget med profiler) |
+| GET | `/api/friends/count` | Antal vänner |
+| GET | `/api/friends/pending` | Inkommande förfrågningar |
+| GET | `/api/friends/search` | Söker användare på username |
+| POST | `/api/friends/request/:friendId` | Skickar vänförfrågan |
+| POST | `/api/friends/accept/:requesterId` | Accepterar vänförfrågan |
+| DELETE | `/api/friends/:friendId` | Tar bort vän |
 
 ---
 
-## 4. Walkthrough: What Happens When You Tap "Create Account"
+## 3. Genomgång: vad händer när du trycker "Skapa konto"?
 
-This is the most important walkthrough — it touches every layer from phone to database.
+Det här är den viktigaste genomgången — den rör varje lager från mobil till databas.
 
-### Step 1 — Screen calls `signup()` (`CreateAccountScreen.tsx`)
+### Steg 1 — Skärmen anropar `signup()` (`CreateAccountScreen.tsx`)
 
-The screen does exactly one thing: call `signup(email, password)` from `lib/api.ts`, then navigate on success or show the error message.
+Skärmen gör egentligen bara en sak: anropar `signup(email, password)` från `lib/api.ts`, och navigerar vidare vid lyckat resultat (eller visar felmeddelandet).
 
 ```tsx
 const handleSignUp = async () => {
@@ -217,9 +212,9 @@ const handleSignUp = async () => {
 };
 ```
 
-The screen has no idea what "signup" involves. That's the point.
+Skärmen vet inte vad "signup" innebär under huven, och det är hela poängen.
 
-### Step 2 — `signup()` in `lib/api.ts`
+### Steg 2 — `signup()` i `lib/api.ts`
 
 ```typescript
 export async function signup(email: string, password: string) {
@@ -232,21 +227,22 @@ export async function signup(email: string, password: string) {
 }
 ```
 
-1. Calls the internal `request()` helper with `POST /api/auth/signup`.
-2. Saves the returned JWT to the device's **secure keychain** (`expo-secure-store`).
-3. Returns the response.
+1. Anropar den interna hjälpfunktionen `request()` med `POST /api/auth/signup`.
+2. Sparar den returnerade JWT:n i enhetens **säkra keychain** (`expo-secure-store`).
+3. Returnerar svaret.
 
-### Step 3 — `request()` does the `fetch`
+### Steg 3 — `request()` gör själva `fetch`
 
-This is the **only place in the entire mobile app where `fetch()` is called.** It:
-- Adds `Content-Type: application/json` (always).
-- Adds `Authorization: Bearer <token>` if `auth: true` is passed.
-- Serialises the body to JSON.
-- Parses the response and either returns it or throws an `Error` with the server's message.
+Det här är den **enda** platsen i hela mobilappen där `fetch()` anropas. Den:
 
-### Step 4 — Request arrives at the gateway (`app.ts`)
+- lägger alltid till `Content-Type: application/json`,
+- lägger till `Authorization: Bearer <token>` om `auth: true` skickas in,
+- serialiserar body till JSON,
+- parsar svaret och returnerar det, eller kastar ett `Error` med serverns meddelande.
 
-The route is registered as:
+### Steg 4 — Requesten når gatewayen (`app.ts`)
+
+Routen är registrerad ungefär så här:
 
 ```typescript
 app.post('/api/auth/signup', async (req, res, next) => {
@@ -261,31 +257,31 @@ app.post('/api/auth/signup', async (req, res, next) => {
 });
 ```
 
-Two middlewares have already run: `cors()` (allows the phone) and `express.json()` (parses the body). This is a public route — no `authMiddleware`.
+Två middlewares har redan kört: `cors()` (släpper in mobilen) och `express.json()` (parsar body). Det här är en publik route — ingen `authMiddleware`.
 
-### Step 5 — Gateway proxies to auth-service
+### Steg 5 — Gatewayen proxar till auth-service
 
-`proxyJson` does an internal `fetch` to `http://127.0.0.1:3001/auth/signup`. The **auth-service** then runs the real work:
+`proxyJson` gör en intern `fetch` mot `http://127.0.0.1:3001/auth/signup`. **auth-service** gör sedan det riktiga jobbet:
 
-1. Validate the request body.
-2. Normalise email to lowercase.
-3. `User.findOne({ email })` — reject if already exists.
-4. `bcrypt.hash(password, 10)` — slow hash on purpose.
+1. Validerar request-body.
+2. Normaliserar email till gemener.
+3. `User.findOne({ email })` — avvisar om användaren redan finns.
+4. `bcrypt.hash(password, 10)` — medvetet långsam hashning.
 5. `User.create({ email, passwordHash })` → MongoDB.
-6. `signToken({ userId })` → JWT (7-day expiry by default).
+6. `signToken({ userId })` → JWT (7 dagars giltighet som standard).
 7. `res.status(201).json({ token, user })`.
 
-### Step 6 — Phone saves the token, screen navigates
+### Steg 6 — Mobilen sparar token, skärmen navigerar
 
-Back in `signup()`, `tokenStorage.set(result.token)` saves the JWT. The screen then navigates to `CreateRoute`.
+Tillbaka i `signup()` sparar `tokenStorage.set(result.token)` JWT:n. Skärmen navigerar sedan vidare till `CreateRoute`.
 
-### The full flow visualised
+### Hela flödet
 
 ```
-[Phone] tap "Create Account"
+[Mobil] trycker "Skapa konto"
    │
    ▼ CreateAccountScreen.tsx (handleSignUp)
-   │ calls signup()
+   │ anropar signup()
    ▼ lib/api.ts (signup → request → fetch)
    │
    ──── HTTP POST /api/auth/signup ────────────────────────►
@@ -294,7 +290,7 @@ Back in `signup()`, `tokenStorage.set(result.token)` saves the JWT. The screen t
                                                proxyJson → :3001
                                                    │
                                                    ▼ apps/auth-service
-                                                   1. validate
+                                                   1. validera
                                                    2. bcrypt.hash
                                                    3. User.create ──► MongoDB
                                                    4. signToken
@@ -308,9 +304,9 @@ Back in `signup()`, `tokenStorage.set(result.token)` saves the JWT. The screen t
 
 ---
 
-## 5. Walkthrough: A Protected Request (`GET /api/profile/me`)
+## 4. Genomgång: en skyddad request (`GET /api/profile/me`)
 
-Same pattern, but with one extra step: **authMiddleware** runs before the proxy.
+Samma mönster som ovan, men med ett extra steg: **authMiddleware** kör innan proxyn.
 
 ```typescript
 app.get('/api/profile/me', authMiddleware, async (req, res, next) => {
@@ -321,7 +317,7 @@ app.get('/api/profile/me', authMiddleware, async (req, res, next) => {
 });
 ```
 
-### What `authMiddleware` does
+### Vad `authMiddleware` gör
 
 ```typescript
 export function authMiddleware(req, res, next) {
@@ -332,22 +328,23 @@ export function authMiddleware(req, res, next) {
   try {
     const { userId } = verifyToken(header.slice('Bearer '.length));
     req.userId = userId;
-    next(); // ← only if token is valid
+    next(); // ← endast om token är giltig
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
 ```
 
-In plain English:
-1. Check for `Authorization: Bearer <token>`. Missing → 401, stop.
-2. `verifyToken(token)` — checks the JWT signature using `JWT_SECRET`. Valid → returns `{ userId }`.
-3. Attach `userId` to `req` and call `next()`.
-4. If anything throws → 401. The controller never runs.
+Med ord:
 
-### Gateway adds `x-user-id`, profile-service trusts it
+1. Kolla efter `Authorization: Bearer <token>`. Saknas → 401, stopp.
+2. `verifyToken(token)` — kontrollerar JWT-signaturen med `JWT_SECRET`. Giltig → returnerar `{ userId }`.
+3. Sätt `userId` på `req` och anropa `next()`.
+4. Om något kastas → 401. Controllern körs aldrig.
 
-The gateway never forwards the raw JWT to internal services. Instead it adds `x-user-id: <userId>`. The profile-service reads this header via `gatewayAuthMiddleware`:
+### Gatewayen lägger till `x-user-id`, profile-service litar på det
+
+Gatewayen skickar aldrig vidare den råa JWT:n till interna services. I stället lägger den till `x-user-id: <userId>`. profile-service läser headern via `gatewayAuthMiddleware`:
 
 ```typescript
 export function gatewayAuthMiddleware(req, res, next) {
@@ -358,32 +355,32 @@ export function gatewayAuthMiddleware(req, res, next) {
 }
 ```
 
-This is safe because the service ports are **not publicly reachable** (bound to `127.0.0.1`). Only the gateway can call them.
+Det är säkert eftersom service-portarna **inte är publikt nåbara** (bundna till `127.0.0.1`). Bara gatewayen kan anropa dem.
 
 ---
 
-## 6. Walkthrough: Running a Route
+## 5. Genomgång: att springa en rutt
 
-This is the full product flow from route creation to badge unlock.
+Hela produktflödet, från att en rutt skapas till att en badge låses upp.
 
-### 1. Generate a route
+### 1. Generera en rutt
 
 ```
-[Phone] MapScreen (CreateRouteScreen)
-  user picks start point + distance + filters
+[Mobil] CreateRouteScreen
+  användaren väljer startpunkt + distans
   ↓
-POST /api/routes/generate-route   (public, runs inside gateway)
+POST /api/routes/generate-route   (publik, körs i gatewayen)
   ↓
 routeController.generateRouteController
   ↓
-GreenAreaService → Overpass API (finds parks/forests near the start)
+GreenAreaService → Overpass API (hittar parker/skog nära startpunkten)
   ↓
-Route domain class → places checkpoints within green areas
+Route-domänklassen → placerar checkpoints inom grönområden
   ↓
-{ checkpoints: [...], distance } returned to phone
+{ checkpoints: [...], distance } returneras till mobilen
 ```
 
-### 2. Save the route (optional)
+### 2. Spara rutten (valfritt)
 
 ```
 POST /api/route-records  (JWT)
@@ -393,7 +390,7 @@ routes-service POST /routes
 RouteRecord.create → MongoDB
 ```
 
-### 3. Start a run
+### 3. Starta en run
 
 ```
 POST /api/runs  { routeId }  (JWT)
@@ -402,75 +399,73 @@ routes-service POST /runs
   ↓
 Run.create { userId, route, status: 'in_progress', startedAt }
   ↓
-{ runId } returned to phone
+{ runId } returneras till mobilen
 ```
 
-### 4. Track in real time (client-side)
+### 4. Spåra i realtid (på klienten)
 
-`LocationService` accumulates GPS track points. `useTracking` hook reads `expo-location` and checks proximity to the next checkpoint. The `CreateRouteScreen` handles all state transitions (checkpoint taken → next checkpoint → route complete). No server calls happen during the run itself.
+`LocationService` samlar GPS-punkter. Hooken `useTracking` läser `expo-location` och kollar avståndet till nästa checkpoint. `CreateRouteScreen` hanterar alla tillståndsövergångar (checkpoint tagen → nästa checkpoint → rutt klar). Inga serveranrop sker under själva springandet.
 
-### 5. Complete the run
+### 5. Avsluta en run
 
 ```
 PATCH /api/runs/:id/complete  { trackPoints, durationSeconds, distanceMeters, checkpointsCompleted }  (JWT)
   ↓ proxy
 routes-service PATCH /runs/:id/complete
   ↓
-Run.findByIdAndUpdate → status: 'completed', finishedAt, stats stored
+Run.findByIdAndUpdate → status: 'completed', finishedAt, resultat sparas
 
 POST /api/stats/complete-run  { distanceMeters, checkpointsCompleted }  (JWT)
   ↓ proxy
 profile-service
   ↓
-UserStats update: completedRunsCount++, totalDistanceMeters +=, streak logic
+UserStats uppdateras: completedRunsCount++, totalDistanceMeters +=, streak-logik
 ```
 
-### 6. Badge unlock (client-side)
+### 6. Badge-upplåsning (på klienten)
 
-After the stats update, the app calls `GET /api/stats/me`, then runs `checkBadgeUnlocks(stats)` in `services/badgeUnlock.ts`. Any newly-unlocked badges are shown via `BadgeCelebrationContext`. Celebrated badge IDs are persisted locally so the modal never re-appears.
-
----
-
-## 7. Mobile App — Screens
-
-All screens are registered in `App.tsx` and typed via `RootStackParamList`.
-
-| Screen | What it does |
-|--------|--------------|
-| `Home` | Landing with background video + Sign up / Log in buttons |
-| `CreateAccount` | Email + password form → signup → navigate to CreateRoute |
-| `Login` | Email + password form → login → navigate to CreateRoute |
-| `Welcome` | Onboarding / intro step |
-| `ProfileUpsert` | Create or edit profile (username, name, age, gender) |
-| `CreateRoute` | **Main hub.** Map + route generation + active run + bottom navigation. ~1600 lines. |
-| `RouteStarted` | Transition screen when a run begins |
-| `CheckpointTaken` | Celebration screen when a checkpoint is reached |
-| `RouteCompleted` | Run summary (duration, distance, checkpoints) |
-| `CancelRoute` | Confirmation when cancelling mid-run |
-| `Favorites` | Saved favourite routes (stored locally in AsyncStorage) |
-| `Profile` | User profile view + stats |
-| `History` | List of past runs |
-| `RunDetail` | Detail view for a single completed run |
-| `Challenges` | Sent and received route challenges |
-| `Badges` | Full badge gallery |
-| `Friends` | Friend list + search |
-| `FriendRequests` | Pending incoming friend requests |
-
-### Mental model for screens
-
-Screens are **thin**. They render UI, call functions from `lib/api.ts`, and react to success/failure. They do not call `fetch` directly. `lib/api.ts` does all network work.
+När statistiken uppdaterats anropar appen `GET /api/stats/me` och kör `checkBadgeUnlocks(stats)` i `services/badgeUnlock.ts`. Nya upplåsta badges visas via `BadgeCelebrationContext`. Vilka badges som firats sparas lokalt så modalen inte dyker upp igen.
 
 ---
 
-## 8. Data Models (MongoDB)
+## 6. Mobilappen — skärmar
 
-All services share `mongodb://127.0.0.1:27017/utmarkprojekt` (or Atlas). Each service owns its collections.
+Alla skärmar registreras i `App.tsx` och typas via `RootStackParamList`.
+
+| Skärm | Vad den gör |
+|-------|-------------|
+| `Home` | Startsida med bakgrundsvideo + Skapa konto / Logga in |
+| `CreateAccount` | Email + lösenord → signup → navigera till CreateRoute |
+| `Login` | Email + lösenord → login → navigera till CreateRoute |
+| `Welcome` | Onboarding/intro |
+| `ProfileUpsert` | Skapa eller redigera profil (username, namn, ålder, kön) |
+| `CreateRoute` | **Huvudnavet.** Karta + ruttgenerering + aktiv run + bottennavigering. |
+| `RouteStarted` | Övergångsskärm när en run startar |
+| `CheckpointTaken` | Firande när en checkpoint nås |
+| `RouteCompleted` | Sammanfattning av run (tid, distans, checkpoints) |
+| `CancelRoute` | Bekräftelse vid avbruten run |
+| `Favorites` | Sparade favoritrutter (lokalt i AsyncStorage) |
+| `Profile` | Profil + statistik |
+| `History` | Lista över tidigare runs |
+| `RunDetail` | Detaljvy för en avslutad run |
+| `Challenges` | Skickade och mottagna utmaningar |
+| `Badges` | Hela badge-galleriet |
+| `Friends` | Vänlista + sök |
+| `FriendRequests` | Inkommande vänförfrågningar |
+
+Skärmarna är medvetet **tunna**: de ritar UI, anropar funktioner i `lib/api.ts` och reagerar på resultat. De anropar aldrig `fetch` direkt — allt nätverksarbete sker i `lib/api.ts`.
+
+---
+
+## 7. Datamodeller (MongoDB)
+
+Alla services delar `mongodb://127.0.0.1:27017/utmarkprojekt` (eller Atlas). Varje service äger sina egna collections.
 
 ### `users` — auth-service
 
 ```typescript
 {
-  email: string        // unique, lowercase
+  email: string        // unik, gemener
   passwordHash: string // bcrypt
   createdAt, updatedAt
 }
@@ -480,8 +475,8 @@ All services share `mongodb://127.0.0.1:27017/utmarkprojekt` (or Atlas). Each se
 
 ```typescript
 {
-  userId: ObjectId    // unique, ref users
-  username: string    // unique
+  userId: ObjectId    // unik, ref users
+  username: string    // unik
   fullName: string
   age: number
   gender: 'male' | 'female' | 'other'
@@ -493,7 +488,7 @@ All services share `mongodb://127.0.0.1:27017/utmarkprojekt` (or Atlas). Each se
 
 ```typescript
 {
-  userId: ObjectId    // unique
+  userId: ObjectId    // unik
   routesGeneratedCount: number
   routesSharedCount: number
   routesRecievedCount: number
@@ -515,7 +510,6 @@ All services share `mongodb://127.0.0.1:27017/utmarkprojekt` (or Atlas). Each se
   start: { latitude: number, longitude: number }
   distance: number
   checkpoints: [{ id: string, coordinate: { latitude, longitude }, radius: number }]
-  filters: string[]
   createdAt, updatedAt
 }
 // Index: { createdBy: 1, createdAt: -1 }
@@ -560,56 +554,57 @@ All services share `mongodb://127.0.0.1:27017/utmarkprojekt` (or Atlas). Each se
   status: 'pending' | 'accepted'
   createdAt, updatedAt
 }
-// Unique compound index: { requester: 1, recipient: 1 }
+// Unikt sammansatt index: { requester: 1, recipient: 1 }
 ```
 
 ---
 
-## 9. Infrastructure & Deployment
+## 8. Drift & deployment
 
-### Local development
+### Lokal utveckling
 
-Each app runs with `npm run dev` (uses `ts-node-dev` or `expo start`). Services need their own `.env` files — copy from `.env.example`.
+Varje app startas med `npm run dev` (backend, via `ts-node-dev`) respektive `npm run start` (Expo). Servicerna behöver egna `.env`-filer — kopiera från `.env.example`.
 
-**Start all services:**
 ```bash
-# In separate terminals (or use PM2)
-cd apps/auth-service   && npm run dev   # :3001
-cd apps/profile-service && npm run dev  # :3002
-cd apps/routes-service  && npm run dev  # :3003
-cd apps/friend-service  && npm run dev  # :3004
-cd apps/api            && npm run dev   # :3000
-cd apps/mobile         && npm run start # Expo
+# I separata terminaler (eller använd PM2)
+cd apps/auth-service    && npm run dev   # :3001
+cd apps/profile-service && npm run dev   # :3002
+cd apps/routes-service  && npm run dev   # :3003
+cd apps/friend-service  && npm run dev   # :3004
+cd apps/api             && npm run dev   # :3000
+cd apps/mobile          && npm run start # Expo
 ```
 
-### Production (VM + PM2)
+### Produktion (VM + PM2)
 
 ```bash
-# Build each service
-npm run build   # runs tsc inside each app
+# Bygg varje service (kör tsc i varje app)
+npm run build
 
-# Start with PM2
+# Starta med PM2
 pm2 start ecosystem.api.config.js       # gateway
-pm2 start ecosystem.services.config.js  # all four services
+pm2 start ecosystem.services.config.js  # alla fyra services
 ```
 
-- Gateway on **port 3000** (public, or Nginx proxy on 80 → 127.0.0.1:3000)
-- Services on **127.0.0.1:3001–3004** (not publicly reachable)
-- Map tiles served from `/var/www/html/tiles` via the gateway's `/tiles/*` route
-- Mobile default `EXPO_PUBLIC_API_URL` = `http://79.76.60.222:3000`
+- Gateway på **port 3000** (publik, eller Nginx-proxy 80 → 127.0.0.1:3000)
+- Services på **127.0.0.1:3001–3004** (inte publikt nåbara)
+- Karttiles serveras från `/var/www/html/tiles` via gatewayens `/tiles/*`-route
+- Mobilens standard-`EXPO_PUBLIC_API_URL` = `http://79.76.60.222:3000`
 
 ### CI (GitHub Actions)
 
-On push/PR to `main`:
-1. `npm ci` at root and in `apps/mobile`, `apps/api`, `apps/auth-service`, `apps/profile-service`
-2. `npm run format` (Prettier check)
-3. `npm run lint`
-4. `npm test`
+Vid push/PR mot `main`:
 
-### Environment variables
+1. `npm ci` i roten och i varje app
+2. `npm run lint`
+3. `npm test`
 
-| App | Key vars |
-|-----|----------|
+Formatering (Prettier) finns som script (`npm run format`) men körs inte som ett eget CI-steg i nuläget.
+
+### Miljövariabler
+
+| App | Viktiga variabler |
+|-----|-------------------|
 | `apps/api` | `PORT=3000`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `AUTH_SERVICE_URL`, `PROFILE_SERVICE_URL`, `ROUTES_SERVICE_URL`, `FRIENDS_SERVICE_URL` |
 | `apps/auth-service` | `PORT=3001`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN` |
 | `apps/profile-service` | `PORT=3002`, `MONGODB_URI` |
@@ -617,93 +612,75 @@ On push/PR to `main`:
 | `apps/friend-service` | `PORT=3004`, `MONGODB_URI` |
 | `apps/mobile` | `EXPO_PUBLIC_API_URL` |
 
-`JWT_SECRET` must be **identical** in `apps/api` and `apps/auth-service`. The gateway verifies; the auth-service signs.
+`JWT_SECRET` måste vara **identisk** i `apps/api` och `apps/auth-service` — gatewayen verifierar, auth-service signerar.
 
 ---
 
-## 10. "Where Do I Edit If I Want To…?" — Cheat Sheet
+## 9. "Var ändrar jag om jag vill…?"
 
-| Goal | File(s) to edit |
-|------|-----------------|
-| Add a new gateway endpoint | `apps/api/src/app.ts` |
-| Add a new auth endpoint | `apps/auth-service/src/app.ts` + `controllers/authController.ts` |
-| Add a new profile endpoint | `apps/profile-service/src/app.ts` + `controllers/` |
-| Add a new routes/runs endpoint | `apps/routes-service/src/app.ts` + `services/RoutesService.ts` |
-| Add a new friend endpoint | `apps/friend-service/src/app.ts` + `controllers/friendsController.ts` |
-| Add a field to a user | `apps/auth-service/src/models/User.ts` |
-| Add a field to a profile | `apps/profile-service/src/models/Profile.ts` |
-| Add a field to user stats | `apps/profile-service/src/models/UserStats.ts` |
-| Add a new badge | `apps/mobile/src/data/badges.ts` + `services/badgeUnlock.ts` |
-| Change JWT expiry / secret | `apps/api/.env` AND `apps/auth-service/.env` (must match) |
-| Change which origins can call the API | `apps/api/.env` → `CORS_ORIGIN` |
-| Change the API URL the phone calls | `apps/mobile/.env` → `EXPO_PUBLIC_API_URL` |
-| Add a new mobile API function | `apps/mobile/src/lib/api.ts` (new export using `request()`) |
-| Add a new screen | `apps/mobile/src/screens/` + register in `App.tsx` |
-| Change the map tile source | `apps/mobile/src/screens/CreateRouteScreen.tsx` (UrlTile component) |
-| Change gateway error format | `apps/api/src/middleware/errorHandler.ts` |
-| Change service error format | `errorHandler.ts` in each service |
-
----
-
-## 11. Concept Glossary
-
-These are standard web-dev concepts used throughout the project.
-
-### JWT (JSON Web Token)
-A signed string: `header.payload.signature`. The payload holds `{ userId }`. The signature is computed with `JWT_SECRET` — only our server can produce valid tokens. The phone stores the JWT in `expo-secure-store` and sends it as `Authorization: Bearer <jwt>` on every protected request.
-
-### Middleware
-Functions that run **before** the route handler. Express runs them in order. Each can either call `next()` to continue, or send a response and stop the chain. We use them for: CORS, JSON parsing, JWT verification, `x-user-id` trust, error handling.
-
-### Proxy
-The gateway doesn't implement business logic for auth/profile/etc. Instead it forwards ("proxies") the request to the appropriate internal service and sends back whatever the service returns.
-
-### `x-user-id` header
-After verifying a JWT, the gateway strips the token and instead adds a plain `x-user-id` header to the internal service request. Internal services trust this header — they don't need to verify JWTs themselves.
-
-### Controller
-A function that handles a specific route. Takes `(req, res, next)`, does the real work (validation, DB queries, etc.), and sends a response.
-
-### Mongoose / ODM
-Mongoose is an Object Document Mapper for MongoDB. We define schemas, get TypeScript types, and use ergonomic queries (`User.findOne`, `Run.create`) instead of raw Mongo driver calls.
-
-### bcrypt
-A deliberately slow password-hashing function. We hash before storing; we call `bcrypt.compare(plaintext, hash)` on login. The real password is never stored.
-
-### SecureStore (`expo-secure-store`)
-iOS/Android encrypted key-value storage. Used to persist the JWT between app sessions without storing it in plain AsyncStorage.
-
-### AsyncStorage
-React Native's simple async key-value storage (not encrypted). Used for less sensitive data: favourite routes, celebrated badge IDs.
-
-### `async` / `await`
-JavaScript's way to write asynchronous code (network calls, DB queries) that reads like synchronous code. `await` pauses until the Promise resolves; errors propagate to the nearest `try/catch`.
-
-### Idempotent
-A request where repeating it with the same input gives the same result. `PUT /api/profile/me` is idempotent — calling it twice with the same body leaves the DB in the same state. That's why we use PUT (not POST) for profile saves.
+| Mål | Fil(er) att ändra |
+|-----|-------------------|
+| Lägga till en gateway-endpoint | `apps/api/src/app.ts` |
+| Lägga till en auth-endpoint | `apps/auth-service/src/app.ts` + `controllers/authController.ts` |
+| Lägga till en profil-endpoint | `apps/profile-service/src/app.ts` + `controllers/` |
+| Lägga till en routes/runs-endpoint | `apps/routes-service/src/app.ts` + `services/RoutesService.ts` |
+| Lägga till en vän-endpoint | `apps/friend-service/src/app.ts` + `controllers/friendsController.ts` |
+| Lägga till fält på en user | `apps/auth-service/src/models/User.ts` |
+| Lägga till fält på en profil | `apps/profile-service/src/models/Profile.ts` |
+| Lägga till fält i statistik | `apps/profile-service/src/models/UserStats.ts` |
+| Lägga till en ny badge | `apps/mobile/src/data/badges.ts` + `services/badgeUnlock.ts` |
+| Ändra JWT-giltighet / secret | `apps/api/.env` OCH `apps/auth-service/.env` (måste matcha) |
+| Ändra vilka origins som får anropa API:t | `apps/api/.env` → `CORS_ORIGIN` |
+| Ändra API-URL:en mobilen anropar | `apps/mobile/.env` → `EXPO_PUBLIC_API_URL` |
+| Lägga till en mobil-API-funktion | `apps/mobile/src/lib/api.ts` (ny export via `request()`) |
+| Lägga till en ny skärm | `apps/mobile/src/screens/` + registrera i `App.tsx` |
+| Byta källa för karttiles | `apps/mobile/src/screens/CreateRouteScreen.tsx` (UrlTile) |
+| Ändra felformat i gateway | `apps/api/src/middleware/errorHandler.ts` |
+| Ändra felformat i en service | `errorHandler.ts` i respektive service |
 
 ---
 
-## 12. Known Issues & Technical Debt
+## 10. Begreppsordlista
 
-These are documented here so nothing surprises you.
+Standardbegrepp inom webbutveckling som vi använder genom hela projektet.
 
-| Issue | Detail |
-|-------|--------|
-| `packages/types` unused | Shared types exist but services and mobile duplicate them inline. Not a problem, just not wired up. |
-| `routeCreator.ts` legacy file | `apps/api/src/routes/routeCreator.ts` is a dead file (marked outdated). Safe to delete. |
-| friend-service wrong name | `package.json` says `@utmarkprojekt/auth-service`; `server.ts` logs `"auth-service listening"`. Cosmetic, doesn't affect runtime. |
-| routes-service env | Reads `process.env.port` (lowercase) for `PORT` — defaults to `3003` anyway. |
-| Cross-service DB reads | friend-service reads the `profiles` collection directly via Mongoose (same DB). Works because all services share one MongoDB instance, but couples the services. |
-| Friendship model duplicated | Both friend-service and routes-service define `Friendship`. Same collection, so data is consistent. |
-| CI coverage gap | routes-service and friend-service are not linted/tested in root CI scripts. |
-| No Docker | Deployment is VM + PM2. No docker-compose. |
+**JWT (JSON Web Token)** — en signerad sträng: `header.payload.signature`. Payloaden innehåller `{ userId }`. Signaturen räknas ut med `JWT_SECRET`, så bara vår server kan skapa giltiga tokens. Mobilen sparar JWT:n i `expo-secure-store` och skickar den som `Authorization: Bearer <jwt>` på varje skyddad request.
+
+**Middleware** — funktioner som körs *före* route-hanteraren. Express kör dem i ordning. Varje kan antingen anropa `next()` för att fortsätta, eller svara och stoppa kedjan. Vi använder dem för CORS, JSON-parsning, JWT-verifiering, `x-user-id`-tillit och felhantering.
+
+**Proxy** — gatewayen implementerar inte affärslogik för auth/profil osv. Den vidarebefordrar ("proxar") requesten till rätt intern service och skickar tillbaka det servicen svarar.
+
+**`x-user-id`-header** — efter att ha verifierat en JWT tar gatewayen bort token och lägger i stället till en vanlig `x-user-id`-header. Interna services litar på den och behöver inte verifiera JWT själva.
+
+**Controller** — en funktion som hanterar en specifik route. Tar `(req, res, next)`, gör det riktiga jobbet (validering, DB-frågor) och skickar ett svar.
+
+**Mongoose / ODM** — Mongoose är en Object Document Mapper för MongoDB. Vi definierar scheman, får TS-typer och använder smidiga queries (`User.findOne`, `Run.create`) i stället för råa drivrutinsanrop.
+
+**bcrypt** — en medvetet långsam hashfunktion för lösenord. Vi hashar innan vi sparar och använder `bcrypt.compare(plaintext, hash)` vid login. Det riktiga lösenordet sparas aldrig.
+
+**SecureStore (`expo-secure-store`)** — krypterad nyckel/värde-lagring på iOS/Android. Används för att spara JWT:n mellan sessioner utan att lägga den i vanlig AsyncStorage.
+
+**AsyncStorage** — React Natives enkla nyckel/värde-lagring (okrypterad). Används för mindre känslig data: favoritrutter, firade badge-ID:n.
+
+**`async` / `await`** — JavaScripts sätt att skriva asynkron kod (nätverk, DB) som läses som synkron. `await` pausar tills ett Promise löser sig; fel propagerar till närmaste `try/catch`.
+
+**Idempotent** — en request där upprepning med samma indata ger samma resultat. `PUT /api/profile/me` är idempotent — att anropa den två gånger med samma body lämnar DB:n i samma tillstånd. Därför använder vi PUT (inte POST) för att spara profiler.
 
 ---
 
-## Further Reading
+## 11. Kända saker att känna till (teknisk skuld)
 
-| Document | Content |
-|----------|---------|
-| `docs/ONBOARDING_BEGINNER.md` | Step-by-step local setup guide |
-| `ToDos.md` | Team backlog and open questions |
+| Sak | Detalj |
+|-----|--------|
+| `packages/types` används inte fullt ut | Delade typer finns men dupliceras inline i services och mobil. Inget problem, bara inte inkopplat. |
+| friend-service har fel `name` | `package.json` säger `@utmarkprojekt/auth-service`. Kosmetiskt, påverkar inte körningen. |
+| Korsläsning mot DB | friend-service läser `profiles`-collectionen direkt via Mongoose. Fungerar eftersom alla delar samma MongoDB, men kopplar ihop servicerna. |
+| Friendship-modell duplicerad | Både friend-service och routes-service definierar `Friendship`. Samma collection, så datan är konsekvent. |
+| Ingen Docker | Deployment sker via VM + PM2, ingen docker-compose. |
+
+---
+
+## Vidare läsning
+
+- [`docs/ONBOARDING_BEGINNER.md`](./ONBOARDING_BEGINNER.md) — kör lokalt, steg för steg
+- `README.md` — kortfattad översikt och testguide för läraren
