@@ -30,8 +30,5 @@
     "test:routes-service": "npm --prefix apps/routes-service run test",
     "test:friend-service": "npm --prefix apps/friend-service run test"
   },
-  "dependencies": {
-    "@expo/vector-icons": "^15.1.1",
-    "expo-file-system": "~55.0.22"
-  }
+  "dependencies": {}
 }
