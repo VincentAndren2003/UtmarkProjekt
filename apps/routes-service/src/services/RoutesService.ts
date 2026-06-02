@@ -22,7 +22,6 @@ type SaveRouteBody = {
     coordinate: { latitude: number; longitude: number };
     radius?: number;
   }>;
-  filters?: string[];
 };
 
 export class RoutesService {
@@ -52,7 +51,6 @@ export class RoutesService {
         coordinate: c.coordinate,
         radius: c.radius ?? 20,
       })),
-      filters: body.filters ?? [],
     });
     return doc;
   }

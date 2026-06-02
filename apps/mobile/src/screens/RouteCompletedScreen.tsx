@@ -729,6 +729,5 @@ function savedRouteFromSnapshot(
         radius,
       })
     ),
-    filters: [],
   };
 }

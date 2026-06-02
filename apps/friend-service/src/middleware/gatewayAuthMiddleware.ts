@@ -9,10 +9,6 @@ declare global {
   }
 }
 
-/**
- * This service trusts the API gateway to verify JWTs.
- * Gateway must forward `x-user-id` for protected routes.
- */
 export function gatewayAuthMiddleware(
   req: Request,
   res: Response,

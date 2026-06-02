@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
 import { Route } from '../models/Route';
 import { GreenAreaService } from '../services/GreenAreaService';
-import { normalizeDistance, normalizeFilters } from '../utils/routeUtils';
+import { normalizeDistance } from '../utils/routeUtils';
 
 const greenAreaService = new GreenAreaService();
 
 export const generateRouteController = async (req: Request, res: Response) => {
   try {
-    const { id, start, distance, filters, end } = req.body;
+    const { id, start, distance, end } = req.body;
 
     const normalizedDistance = normalizeDistance(distance);
-    const normalizedFilters = normalizeFilters(filters); // Vad är detta? Vad gör det?
     const greenAreas = await greenAreaService.fetchGreenAreas(
       start.latitude,
       start.longitude,
@@ -30,7 +29,6 @@ export const generateRouteController = async (req: Request, res: Response) => {
       start: newRoute.start,
       end: newRoute.end,
       distance: newRoute.distance,
-      filters: normalizedFilters,
       checkpoints: checkpoints,
     });
   } catch (error) {

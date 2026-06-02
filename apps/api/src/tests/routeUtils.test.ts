@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach } from 'vitest';
-import { normalizeDistance, normalizeFilters } from '../utils/routeUtils';
+import { normalizeDistance } from '../utils/routeUtils';
 
 describe('normalizeDistance', () => {
   afterEach((context) => {
@@ -30,32 +30,5 @@ describe('normalizeDistance', () => {
     expect(normalizeDistance('abc')).toBe(1);
     expect(normalizeDistance(null)).toBe(1);
     expect(normalizeDistance(undefined)).toBe(1);
-  });
-});
-
-describe('normalizeFilters', () => {
-  afterEach((context) => {
-    if (context.task.result?.state === 'pass') {
-      console.log(`PASSED: ${context.task.name}`);
-    } else {
-      console.log(`FAILED: ${context.task.name}`);
-    }
-  });
-
-  test('ska returnera bara strängar', () => {
-    expect(normalizeFilters(['park', 'water'])).toEqual(['park', 'water']);
-    expect(normalizeFilters([1, 'park', null, 'water'])).toEqual([
-      'park',
-      'water',
-    ]);
-  });
-
-  test('ska returnera tom array om input inte är en array', () => {
-    expect(normalizeFilters('not-an-array')).toEqual([]);
-    expect(normalizeFilters(null)).toEqual([]);
-  });
-
-  test('ska returnera tom array om input är tom', () => {
-    expect(normalizeFilters([])).toEqual([]);
   });
 });

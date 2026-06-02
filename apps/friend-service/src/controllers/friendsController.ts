@@ -137,7 +137,7 @@ export async function getFriends(
               '$requester',
             ],
           },
-          // updatedAt sätts när status blir accepted — används som "vänner sedan".
+          // updatedAt sätts när status blir accepted, används som "vänner sedan".
           friendsSince: '$updatedAt',
         },
       },

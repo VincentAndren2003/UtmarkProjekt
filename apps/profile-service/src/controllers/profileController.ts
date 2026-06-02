@@ -28,7 +28,7 @@ export async function upsertMyProfile(
   try {
     const { username, fullName, age, gender } = req.body ?? {};
 
-    // In the gateway we attach userId as string. Profile schema expects ObjectId.
+    // I gateway skriver vi userId as string och får den som string men Profile schema förväntas ObjectId därmed konverterar vi.
     const userObjectId = new Types.ObjectId(req.userId);
 
     const profile = await Profile.findOneAndUpdate(

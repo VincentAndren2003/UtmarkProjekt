@@ -26,7 +26,6 @@ const routeRecordSchema = new Schema(
     },
     distance: { type: Number, required: true },
     checkpoints: { type: [checkpointSchema], required: true },
-    filters: { type: [String], default: [] },
   },
   { timestamps: true }
 );

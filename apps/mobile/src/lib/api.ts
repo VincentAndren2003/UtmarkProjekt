@@ -236,7 +236,6 @@ export type SavedRouteRecord = {
   start: Coordinate;
   distance: number;
   checkpoints: Checkpoint[];
-  filters?: string[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -334,7 +333,6 @@ export function savePersistedRoute(
         coordinate,
         radius,
       })),
-      filters: [],
     },
   });
 }

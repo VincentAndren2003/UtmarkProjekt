@@ -1,11 +1,5 @@
-// This is THE file that wires up our entire API.
-// This file all the URLs the server handles
-//
-// What it does, in order:
-//   1. Make an Express app
-//   2. Plug in middleware (CORS, JSON body parsing)
-//   3. Define every route (URL  ->  controller function)
-//   4. Plug in the error handler (must be LAST, after all routes)
+// Här skapar vi en Expess App
+// Samt Definerar alla routes som finns 
 
 import express from 'express';
 import cors from 'cors';
@@ -41,8 +35,8 @@ async function proxyJson(
 export function createApp() {
   const app = express();
 
-  // CORS lets the mobile app (different origin) call this API.
-  // env.CORS_ORIGIN says which origins are allowed (set in .env).
+  // CORS  låter mobile app från olika origin kalla det här apiet.
+  // env.CORS_ORIGIN berättar vilka origin som är tillåtna
   app.use(cors({ origin: env.CORS_ORIGIN }));
 
   app.use(express.json({ limit: '10mb' }));
@@ -52,7 +46,7 @@ export function createApp() {
     res.json({ status: 'ok' });
   });
 
-  // Auth (public — no JWT required to call these).
+  // Auth är publik så ingen jwt behövs för att kalla dessa
   app.post('/api/auth/signup', async (req, res, next) => {
     try {
       await proxyJson(res, `${env.AUTH_SERVICE_URL}/auth/signup`, {
@@ -75,8 +69,7 @@ export function createApp() {
     }
   });
 
-  // Profile (protected — authMiddleware runs first; if no valid JWT it
-  // returns 401 and the controller never runs).
+  // Profile är Skyddad så authMiddleware körs först, Om ingen giltig JWT så returneras 401 och controller körs inte.
   app.get('/api/profile/me', authMiddleware, async (req, res, next) => {
     try {
       await proxyJson(res, `${env.PROFILE_SERVICE_URL}/profile/me`, {
@@ -135,9 +128,7 @@ export function createApp() {
     }
   });
 
-  /*
-   * USER STATS
-   */
+  //USER STATS
 
   // Fetches stats
   app.get('/api/stats/me', authMiddleware, async (req, res, next) => {
@@ -299,7 +290,7 @@ export function createApp() {
     }
   );
 
-  // Green areas (public — anyone can view).
+  // Green areas Publik så alla kan se
   app.get('/api/green-areas', listGreenAreas);
 
   // route
@@ -308,7 +299,7 @@ export function createApp() {
   //Map tiles
   app.use('/tiles', express.static('/var/www/html/tiles'));
 
-  // Friend requests and response (req.url includes query string, e.g. /search?query=foo)
+  // Friend requests och response req.url inkluderar query string
   app.use('/api/friends', authMiddleware, async (req, res, next) => {
     try {
       await proxyJson(res, `${env.FRIENDS_SERVICE_URL}/api/friends${req.url}`, {
@@ -363,9 +354,8 @@ export function createApp() {
     }
   );
 
-  // Error handler, Express identifies it by the 4 args
-  // (err, req, res, next). Any error thrown in a controller and passed to
-  // next(err) lands here and gets turned into a JSON response.
+  // Error handler, Express identifierar detta genom 4 args (err, req, res, next).
+  // Dessa fel blir då thrown i en controller och skickad till next(err) som landar här och blir omvandlat till en JSON response.
   app.use(errorHandler);
 
   return app;

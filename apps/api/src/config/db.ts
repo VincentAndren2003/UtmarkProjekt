@@ -1,7 +1,6 @@
-/**
- * Gateway does not connect to MongoDB.
- * (Auth/Profile services own the DB connection in microservice mode.)
- */
+
+ // Gateway connectar inte till db 
+ // Ligger som fil för konsekvent struktur som resterande services men har ingen funktion.
 export async function connectDB(): Promise<void> {
   return;
 }

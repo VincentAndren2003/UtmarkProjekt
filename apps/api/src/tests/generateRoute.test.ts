@@ -46,12 +46,11 @@ describe('POST /generate-route', () => {
 
     const res = await request(app)
       .post('/generate-route')
-      .send({ id: 1, start: 'Stockholm', distance: 10, filters: ['park'] });
+      .send({ id: 1, start: 'Stockholm', distance: 10 });
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(1);
     expect(res.body.checkpoints).toEqual(['point1', 'point2']);
-    expect(res.body.filters).toEqual(['park']);
   });
 
   test('ska returnera 500 om route kastar ett fel', async () => {
