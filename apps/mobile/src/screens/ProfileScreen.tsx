@@ -38,8 +38,6 @@ import { useUserBadges } from '../hooks/useUserBadges';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
-// TODO: Ta bort denna dev-fallback när auth-flödet är på plats.
-// Används bara så vi kan se profil-UI:t utan att vara inloggade.
 const DEV_FALLBACK_PROFILE: Profile = {
   _id: 'dev',
   userId: 'dev',
@@ -59,8 +57,6 @@ export function ProfileScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Lokal state för vald profilbild. När vi senare lägger till uppladdning
-  // mot backend ersätts denna med en URL från servern.
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   const [friendsCount, setFriendsCount] = useState(0);
@@ -123,7 +119,6 @@ export function ProfileScreen({ navigation, route }: Props) {
         const result = await getFriendCount();
         if (active) setFriendsCount(result.count);
       } catch {
-        // behåll 0 om det misslyckas
       }
 
       try {

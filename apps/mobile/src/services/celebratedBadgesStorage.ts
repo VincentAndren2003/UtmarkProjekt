@@ -5,7 +5,6 @@ const STORAGE_KEY_PREFIX = 'celebrated_badge_ids_v1_';
 
 let cachedUserId: string | null = null;
 
-/** Call on logout so next login resolves a fresh storage key. */
 export function clearCelebratedBadgeUserCache(): void {
   cachedUserId = null;
 }

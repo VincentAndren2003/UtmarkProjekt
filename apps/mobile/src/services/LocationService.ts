@@ -38,7 +38,6 @@ class LocationService {
     };
   }
 
-  /** Stop recording GPS track points; keep session data for run completion. */
   public pause(): void {
     if (this.subsciption) {
       this.subsciption.remove();

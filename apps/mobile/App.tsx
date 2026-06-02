@@ -40,11 +40,8 @@ export type RootStackParamList = {
         activeRoute?: RouteResponse;
         runId?: string;
         savedRouteId?: string;
-        /** Nollställ kartvy efter avslutad rutt. */
         runFinished?: boolean;
-        /** Öppna befintlig rutt i generated-läge (t.ex. accepterad utmaning). */
         openAsGenerated?: boolean;
-        /** Tid att slå från utmanarens avslutade körning (sekunder). */
         challengeTargetSeconds?: number;
         challengeFromName?: string;
       }
@@ -57,7 +54,6 @@ export type RootStackParamList = {
     elapsedMin: number;
     distanceKm: string;
     paceMinPerKm: string;
-    /** Sista checkpointen — användaren avslutar rutten manuellt på kartan. */
     isLastCheckpoint?: boolean;
   };
   RouteCompleted: {
@@ -72,7 +68,6 @@ export type RootStackParamList = {
     savedRouteId?: string;
     routeSnapshot: RouteResponse;
     from?: 'Login' | 'CreateAccount';
-    /** Badges to show unlock celebration for after completed run. */
     celebrationBadgeIds?: string[];
     challengeTargetSeconds?: number;
     challengeFromName?: string;
@@ -106,7 +101,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 export default function App() {
-  // Stack.Navigator initialRoute means app start on home screen
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
@@ -269,5 +263,4 @@ export default function App() {
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
-  // NavigationContainer is the root component that wraps all the screens, so this is where we list all screens
 }

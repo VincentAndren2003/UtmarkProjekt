@@ -1,4 +1,3 @@
-// hooks/useTracking.ts
 import { useState, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { locationService } from '../services/LocationService';

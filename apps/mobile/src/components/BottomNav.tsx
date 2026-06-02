@@ -9,9 +9,7 @@ type BottomNavProps = {
   navigation: NativeStackNavigationProp<RootStackParamList>;
   activeTab: TabKey;
   fromOrigin?: 'Login' | 'CreateAccount';
-  /** Override Hem — t.ex. nollställ karta efter avslutad rutt. */
   onHomePress?: () => void;
-  /** Blockera navigering om en körning pågår. */
   isRunActive?: boolean;
 };
 

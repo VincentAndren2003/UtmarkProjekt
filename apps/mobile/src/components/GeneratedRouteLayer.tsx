@@ -52,8 +52,6 @@ function triangleCoordinates(
   sizeMeter: number,
   pointingBearingDeg: number
 ): Coordinate[] {
-  // Equilateral triangle: tip points toward next checkpoint,
-  // other two corners are 120° and 240° away from tip direction
   const tip = offsetCoordinate(center, sizeMeter, pointingBearingDeg);
   const left = offsetCoordinate(
     center,

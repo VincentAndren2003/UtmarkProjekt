@@ -29,7 +29,6 @@ export function useUserLocation() {
           return;
         }
 
-        // Get initial position fast
         const initial = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
@@ -39,7 +38,6 @@ export function useUserLocation() {
         });
         setLoading(false);
 
-        // Then watch for updates
         subscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,

@@ -3,7 +3,6 @@ import type { SavedRouteRecord } from '../lib/api';
 
 const STORAGE_KEY = 'favorite_routes_v1';
 
-/** Körstats från avslutad rutt — visas under rubriken i favoritlistan. */
 export type FavoriteRunSummary = {
   distanceKm: string;
   elapsedMin: number;
@@ -11,16 +10,13 @@ export type FavoriteRunSummary = {
   checkpointTotal: number;
 };
 
-/** Sparad rutt + visningsnamn (namn lagras lokalt tills backend stödjer det). */
 export type FavoriteRoute = {
   displayName: string;
   route: SavedRouteRecord;
-  /** När rutten lades till i favoriter (lokal tidpunkt). */
   favoritedAt: string;
   runSummary?: FavoriteRunSummary;
 };
 
-/** Standardrubrik: datum, år och tid (sv-SE). */
 export function defaultFavoriteDisplayName(date = new Date()): string {
   const datePart = date.toLocaleDateString('sv-SE', {
     day: 'numeric',
@@ -113,7 +109,6 @@ export function formatFavoriteMeta(
   return `${label}, ${distanceKm} km`;
 }
 
-/** Underrad under rubriken i favoritlistan. */
 export function formatFavoriteSubtitle(item: FavoriteRoute): string {
   if (item.runSummary) {
     const { distanceKm, elapsedMin, checkpointsCompleted, checkpointTotal } =

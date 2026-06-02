@@ -1,4 +1,3 @@
-/** Konfettifärger per badge — matchar tonen i respektive badge-bild. */
 const BADGE_CONFETTI_COLORS: Record<string, readonly string[]> = {
   'forsta-rutten': ['#3E7A44', '#6ea97b', '#2f7a3f', '#b8d4b0', '#ffffff'],
   'ny-utforskare': ['#2f7a3f', '#5a9e6f', '#8ed99c', '#e8f3ea', '#ffffff'],
