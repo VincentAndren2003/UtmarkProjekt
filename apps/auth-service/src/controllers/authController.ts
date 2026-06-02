@@ -33,9 +33,9 @@ export async function signup(
       return;
     }
 
-    const passwordHash = await bcrypt.hash(String(password), 10);
+    const passwordHash = await bcrypt.hash(String(password), 10); // Hashar lösenord innan vi sparar det i db så varken oauth användare i db kan se lösen
     const user = await User.create({ email: normalizedEmail, passwordHash });
-    const token = signToken({ userId: user.id });
+    const token = signToken({ userId: user.id }); // Skapar en JWT som mobilen kan använda som bevis för inlogg
 
     res.status(201).json({
       token,

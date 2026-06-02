@@ -4,10 +4,11 @@ import { env } from './config/env';
 import { signup, login, deleteMe } from './controllers/authController';
 import { errorHandler } from './middleware/errorHandler';
 
+
 export function createApp() {
   const app = express();
   app.use(cors({ origin: env.CORS_ORIGIN }));
-  app.use(express.json());
+  app.use(express.json()); // Gör att vi kan läsa JSon via req.body
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'auth-service' });

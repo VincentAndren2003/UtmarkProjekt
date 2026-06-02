@@ -20,10 +20,10 @@ export function authMiddleware(
     return;
   }
 
-  try {
+  try { // Tar bort Bearer och varify token
     const { userId } = verifyToken(header.slice('Bearer '.length));
     req.userId = userId;
-    next();
+    next(); // Fortsätter till nästa middleware route
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
